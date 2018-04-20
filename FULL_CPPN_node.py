@@ -55,6 +55,18 @@ class Node():
 		self.actKey = newVal
 
 	'''
+	the following method overrides the default equals method
+	compares two nodes based on instance variables
+	only take number into account, the rest of instance variables are arbitrary for equality
+	@param other object to which calling object is being compared
+	'''
+	def __eq__(self, other):
+		if isinstance(self,type(other)):
+			return self.getNodeNum() == other.getNodeNum()
+		return False
+
+
+	'''
 	toString method for node, prints string representation of a given node
 	@return string representation of node
 	'''

@@ -14,7 +14,6 @@ class Connection():
 	@param innovation innovation number for this gene
 	NOTE: innovation number should be determined by a global counter in the main evolution process
 	'''
-
 	def __init__(self,nodeIn, nodeOut, weight, innovation):
 
 		self.nIn = nodeIn
@@ -33,13 +32,13 @@ class Connection():
 	def getNodeOut(self):
 		return self.nOut
 
-	def getWeight():
+	def getWeight(self):
 		return self.weight
 
-	def getStatus():
+	def getStatus(self):
 		return self.status
 
-	def getInnovationNumber():
+	def getInnovationNumber(self):
 		return self.innovationNumber
 
 	'''
@@ -63,12 +62,33 @@ class Connection():
 	Overrides generic equals method 
 	Two connections considered equal if nodeIn, nodeOut, and status are the same
 	Status included because if connection is deactivated it could be added again into network
+	@param other the other connection object to which calling object is being compared
 	'''
 	def __eq__(self, other):
-    	if isinstance(self, other.__class__):
-    		# allow of below conditions must be true to be equal connection
-        	result = self.getNodeIn() == other.getNodeIn() 
-        	result = result and self.getNodeOut() == other.getNodeOut() 
-        	result = result and self.getStatus() == other.getStatus
-        	return result
-    return False
+		if isinstance(self, type(other)):
+			# allow of below conditions must be true to be equal connection
+			result = self.getNodeIn() == (other.getNodeIn())
+			result = result and self.getNodeOut() == (other.getNodeOut()) 
+			result = result and self.getStatus() == (other.getStatus())
+			return result
+		return False
+
+	'''
+	toString method for connection class
+	creates a string representation for the connection class
+	@return string representation of connection to user    
+	'''
+	def __str__(self):
+		result = ""
+		result += "***** CONNECTION INFORMATION *****\n"
+		result += "NODE IN: "
+		result += str(self.getNodeIn().getNodeNum()) + "\n"
+		result += "NODE OUT: " 
+		result += str(self.getNodeOut().getNodeNum()) + "\n"
+		result += "WEIGHT: "
+		result += str(self.getWeight()) + "\n"
+		result += "ACTIVATION STATUS: " 
+		result += str(self.getStatus()) + "\n"
+		result += "INNOVATION NUMBER: " 
+		result += str(self.getInnovationNumber()) + "\n"
+		return result
