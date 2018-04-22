@@ -1,5 +1,6 @@
 from FULL_CPPN_node import Node
 from FULL_CPPN_con import Connection
+from FULL_CPPN_struct import Genotype
 
 '''
 Helper method for printing out the results of a test to user
@@ -172,6 +173,49 @@ connect4 = Connection(n2,n1, conWeight,innovNum)
 result = not(connect1.__eq__(connect4))
 failedTests = printTestResults(result,testNum,failedTests)
 testNum += 1
+
+print("\n")
+print("***** RUNNING GENOTYPE TESTS *****")
+print("\n")
+
+# size tests
+g1 = Genotype(2,1)
+result = (g1.size() == 4)
+failedTests = printTestResults(result,testNum, failedTests)
+testNum += 1
+
+g2 = Genotype(100,200)
+result = (g2.size() == 301)
+failedTests = printTestResults(result,testNum,failedTests)
+testNum += 1
+
+# connection tests
+result = len(g1.getConnections()) == 3
+print(len(g1.getConnections()))
+failedTests = printTestResults(result, testNum, failedTests)
+testNum += 1
+
+result = len(g2.getConnections()) == 20200
+failedTests = printTestResults(result, testNum, failedTests)
+testNum += 1
+
+# node tests
+result = len(g1.getNodes()) == 4 
+failedTests = printTestResults(result, testNum, failedTests)
+testNum += 1
+
+result = len(g2.getNodes()) == 301
+failedTests = printTestResults(result, testNum, failedTests)
+testNum += 1
+
+# the following contains a few simple networks printed for verification purposes
+# comment out to print less information
+g1 = Genotype(2,1)
+g2 = Genotype(2,1)
+g3 = Genotype(2,1)
+print(g1)
+print(g2)
+print(g3)
 
 
 

@@ -17,6 +17,7 @@ class Node():
 
 		self.nodeNum = nodeNumber
 		self.value = value
+		# layer is not a true layer - only used for sorting nodes based on network topology
 		self.layer = layer
 		self.actKey = actKey
 
@@ -71,7 +72,7 @@ class Node():
 	@return string representation of node
 	'''
 	def __str__(self):
-		result = ""
+		result = "\n"
 		result += "***** NODE INFORMATION ***** \n"
 		result += "Node Number: " 
 		result += str(self.nodeNum) + "\n"
@@ -81,4 +82,5 @@ class Node():
 		result += str(self.layer) + "\n"
 		result += "Activation: " 
 		result += str(self.actKey) + "\n"
+		result += "\n"
 		return result

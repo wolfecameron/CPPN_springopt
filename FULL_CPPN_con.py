@@ -79,7 +79,7 @@ class Connection():
 	@return string representation of connection to user    
 	'''
 	def __str__(self):
-		result = ""
+		result = "\n"
 		result += "***** CONNECTION INFORMATION *****\n"
 		result += "NODE IN: "
 		result += str(self.getNodeIn().getNodeNum()) + "\n"
@@ -91,4 +91,5 @@ class Connection():
 		result += str(self.getStatus()) + "\n"
 		result += "INNOVATION NUMBER: " 
 		result += str(self.getInnovationNumber()) + "\n"
+		result += "\n"
 		return result
