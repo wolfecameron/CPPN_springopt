@@ -2,6 +2,7 @@ from FULL_CPPN_node import Node
 from FULL_CPPN_con import Connection
 import sys
 import random as r
+import numpy as np
 
 '''
 This class implements the actual structure of the CPPN, or the genotype
@@ -57,7 +58,73 @@ class Genotype():
 		return self.connections
 
 	# basic mutator methods were not needed for this class, node and connection lists modified by mutation/XOVER methods etc
-	
+	''' 
+	node mutation method for CPPN
+	picks an active connection in the network and splits it in half, inserting a node in middle
+	adds two connections from the initial node to the newNdode and from the newNode to the terminal node
+	nothing is returned by this mutation method
+	@param innovation1/2 new innovation numbers for the first and second new connection
+	NOTE: EVENTUALLY WANT TO PASS IN A MAP OF CONNECTIONS TO INNOVATION NUMBERS TO CHECK
+	'''
+	def nodeMutate(self, innovation1, innovation2):
+		# pick a random location in the connections, find connection to split
+		conInd = r.randint(0,len(self.connections))	
+		ogIndex = conInd - 1 # use to prevent infinite loop in case all connections deactivated
+		while((not self.connections[conInd % len(self.connections)].getStatus()) and not(conInd == ogIndex)):
+			conInd += 1
+		# deactivate old connection and insert new node 
+		connect = self.connections[conInd]
+		connect.setStatus(False)
+		oldOut = connect.getNodeOut()
+		oldIn = connect.getNodeIn()
+		newLayer = oldIn.getNodeLayer() + ((oldOut.getNodeLayer() - oldIn.getNodeLayer()) / 2) # new layer in between others
+		self.nodes.append(Node(size() + 1, 0, newLayer, 1))
+		self.gSize += 1
+		# add connections for new node, first one has original weight and second has weight of 1
+		self.connections.append(Connection(oldIn, self.nodes[size() - 1], connect.getWeight(), innovation1))
+		self.connections.append(Connection(self.nodes[size() - 1], oldOut, 1, innovation2))
+		# Note, the validity of these connections is ensured because of the way the original connection is split
+
+
+	''' 
+	weight mutation method for CPPN
+	alters a weight from a random connection in the CPPN
+	@param mutpb float value between 0-1 that specifies the probability of weight mutation
+	@return true if any weight mutation was applied false otherwise
+	'''
+	def weightMutate(self, mutpb):
+		mutate = False
+		variance = 1.0
+		for c in self.connectionList:
+			if(random.random() <= mutpb):
+				# mutate weights based on a normal distribution around old weight
+				mutate = True
+				c.weight = np.random.normal(c.weight, variance)
+		return mutate
+
+	'''
+	method to check is a given connection is valid
+	connection considered valid if it nodeIn has a layer less than nodeOut
+	and if the connection is not already present in connection list
+	@param otherCon the connection that is being checked for validity
+	@return true if connection is valid and false otherwise
+	'''
+	def validConnection(self, otherCon):
+		valid = True
+		for c in self.connections:
+			if c == otherCon:
+				valid = False
+		# check that connection is going upwards in layer
+		if(otherCon.getNodeIn().getNodeLayer() >= otherCon.getNodeIn().getNodeLayer()):
+			valid = False
+		return valid
+
+
+
+
+
+
+
 	'''
 	toString method for Genotype class
 	@return string representation of a given genotype
