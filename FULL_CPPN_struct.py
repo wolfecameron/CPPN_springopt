@@ -95,13 +95,53 @@ class Genotype():
 	def weightMutate(self, mutpb):
 		mutate = False
 		variance = 1.0
-		for c in self.connectionList:
-			if(random.random() <= mutpb):
+		for c in self.connections:
+			if(r.random() <= mutpb):
 				# mutate weights based on a normal distribution around old weight
 				mutate = True
 				c.weight = np.random.normal(c.weight, variance)
 		return mutate
 
+	'''
+	activation mutatation function for CPPN structure
+	goes through entire node list and changes activation keys for functions
+	@param mutpb probability of a node's actKey being mutated 
+	@return true if any node was mutated false otherwise
+	'''
+	def activationMutate(self, mutpb):
+		mutate = False
+		for n in self.nodes:
+			if(r.random() <= mutpb):
+				# mutate act by selecting a random actKey
+				mutate = True
+				n.setActKey(random.choice([1]))
+		return mutate
+
+	'''
+	connection mutate method for the CPPN structure
+	adds a new connection into the current CPPN topology
+	@param innovation innovation number to assign to the new connection
+	@return true if connection was added to topology false otherwise
+	'''
+	def connectionMutate(self, innovation):
+		# sort nodes based on topology of CPPN
+		sortedNodes = sorted(self.nodes,key = lambda x: x.getNodeLayer())
+		foundGoodConnection = False
+		tryCount = 0
+		maxTries = 50
+		newWeight = r.uniform(-2,2)
+		# only allow network to attempt to form connections a certain number of times - prevents infinite loop
+		while(not foundGoodConnection and tryCount < maxTries):
+			# choose two random indexes for in and out nodes of connection such that in < out
+			inInd = r.randint(0,len(sortedNodes) - 2)
+			outInd = r.randInt(inInd, len(sortedNodes) - 1)
+			# create possible connection and check if valid
+			connect = Connection(self.nodes[inInd],self.nodes[outInd],newWeight,innovation)
+			if(validConnection(connect)):
+				foundGoodConnection = True
+			tryCount += 1
+		return foundGoodConnection
+	
 	'''
 	method to check is a given connection is valid
 	connection considered valid if it nodeIn has a layer less than nodeOut
