@@ -191,7 +191,6 @@ testNum += 1
 
 # connection tests
 result = len(g1.getConnections()) == 3
-print(len(g1.getConnections()))
 failedTests = printTestResults(result, testNum, failedTests)
 testNum += 1
 
@@ -208,6 +207,7 @@ result = len(g2.getNodes()) == 301
 failedTests = printTestResults(result, testNum, failedTests)
 testNum += 1
 
+'''
 # the following contains a few simple networks printed for verification purposes
 # comment out to print less information
 g1 = Genotype(2,1)
@@ -216,7 +216,32 @@ g3 = Genotype(2,1)
 print(g1)
 print(g2)
 print(g3)
+'''
 
+# activation/getOutput tests
+# these tests depend on weights used in the network, truly verify test through examination
+numIn = 2
+numOut = 1
+g1 = Genotype(numIn,numOut)
+out = g1.getOutput([1,1])
+result = len(out) == numOut
+failedTests = printTestResults(result, testNum, failedTests)
+testNum += 1
+#print(g1)
+#print(out[0])
+
+numOut = 3
+g1 = Genotype(numIn,numOut)
+out = g1.getOutput([2,2])
+result = len(out) == numOut
+failedTests = printTestResults(result,testNum,failedTests)
+testNum += 1
+'''
+print(g1)
+print("Outputs:")
+for o in out:
+	print(o)
+'''
 
 
 print("\n")

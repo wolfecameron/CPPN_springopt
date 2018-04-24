@@ -57,6 +57,43 @@ class Genotype():
 	def getConnections(self):
 		return self.connections
 
+
+	'''
+	method to run the CPPN and get output of the network
+	@param inputs inputs into the network
+	@return output of the network with given inputs
+	pre: len(inputs) == self.numIn - 1
+	'''
+	def getOutput(self, inputs):
+		if(not(len(inputs) == (self.numIn - 1))):
+			print("The length of the list of inputs does not match the number of desired inputs.")
+		else:
+			# sort connections list by the layer of the in node
+			sortedConnection = sorted(self.connections,key = lambda x: x.getNodeIn().getNodeLayer())
+			# set values of input nodes
+			for nodeInd in range(self.numIn - 1):
+				self.nodes[nodeInd].setNodeValue(inputs[nodeInd])
+			# set value of bias node
+			self.nodes[self.numIn - 1].setNodeValue(1)
+			# activate network by going through connection list and querying all connections
+			for c in self.connections:
+				c.getNodeOut().setNodeValue(c.getNodeOut().getNodeValue() + c.getNodeIn().getNodeValue()*c.getWeight())
+			# put all output values in a single list and return
+			outputs = []
+			outInd = self.numIn 
+			foundAllOutputs = False
+			while(outInd < len(self.nodes) and not foundAllOutputs):
+				if(self.nodes[outInd].getNodeLayer() == sys.maxsize):
+					out = self.nodes[outInd].getNodeValue()
+					outputs.append(out)
+				else:
+					foundAllOutputs = True
+				outInd += 1
+			return outputs
+
+
+
+
 	# basic mutator methods were not needed for this class, node and connection lists modified by mutation/XOVER methods etc
 	''' 
 	node mutation method for CPPN
@@ -142,6 +179,7 @@ class Genotype():
 			tryCount += 1
 		return foundGoodConnection
 	
+
 	'''
 	method to check is a given connection is valid
 	connection considered valid if it nodeIn has a layer less than nodeOut
@@ -158,11 +196,6 @@ class Genotype():
 		if(otherCon.getNodeIn().getNodeLayer() >= otherCon.getNodeIn().getNodeLayer()):
 			valid = False
 		return valid
-
-
-
-
-
 
 
 	'''
