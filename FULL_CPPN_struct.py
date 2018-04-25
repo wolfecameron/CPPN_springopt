@@ -31,11 +31,11 @@ class Genotype():
 
 		# create input nodes
 		for i in range(self.numIn):
-			self.nodes.append(Node(i,0,0,1))
+			self.nodes.append(Node(i,0,0,r.choice([0,1,2,3,4,5])))
 
-		# create output nodes
+		# create output nodes, output nodes always have step function
 		for i in range(self.numOut):
-			self.nodes.append(Node(i + self.numIn,0,sys.maxsize,1))
+			self.nodes.append(Node(i + self.numIn,0,sys.maxsize,0))
 
 		# used to track innovation number as connections are created
 		innovationCounter = 0
@@ -57,6 +57,13 @@ class Genotype():
 	def getConnections(self):
 		return self.connections
 
+	def getFitness(self):
+		return self.fitness
+
+	# basic mutator methods for genotype
+	def setFitness(self, newFit):
+		self.fitness = newFit
+
 
 	'''
 	method to run the CPPN and get output of the network
@@ -77,9 +84,10 @@ class Genotype():
 			self.nodes[self.numIn - 1].setNodeValue(1)
 			# activate network by going through connection list and querying all connections
 			for c in self.connections:
-				c.getNodeOut().setNodeValue(c.getNodeOut().getNodeValue() + c.getNodeIn().getNodeValue()*c.getWeight())
+				# FORMULA: nodeOut.val += activation(nodeIn.val)*weight
+				c.getNodeOut().setNodeValue(c.getNodeOut().getNodeValue() + (c.getNodeIn().activate()*c.getWeight()))
 			# put all output values in a single list and return
-			outputs = []
+			outputs = [] 
 			outInd = self.numIn 
 			foundAllOutputs = False
 			while(outInd < len(self.nodes) and not foundAllOutputs):
@@ -114,8 +122,9 @@ class Genotype():
 		connect.setStatus(False)
 		oldOut = connect.getNodeOut()
 		oldIn = connect.getNodeIn()
-		newLayer = oldIn.getNodeLayer() + ((oldOut.getNodeLayer() - oldIn.getNodeLayer()) / 2) # new layer in between others
-		self.nodes.append(Node(size() + 1, 0, newLayer, 1))
+		# layer of new node halfway between two parent nodes
+		newLayer = oldIn.getNodeLayer() + ((oldOut.getNodeLayer() - oldIn.getNodeLayer()) / 2)
+		self.nodes.append(Node(size() + 1, 0, newLayer, r.choice([0,1,2,3,4,5])))
 		self.gSize += 1
 		# add connections for new node, first one has original weight and second has weight of 1
 		self.connections.append(Connection(oldIn, self.nodes[size() - 1], connect.getWeight(), innovation1))
@@ -148,10 +157,11 @@ class Genotype():
 	def activationMutate(self, mutpb):
 		mutate = False
 		for n in self.nodes:
-			if(r.random() <= mutpb):
+			# do not change activation of output - should stay as step function
+			if(r.random() <= mutpb and not n.getNodeLayer() == sys.maxsize):
 				# mutate act by selecting a random actKey
 				mutate = True
-				n.setActKey(random.choice([1]))
+				n.setActKey(random.choice([0,1,2,3,4,5]))
 		return mutate
 
 	'''
@@ -197,6 +207,35 @@ class Genotype():
 			valid = False
 		return valid
 
+	'''
+	crossover function for two Genotypes 
+	takes all genes from fitter parent and adds to new individual
+	then takes genes that are same between two parents and chooses randomly between them
+	@param other the Genotype that is being crossed over with the calling genotype
+	@param pointcxpb probability that genes with similar innov num will be swapped for each iteration
+	@return a new individual that is the retult of crossover
+	'''
+	def crossover(self, other, pointcxpb):
+		# keep disjoint genes from more fit parent
+		child = None
+		parent = None
+		if(self.getFitness() > other.getFitness):
+			child = self.getCopy()
+			parent = other.getCopy()
+		else:
+			child = other.getCopy()
+			parent = self.getCopy()
+		# traverse connection, crossover those with same innov number
+		for childInd in range(len(child.connections)):
+			for parInd in range(len(parent.connections)):
+				if(child.connections[childInd].getInnovationNumber() == parent.connections[parInd].getInnovationNumber()):
+					# swap genes if random number below pointcxpb
+					samp = r.random()
+					if(samp <= pointcxpb):
+						child.connections[childInd] = parent.connections[parInd].getCopy()
+		return child
+
+
 
 	'''
 	toString method for Genotype class
@@ -230,3 +269,17 @@ class Genotype():
 			result += "\n"
 		result += "\n"
 		return result
+
+	'''
+	method to create a deep copy of calling genotype
+	@return a deep copy of the calling genotype
+	'''
+	def getCopy(self):
+		newGen = Genotype(self.numIn - 1, self.numOut)
+		for n in self.nodes:
+			newN = n.getCopy()
+			newGen.nodes.append(newN)
+		for c in self.connections:
+			newC = c.getCopy()
+			newGen.connections.append(newC)
+		return newGen

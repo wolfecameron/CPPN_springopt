@@ -93,3 +93,13 @@ class Connection():
 		result += str(self.getInnovationNumber()) + "\n"
 		result += "\n"
 		return result
+
+	'''
+	method to create a deep copy of a given connection
+	@return a deep copy of the calling connection object
+	'''
+	def getCopy(self):
+		newCon = Connection(self.getNodeIn().getCopy(), self.getNodeOut().getCopy(), self.getWeight(), self.getInnovationNumber())
+		if(self.getStatus() == False):
+			newCon.setStatus(False)
+		return newCon

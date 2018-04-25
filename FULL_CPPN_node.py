@@ -1,3 +1,4 @@
+from FULL_CPPN_act import stepAct, sigAct, reluAct, sinAct, gaussAct, logAct
 '''
 * This file contains the node class used for the full CPPN implementation
 * Node is one of the two structural components of the CPPN 
@@ -12,14 +13,17 @@ class Node():
 	@param value stored within the node when it is activated, usually 0 or changed when CPPN is activated
 	@param layer topological value used to sort connection list before activating CPPN
 	@param actKey used to decide which activation function to use when activating CPPN
+	pre: 0 < actKey <= 5
 	'''
 	def __init__(self, nodeNumber, value, layer, actKey):
-
-		self.nodeNum = nodeNumber
-		self.value = value
-		# layer is not a true layer - only used for sorting nodes based on network topology
-		self.layer = layer
-		self.actKey = actKey
+		if(actKey < 0 or actKey > 5):
+			print("Error: actKey is not within range.")
+		else:
+			self.nodeNum = nodeNumber
+			self.value = value
+			# layer is not a true layer - only used for sorting nodes based on network topology
+			self.layer = layer
+			self.actKey = actKey
 
 
 	'''
@@ -84,3 +88,31 @@ class Node():
 		result += str(self.actKey) + "\n"
 		result += "\n"
 		return result
+	'''
+	method to get a deep copy of a given node
+	@return a deep copy of the given node
+	'''
+	def getCopy(self):
+		newNode = Node(self.getNodeNum(), self.getNodeValue(), self.getNodeLayer(), self.getActKey())
+		return newNode
+
+	'''
+	activates a node based on current value and activation key
+	applies appropriate activation function and returns val
+	@return output of activation function with current node value as its input
+	'''
+	def activate(self):
+		val = self.getNodeValue()
+		if(self.getActKey() == 0):
+			val = stepAct(val)
+		elif(self.getActKey() == 1):
+			val = sigAct(val)
+		elif(self.getActKey() == 2):
+			val = reluAct(val)
+		elif(self.getActKey() == 3):
+			val = sinAct(val)
+		elif(self.getActKey() == 4):
+			val = gaussAct(val)
+		elif(self.getActKey() == 5):
+			val = logAct(val)
+		return val
