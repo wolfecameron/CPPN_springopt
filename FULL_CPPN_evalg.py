@@ -40,7 +40,6 @@ def binarySelect(population):
 			newPop.append(ind1)
 		else:
 			newPop.append(ind2)
-
 	return newPop
 
 '''
@@ -48,7 +47,7 @@ method for applying mutation/crossover to a population
 @param mutpb probability that an individual in a population is mutated
 @param cxpb probability that an individual in a population is crossed over
 @param innovationMap dictionary containing key-value of (inNode,outNode) -> innovation number
-@return new
+@return (new population, new state of innovationMap, new global innovation number)
 '''
 def applyMutation(population, mutpb, innovationMap, globalInnovation):
 	# new population is created as old pop is traversed and mutated
