@@ -109,9 +109,11 @@ class Genotype():
 	adds two connections from the initial node to the newNdode and from the newNode to the terminal node
 	nothing is returned by this mutation method
 	@param innovation1/2 new innovation numbers for the first and second new connection
-	NOTE: EVENTUALLY WANT TO PASS IN A MAP OF CONNECTIONS TO INNOVATION NUMBERS TO CHECK
+	@param innovationMap dictionary containing key-value of (inNode,outNode) -> innovation number
+	@param globalInnovation current value of the global innovation counter being used
+	@return new state of innovationMap and innovationCounter after new node/connections added
 	'''
-	def nodeMutate(self, innovation1, innovation2):
+	def nodeMutate(self, innovationMap, globalInnovation):
 		# pick a random location in the connections, find connection to split
 		conInd = r.randint(0,len(self.connections))	
 		ogIndex = conInd - 1 # use to prevent infinite loop in case all connections deactivated
@@ -126,10 +128,30 @@ class Genotype():
 		newLayer = oldIn.getNodeLayer() + ((oldOut.getNodeLayer() - oldIn.getNodeLayer()) / 2)
 		self.nodes.append(Node(size() + 1, 0, newLayer, r.choice([0,1,2,3,4,5])))
 		self.gSize += 1
+		# check current innovationMap to determine innovation numbers of two new connections
+		con1 = (oldIn.getNodeNum(),self.nodes[size() - 1].getNodeNum())
+		con2 = (self.nodes[size() - 1].getNodeNum(), oldOut.getNodeNum())
+		innovation1 = 0
+		innovation2 = 0
+		k = innovationMap.keys()
+		# if either of these connections exist, assign to them correct innovation number
+		# otherwise given them next available innovation number
+		if(con1 in k):
+			innovation1 = innovationMap[con1]
+		else:
+			innovation1 = globalInnovation
+			innovationMap[con1] = innovation1
+			globalInnovation += 1
+		if(con2 in k):
+			innovation2 = innovationMap[con2]
+		else:
+			innovation2 = globalInnovation
+			innovationMap[con2] = innovation2
+			globalInnovation += 1
 		# add connections for new node, first one has original weight and second has weight of 1
 		self.connections.append(Connection(oldIn, self.nodes[size() - 1], connect.getWeight(), innovation1))
 		self.connections.append(Connection(self.nodes[size() - 1], oldOut, 1, innovation2))
-		# Note, the validity of these connections is ensured because of the way the original connection is split
+		return (globalInnovation, innovationCounter)
 
 
 	''' 
@@ -150,44 +172,56 @@ class Genotype():
 
 	'''
 	activation mutatation function for CPPN structure
-	goes through entire node list and changes activation keys for functions
-	@param mutpb probability of a node's actKey being mutated 
+	takes random node in node list and changes its activation function
 	@return true if any node was mutated false otherwise
 	'''
-	def activationMutate(self, mutpb):
-		mutate = False
-		for n in self.nodes:
-			# do not change activation of output - should stay as step function
-			if(r.random() <= mutpb and not n.getNodeLayer() == sys.maxsize):
-				# mutate act by selecting a random actKey
-				mutate = True
-				n.setActKey(random.choice([0,1,2,3,4,5]))
-		return mutate
+	def activationMutate(self):
+		foundPossible = False
+		index = r.randint(0,len(self.nodes) - 1)
+		while(not foundPossible):
+			if(not self.nodes[index].getNodeLayer() == sys.maxsize):
+				foundPossible = True
+			else:
+				index = r.randint(0,len(self.nodes) - 1)
+		self.nodes[index].setActKey(random.choice([0,1,2,3,4,5]))
 
 	'''
 	connection mutate method for the CPPN structure
 	adds a new connection into the current CPPN topology
-	@param innovation innovation number to assign to the new connection
-	@return true if connection was added to topology false otherwise
+	@param innovationMap dictionary containing key-value of (inNode,outNode) -> innovation number
+	@param globalInnovation current global count of innovation numbers
+	@return updated state of innovationMap and globalInnovation
 	'''
-	def connectionMutate(self, innovation):
+	def connectionMutate(self, innovationMap, globalInnovation):
 		# sort nodes based on topology of CPPN
 		sortedNodes = sorted(self.nodes,key = lambda x: x.getNodeLayer())
 		foundGoodConnection = False
 		tryCount = 0
 		maxTries = 50
 		newWeight = r.uniform(-2,2)
+		connect = None
 		# only allow network to attempt to form connections a certain number of times - prevents infinite loop
 		while(not foundGoodConnection and tryCount < maxTries):
 			# choose two random indexes for in and out nodes of connection such that in < out
-			inInd = r.randint(0,len(sortedNodes) - 2)
+			inInd = r.randint(0,len(sortedNodes) - 2) 
 			outInd = r.randInt(inInd, len(sortedNodes) - 1)
 			# create possible connection and check if valid
-			connect = Connection(self.nodes[inInd],self.nodes[outInd],newWeight,innovation)
+			connect = Connection(self.nodes[inInd],self.nodes[outInd],newWeight,0)
 			if(validConnection(connect)):
 				foundGoodConnection = True
 			tryCount += 1
-		return foundGoodConnection
+		if(foundGoodConnection):
+			# check if new conneciton is already created and assign innovation accordingly 
+			conTup = (connect.getNodeIn().getNodeNum(), connect.getNodeOut().getNodeNum())		
+			if(conTup in innovationMap.keys()):
+				innovation = innovationMap[conTup]
+				self.connections.append(Connection(connect.getNodeIn(), connect.getNodeOut(), connect.getWeight(),innovation))
+			else:
+				self.connections.append(Connection(connect.getNodeIn(), connect.getNodeOut(), connect.getWeight(), globalInnovation))
+				innovationMap[conTup] = globalInnovation
+				globalInnovation += 1
+		# return updated version of innovationMap and globalInnovation
+		return (innovationMap, globalInnovation)
 	
 
 	'''
@@ -215,7 +249,7 @@ class Genotype():
 	@param pointcxpb probability that genes with similar innov num will be swapped for each iteration
 	@return a new individual that is the retult of crossover
 	'''
-	def crossover(self, other, pointcxpb):
+	def crossover(self, other):
 		# keep disjoint genes from more fit parent
 		child = None
 		parent = None
@@ -231,7 +265,7 @@ class Genotype():
 				if(child.connections[childInd].getInnovationNumber() == parent.connections[parInd].getInnovationNumber()):
 					# swap genes if random number below pointcxpb
 					samp = r.random()
-					if(samp <= pointcxpb):
+					if(samp <= .5):
 						child.connections[childInd] = parent.connections[parInd].getCopy()
 		return child
 

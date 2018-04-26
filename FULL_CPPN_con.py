@@ -69,7 +69,7 @@ class Connection():
 			# allow of below conditions must be true to be equal connection
 			result = self.getNodeIn() == (other.getNodeIn())
 			result = result and self.getNodeOut() == (other.getNodeOut()) 
-			result = result and self.getStatus() == (other.getStatus())
+			#result = result and self.getStatus() == (other.getStatus())
 			return result
 		return False
 
