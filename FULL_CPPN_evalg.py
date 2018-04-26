@@ -1,4 +1,5 @@
 import copy
+import random
 '''
 File that implements helper methods for the CPPN evolutionary algorithm
 File contains a main variation algorithm, mutation algorithm, 
@@ -49,12 +50,12 @@ method for applying mutation/crossover to a population
 @param innovationMap dictionary containing key-value of (inNode,outNode) -> innovation number
 @return new
 '''
-def applyMutation(population, mutpb, cxpb, innovationMap, globalInnovation):
+def applyMutation(population, mutpb, innovationMap, globalInnovation):
 	# new population is created as old pop is traversed and mutated
 	newPop = []
 	for orgInd in range(len(population)):
 		if(r.random() <= mutpb):
-			mutType = r.random()
+			mutType = random.random()
 			if(0<= mutType < .25):
 				population[orgInd].weightMutate(mutpb)
 			elif(.25 <= mutType < .5):
@@ -68,3 +69,23 @@ def applyMutation(population, mutpb, cxpb, innovationMap, globalInnovation):
 				innovationMap = newData[0]
 				globalInnovation = newData[1]
 	return (population, innovationMap, globalInnovation)
+
+'''
+method for applying crossover to an entire population
+@param population the population of genotypes that is being crossed over
+@return new population after crossover
+'''
+def applyCrossover(population, cxpb):
+	# build the new population to return as the old population is traversed
+	newPop = []
+	# individuals are crossed over with those next to them
+	# shuffle population to create new possibilities for crossover
+	random.shuffle(population)
+	for orgInd in range(len(population)):
+		doCx = r.random()
+		if(doCX <= cxpb and orgInd < len(population) - 1):
+			newInd = population[orgInd].crossover(population[orgInd + 1])
+			newPop.append(newInd)
+		else:
+			newPop.append(population[orgInd])
+	return newPop

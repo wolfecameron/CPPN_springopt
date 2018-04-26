@@ -18,7 +18,6 @@ class Genotype():
 	@param numOut the number of outputs out of the network
 	'''
 	def __init__(self, numIn, numOut):
-
 		# add one to numIn to account for bias
 		self.numIn = numIn + 1 
 		self.numOut = numOut
@@ -264,8 +263,8 @@ class Genotype():
 			for parInd in range(len(parent.connections)):
 				if(child.connections[childInd].getInnovationNumber() == parent.connections[parInd].getInnovationNumber()):
 					# swap genes if random number below pointcxpb
-					samp = r.random()
-					if(samp <= .5):
+					swap = r.random()
+					if(swap <= .5):
 						child.connections[childInd] = parent.connections[parInd].getCopy()
 		return child
 
