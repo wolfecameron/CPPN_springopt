@@ -88,3 +88,37 @@ def applyCrossover(population, cxpb):
 		else:
 			newPop.append(population[orgInd])
 	return newPop
+
+
+'''
+method for separating all members of a population into groups of species
+@param pop population that is being separated into species
+@param thresh maximum value of distance between to genomes to be in same species
+@param theta1,2,3 weights used for calculating distance
+@return 2D list containing all species
+'''
+def speciatePopulation(pop, thresh, theta1, theta2, theta3):
+	species = [[]]
+	species[0].append(pop[0])
+	for orgInd in range(1,len(pop)):
+		currOrg = pop[ordIng]
+		spInd = 0
+		foundSpecies = False
+		# find correct species for each individual and add it into the vector for that species
+		while(spInd < len(species) and not foundSpecies):
+			# get distance from original element in that species to decide if a member
+			dist = currOrg.getDistance(species[spInd][0],theta1,theta2,theta3)
+			if(dist <= thresh):
+				foundSpecies = True
+			else:
+				spInd += 1
+		# either add to the species it was found to match or create new species
+		if(foundSpecies):
+			species[spInd].append(currOrg)
+		else:
+			species.append([currOrg])
+	return species
+
+
+
+speciatePopulation([1,2,3,4], 15)

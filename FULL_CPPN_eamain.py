@@ -24,9 +24,10 @@ def main(numIn, numOut, numGen, popSize, cxpb, mutpb):
 	pop = []
 	for loop in range(popSize):
 		pop.append(Genotype(numIn, numOut))
+	# ***** MAIN EA LOOP *****
 	for g in range(numGen):
 		# evaluate function handles speciation of population
-		evaluateFitness(pop)
+		pop = evaluateFitness(pop)
 		pop = binarySelect(pop)
 		# always apply mutation and crossover after selection
 		popTup = applyMutation(pop)
@@ -37,8 +38,37 @@ def main(numIn, numOut, numGen, popSize, cxpb, mutpb):
 	# return the resultant population after evolution done
 	return pop
 
+'''
+evaluation function for the given evolutionary algorithm
+this is often altered to needed constraints of the problem
+@param population the population for which the fitness of 
+all individuals is being found
+@return population after fitness of all individuals is found
+'''
 def evaluateFitness(population):
-	
+	inputs = [(1,1),(0,1),(1,0),(0,0)]
+	expectedOutput_tmp = [0,1,1,0]
+	expectedOutput = np.array(expectedOutput_tmp, copy = True)
+	species = speciatePopulation(population)
+	# go through every species and calculate fitness for all individuals in the species
+	for spInd in range(len(species)):
+		specSize = len(species[spInd])
+		for orgInd in range(len(species[spInd])):
+			currOrg = species[spInd][orgInd]
+			actualOutput_tmp = []
+			for i in range(4):
+				actualOutput_tmp.append(currOrg.getOutput(inputs[i]))
+			actualOutput = np.array(actualOutput_tmp, copy = True)
+			# must multiply original fitness by size of species to make speciation work
+			# one species should not be able to dominate the population
+			currOrg.setFitness(np.sum(np.square(np.subtract(actualOutput,expectedOutput)))*specSize)
+	# parse population from species list and return
+	newPop = []
+	for spec in species:
+		for org in spec:
+			newPop.append(org)
+	return newPop
+
 
 '''
 function to create the original dictionary of innovation numbers
