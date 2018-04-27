@@ -269,6 +269,67 @@ class Genotype():
 		return child
 
 
+	'''
+	method to find the distance between two networks' topologies
+	used for speciation of different network topologies
+	@param other the other structure for which distance is being found
+	@param theta1,2,3 weights given to disjoint genes, excess genes, and average weight difference
+	@return integer value representing distance between two network structures
+	'''
+	def getDistance(self, other, theta1, theta2, theta3):
+		# find max and min innov number to determine if nodes excess or disjoint
+		innovRange = other.findRangeOfInnovationNumbers()
+		minInnov = innovRange[0]
+		maxInnov = innovRange[1]
+		numDisjoint = 0.0
+		numExcess = 0.0
+		for con in self.connections:
+			currInnov = con.getInnovationNumber()
+			if(currInnov < minInnov or currInnov > maxInnov):
+				numExcess += 1
+			oInd = 0
+			found = False
+			while(oInd < len(other.connections) and not found):
+				if(other.connections[oInd].getInnovationNumber() == currInnov):
+					found = True
+				oInd += 1
+			if(not found):
+				numDijoint += 1
+		weightDifference = np.fabs(self.getAverageWeight() - other.getAverageWeight())
+		# N is the number of genes in the larger genome
+		N = len(self.connections) if (len(self.connections) > len(other.connections)) else len(other.connections)
+		# distance formula: O1*disjoint + O2*excess + O3*averageWeightDiff
+		return ((theta1*numExcess)/N) + ((theta2*numDisjoint)/N) + ((theta3*weightDifference)/N)
+
+
+	'''
+	helper method for get distance method
+	returns the average value of weights for each network
+	@return average value of weights for calling network
+	'''
+	def getAverageWeight(self):
+		weightTotal = 0.0
+		for c in self.connections:
+			weightTotal += c.getWeight()
+		return weightTotal/len(self.connections)
+
+
+	'''
+	helper method for getDistance method
+	finds the range of innovation numbers in the calling object
+	@return a tuple containing (min innov #, max innov #)
+	'''
+	def findRangeofInnovationNumbers(self):
+		# set max in min initially to worst values possible
+		maxInnov = -1
+		minInnov = sys.maxsize
+		for c in self.connections:
+			if(c.getInnovationNumber() > maxInnov):
+				maxInnov = c.getInnovation()
+			else if(c.getInnovationNumber() < minInnov):
+				minInnov = c.getInnovationNumber()
+		return (minInnov, maxInnov)
+
 
 	'''
 	toString method for Genotype class

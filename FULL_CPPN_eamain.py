@@ -37,7 +37,8 @@ def main(numIn, numOut, numGen, popSize, cxpb, mutpb):
 	# return the resultant population after evolution done
 	return pop
 
-
+def evaluateFitness(population):
+	
 
 '''
 function to create the original dictionary of innovation numbers
