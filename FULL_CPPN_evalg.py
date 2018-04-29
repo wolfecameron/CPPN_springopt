@@ -14,6 +14,7 @@ to place into the new population
 process continues until a new population of same length is created
 @param population the population from which is being selected
 @return new population after selection is performed
+IMPLEMENT TOURNAMENT SELECTION AS WELL!
 '''
 def binarySelect(population):
 	#stores all selected individuals from binary tournaments

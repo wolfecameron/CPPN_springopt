@@ -1,3 +1,4 @@
+import copy
 '''
 This file contains the implementation of the Connection class for CPPN
 The connection object is the other major portion of the CPPN genotype
@@ -99,7 +100,4 @@ class Connection():
 	@return a deep copy of the calling connection object
 	'''
 	def getCopy(self):
-		newCon = Connection(self.getNodeIn().getCopy(), self.getNodeOut().getCopy(), self.getWeight(), self.getInnovationNumber())
-		if(self.getStatus() == False):
-			newCon.setStatus(False)
-		return newCon
+		return copy.deepcopy(self)

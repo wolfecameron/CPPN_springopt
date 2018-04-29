@@ -243,6 +243,81 @@ for o in out:
 	print(o)
 '''
 
+# node mutations tests
+# check to make sure it updates innovation map and global innovation
+numIn = 2 
+numOut = 1
+g1 = Genotype(numIn,numOut)
+oldLength = len(g1.nodes)
+innovNum = 0
+innovMap = {}
+updates = g1.nodeMutate(innovMap, 0)
+result = g1.size() > oldLength
+innovMap = updates[0]
+innovNum = updates[1]
+result = result and len(innovMap.keys()) == 2
+result = result and innovNum == 2
+failedTests = printTestResults(result, testNum, failedTests)
+testNum += 1
+
+# check connection info of first node mutation
+result = True
+for con in g1.connections:
+	if(not con.getStatus()):
+		inNode = con.getNodeIn().getNodeNum()
+		outNode = con.getNodeOut().getNodeNum()
+		#print("Node In: " + str(inNode))
+		#print("Node Out: " + str(outNode))
+		for k in innovMap.keys():
+			result = result and (inNode in k or outNode in k)
+			#print("new con: " + str(k))
+failedTests = printTestResults(result, testNum, failedTests)
+g1.getOutput([100,100])
+testNum += 1
+#print(g1)
+
+# check weights stay same as before
+'''
+g1 = Genotype(2,1)
+print(g1)
+g1.nodeMutate(innovMap, innovNum)
+print(g1)
+print("CHECK THAT WEIGHTS ABOVE STAY SAME GOING IN AND EQUAL 1 GOING OUT")
+'''
+
+# check weight mutation method
+g1 = Genotype(100,1)
+gcopy = g1.getCopy()
+g1.weightMutate(.2)
+result = False
+for x,y in zip(gcopy.connections,g1.connections):
+	if(not x.getWeight() == y.getWeight()):
+		result = True
+failedTests = printTestResults(result,testNum,failedTests)
+testNum += 1
+
+g1 = Genotype(2,1)
+print(g1)
+g1.weightMutate(1)
+print(g1)
+print("CHECK THAT ALL WEIGHTS WERE CHANGED")
+
+# activation mutation tests
+g1 = Genotype(100,1)
+gcopy = g1.getCopy()
+g1.activationMutate()
+result = False
+count = 0
+for x,y in zip(g1.nodes,gcopy.nodes):
+	if(not x.getActKey() == y.getActKey()):
+		result = True
+		count += 1
+result = result and count == 1 or (not result and count == 0)
+failedTests = printTestResults(result,testNum,failedTests)
+testNum += 1
+
+
+
 
 print("\n")
 print("***** RESULT: " + str(failedTests) + " TESTS FAILED *****")

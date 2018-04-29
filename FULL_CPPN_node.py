@@ -1,11 +1,12 @@
 from FULL_CPPN_act import stepAct, sigAct, reluAct, sinAct, gaussAct, logAct
+import copy
 '''
 * This file contains the node class used for the full CPPN implementation
 * Node is one of the two structural components of the CPPN 
 '''
 
 # Node class, defined in this file to be used in CPPN implementation
-class Node(): 	
+class Node: 	
 
 	'''
 	** constructor for node class
@@ -93,8 +94,7 @@ class Node():
 	@return a deep copy of the given node
 	'''
 	def getCopy(self):
-		newNode = Node(self.getNodeNum(), self.getNodeValue(), self.getNodeLayer(), self.getActKey())
-		return newNode
+		return copy.deepcopy(self)
 
 	'''
 	activates a node based on current value and activation key

@@ -3,6 +3,7 @@ from FULL_CPPN_con import Connection
 import sys
 import random as r
 import numpy as np
+import copy
 
 '''
 This class implements the actual structure of the CPPN, or the genotype
@@ -81,10 +82,11 @@ class Genotype():
 				self.nodes[nodeInd].setNodeValue(inputs[nodeInd])
 			# set value of bias node
 			self.nodes[self.numIn - 1].setNodeValue(1)
-			# activate network by going through connection list and querying all connections
-			for c in self.connections:
-				# FORMULA: nodeOut.val += activation(nodeIn.val)*weight
-				c.getNodeOut().setNodeValue(c.getNodeOut().getNodeValue() + (c.getNodeIn().activate()*c.getWeight()))
+			# activate network by going through sorted connection list and querying all connections
+			for c in sortedConnection:
+				if c.getStatus():		
+					# FORMULA: nodeOut.val += activation(nodeIn.val)*weight
+					c.getNodeOut().setNodeValue(c.getNodeOut().getNodeValue() + (c.getNodeIn().activate()*c.getWeight()))
 			# put all output values in a single list and return
 			outputs = [] 
 			outInd = self.numIn 
@@ -96,6 +98,7 @@ class Genotype():
 				else:
 					foundAllOutputs = True
 				outInd += 1
+			self.gSize += 1
 			return outputs
 
 
@@ -114,22 +117,22 @@ class Genotype():
 	'''
 	def nodeMutate(self, innovationMap, globalInnovation):
 		# pick a random location in the connections, find connection to split
-		conInd = r.randint(0,len(self.connections))	
+		conInd = r.randint(0,len(self.connections) - 1)	
 		ogIndex = conInd - 1 # use to prevent infinite loop in case all connections deactivated
 		while((not self.connections[conInd % len(self.connections)].getStatus()) and not(conInd == ogIndex)):
 			conInd += 1
 		# deactivate old connection and insert new node 
-		connect = self.connections[conInd]
+		connect = self.connections[conInd % len(self.connections)]
 		connect.setStatus(False)
 		oldOut = connect.getNodeOut()
 		oldIn = connect.getNodeIn()
 		# layer of new node halfway between two parent nodes
 		newLayer = oldIn.getNodeLayer() + ((oldOut.getNodeLayer() - oldIn.getNodeLayer()) / 2)
-		self.nodes.append(Node(size() + 1, 0, newLayer, r.choice([0,1,2,3,4,5])))
+		self.nodes.append(Node(self.size(), 0, newLayer, r.choice([0,1,2,3,4,5])))
 		self.gSize += 1
 		# check current innovationMap to determine innovation numbers of two new connections
-		con1 = (oldIn.getNodeNum(),self.nodes[size() - 1].getNodeNum())
-		con2 = (self.nodes[size() - 1].getNodeNum(), oldOut.getNodeNum())
+		con1 = (oldIn.getNodeNum(),self.nodes[self.size() - 1].getNodeNum())
+		con2 = (self.nodes[self.size() - 1].getNodeNum(), oldOut.getNodeNum())
 		innovation1 = 0
 		innovation2 = 0
 		k = innovationMap.keys()
@@ -148,9 +151,9 @@ class Genotype():
 			innovationMap[con2] = innovation2
 			globalInnovation += 1
 		# add connections for new node, first one has original weight and second has weight of 1
-		self.connections.append(Connection(oldIn, self.nodes[size() - 1], connect.getWeight(), innovation1))
-		self.connections.append(Connection(self.nodes[size() - 1], oldOut, 1, innovation2))
-		return (globalInnovation, innovationCounter)
+		self.connections.append(Connection(oldIn, self.nodes[self.size() - 1], connect.getWeight(), innovation1))
+		self.connections.append(Connection(self.nodes[self.size() - 1], oldOut, 1, innovation2))
+		return (innovationMap, globalInnovation)
 
 
 	''' 
@@ -177,12 +180,14 @@ class Genotype():
 	def activationMutate(self):
 		foundPossible = False
 		index = r.randint(0,len(self.nodes) - 1)
+		foundPossible = False
 		while(not foundPossible):
+			# act function of output nodes should never be changed
 			if(not self.nodes[index].getNodeLayer() == sys.maxsize):
 				foundPossible = True
 			else:
 				index = r.randint(0,len(self.nodes) - 1)
-		self.nodes[index].setActKey(random.choice([0,1,2,3,4,5]))
+		self.nodes[index].setActKey(r.choice([0,1,2,3,4,5]))
 
 	'''
 	connection mutate method for the CPPN structure
@@ -247,12 +252,13 @@ class Genotype():
 	@param other the Genotype that is being crossed over with the calling genotype
 	@param pointcxpb probability that genes with similar innov num will be swapped for each iteration
 	@return a new individual that is the retult of crossover
+	MAKE 3 DIFFERENT CROSSOVERS - gaussian and average!!!!
 	'''
 	def crossover(self, other):
 		# keep disjoint genes from more fit parent
 		child = None
 		parent = None
-		if(self.getFitness() > other.getFitness):
+		if(self.getFitness() > other.getFitness()):
 			child = self.getCopy()
 			parent = other.getCopy()
 		else:
@@ -265,6 +271,7 @@ class Genotype():
 					# swap genes if random number below pointcxpb
 					swap = r.random()
 					if(swap <= .5):
+						# TAKE WEIGHT HERE NOT THE CONNECTION
 						child.connections[childInd] = parent.connections[parInd].getCopy()
 		return child
 
@@ -299,7 +306,7 @@ class Genotype():
 		# N is the number of genes in the larger genome
 		N = len(self.connections) if (len(self.connections) > len(other.connections)) else len(other.connections)
 		# distance formula: O1*disjoint + O2*excess + O3*averageWeightDiff
-		return ((theta1*numExcess)/N) + ((theta2*numDisjoint)/N) + ((theta3*weightDifference)/N)
+		return ((theta1*numExcess)/N) + ((theta2*numDisjoint)/N) + ((theta3*weightDifference))
 
 
 	'''
@@ -326,7 +333,7 @@ class Genotype():
 		for c in self.connections:
 			if(c.getInnovationNumber() > maxInnov):
 				maxInnov = c.getInnovation()
-			else if(c.getInnovationNumber() < minInnov):
+			elif(c.getInnovationNumber() < minInnov):
 				minInnov = c.getInnovationNumber()
 		return (minInnov, maxInnov)
 
@@ -343,7 +350,7 @@ class Genotype():
 		result += "OUTPUT NODES: " + str(self.numOut) + "\n"
 		result += "TOTAL SIZE: " + str(self.size()) + "\n"
 		result += "\n"
-		result += "----- NODES (number,type,actKey) ------\n"
+		result += "----- NODES (number,type,actKey,layer) ------\n"
 		result += "\n"
 		for n in self.nodes:
 			lay = n.getNodeLayer()
@@ -354,13 +361,14 @@ class Genotype():
 				nType = "output,"
 			else:
 				nType = "hidden,"
-			result += "(" + str(n.getNodeNum()) + "," + nType + str(n.getActKey()) + ")\n"
+			result += "(" + str(n.getNodeNum()) + "," + nType + str(n.getActKey()) + "," + str(n.getNodeLayer()) + ")\n"
 		result += "\n"
 		result += "----- CONNECTIONS -----\n"
 		result += "\n"
 		for c in self.connections:
-			result += str(c.getNodeIn().getNodeNum()) + " >>> " + str(c.getWeight()) + " >>> " + str(c.getNodeOut().getNodeNum())
-			result += "\n"
+			if c.getStatus():
+				result += str(c.getNodeIn().getNodeNum()) + " >>> " + str(c.getWeight()) + " >>> " + str(c.getNodeOut().getNodeNum())
+				result += "\n"
 		result += "\n"
 		return result
 
@@ -369,11 +377,4 @@ class Genotype():
 	@return a deep copy of the calling genotype
 	'''
 	def getCopy(self):
-		newGen = Genotype(self.numIn - 1, self.numOut)
-		for n in self.nodes:
-			newN = n.getCopy()
-			newGen.nodes.append(newN)
-		for c in self.connections:
-			newC = c.getCopy()
-			newGen.connections.append(newC)
-		return newGen
+		return copy.deepcopy(self)
