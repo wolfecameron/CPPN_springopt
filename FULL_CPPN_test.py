@@ -316,6 +316,101 @@ result = result and count == 1 or (not result and count == 0)
 failedTests = printTestResults(result,testNum,failedTests)
 testNum += 1
 
+# valid connection test
+g1 = Genotype(4,1)
+c1 = Connection(g1.nodes[0],g1.nodes[1], 0,0)
+c2 = Connection(g1.nodes[5], g1.nodes[0],-1,0)
+result = not g1.validConnection(c1)
+result = result and not g1.validConnection(c2)
+failedTests = printTestResults(result,testNum,failedTests)
+
+g1.nodeMutate(innovMap,0)
+g1.connections = []
+c3 = Connection(g1.nodes[6],g1.nodes[0], -1, 0)
+c4 = Connection(g1.nodes[6],g1.nodes[5], 1, 0)
+result = not g1.validConnection(c3)
+result = result and g1.validConnection(c4)
+failedTests = printTestResults(result, testNum, failedTests)
+testNum += 1
+
+# connection mutation tests
+innovMap = {}
+innovNum = 4
+g1 = Genotype(3,1)
+innovNum = g1.nodeMutate(innovMap, innovNum)[1]
+innovNum = g1.nodeMutate(innovMap, innovNum) [1]
+print(g1)
+innovNum = g1.connectionMutate(innovMap, innovNum)[1]
+innovNum = g1.connectionMutate(innovMap, innovNum) [1]
+print(g1)
+print("CHECK THAT CONNECTIONS WERE ADDED PROPERLY.  INNOV NUMS SHOULD BE ALL UNIQUE")
+
+result = input("DID TESTS PASS? (y/n)")
+result = not (result == 'n' or result == 'N')
+failedTests = printTestResults(result, testNum, failedTests)
+testNum += 1
+
+# crossover tests
+innovNum = 4
+g1 = Genotype(2,1)
+g1.setFitness(100)
+g2 = Genotype(2,1)
+g2.setFitness(0)
+g3 = g1.crossover(g2)
+g1.nodeMutate(innovMap,innovNum)
+g3 = g1.crossover(g2)
+print(g1)
+print(g3)
+print("CHECK THAT CONNECTIONS SWITCHED INTITALLY AND NONE OF EXCESS CONNECTIONS CHANGED.")
+
+result = input("DID TESTS PASS? (y/n)")
+result = not (result == 'n' or result == 'N')
+failedTests = printTestResults(result, testNum, failedTests)
+testNum += 1
+
+# tests for distance method and helper methods
+g1 = Genotype(1,1)
+avg = g1.getAverageWeight()
+totalW = 0.0
+totalC = 0.0
+for c in g1.connections:
+	totalW += c.getWeight()
+	totalC += 1
+result = avg == (totalW/totalC)
+failedTests = printTestResults(result, testNum, failedTests)
+testNum += 1
+
+g1 = Genotype(100,1)
+avg = g1.getAverageWeight()
+totalW = 0.0
+totalC = 0.0
+for c in g1.connections:
+	totalW += c.getWeight()
+	totalC += 1
+result = avg == (totalW/totalC)
+failedTests = printTestResults(result, testNum, failedTests)
+testNum += 1
+
+g1 = Genotype(2,1)
+innovTup = g1.findRangeOfInnovationNumbers()
+print(innovTup)
+result = innovTup[0] == 0 and innovTup[1] == 2
+failedTests = printTestResults(result, testNum, failedTests)
+testNum += 1
+
+innovNum = 3
+innovNum = g1.nodeMutate(innovMap, innovNum)[1]
+innovNum = g1.nodeMutate(innovMap, innovNum)[1]
+innovNum = g1.nodeMutate(innovMap, innovNum)[1]
+innovNum = g1.nodeMutate(innovMap, innovNum)[1]
+innovTup = g1.findRangeOfInnovationNumbers()
+print(g1)
+print("HERE IS THE INNOVATION MIN MAX RETURNED BY METHOD: " + str(innovTup))
+result = input("DID TESTS PASS? (y/n)")
+result = not (result == 'n' or result == 'N')
+failedTests = printTestResults(result, testNum, failedTests)
+testNum += 1
+
 
 
 

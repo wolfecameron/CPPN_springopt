@@ -201,22 +201,23 @@ class Genotype():
 		sortedNodes = sorted(self.nodes,key = lambda x: x.getNodeLayer())
 		foundGoodConnection = False
 		tryCount = 0
-		maxTries = 50
-		newWeight = r.uniform(-2,2)
+		maxTries = 30
+		newWeight = r.uniform(-1,1)
 		connect = None
 		# only allow network to attempt to form connections a certain number of times - prevents infinite loop
 		while(not foundGoodConnection and tryCount < maxTries):
 			# choose two random indexes for in and out nodes of connection such that in < out
 			inInd = r.randint(0,len(sortedNodes) - 2) 
-			outInd = r.randInt(inInd, len(sortedNodes) - 1)
+			outInd = r.randint(inInd, len(sortedNodes) - 1)
 			# create possible connection and check if valid
 			connect = Connection(self.nodes[inInd],self.nodes[outInd],newWeight,0)
-			if(validConnection(connect)):
+			if(self.validConnection(connect)):
 				foundGoodConnection = True
 			tryCount += 1
 		if(foundGoodConnection):
 			# check if new conneciton is already created and assign innovation accordingly 
-			conTup = (connect.getNodeIn().getNodeNum(), connect.getNodeOut().getNodeNum())		
+			conTup = (connect.getNodeIn().getNodeNum(), connect.getNodeOut().getNodeNum())	
+			# create new connection to append using connect variable because must correct innov num	
 			if(conTup in innovationMap.keys()):
 				innovation = innovationMap[conTup]
 				self.connections.append(Connection(connect.getNodeIn(), connect.getNodeOut(), connect.getWeight(),innovation))
@@ -224,6 +225,8 @@ class Genotype():
 				self.connections.append(Connection(connect.getNodeIn(), connect.getNodeOut(), connect.getWeight(), globalInnovation))
 				innovationMap[conTup] = globalInnovation
 				globalInnovation += 1
+		else:
+			print("Valid connection could not be found.")
 		# return updated version of innovationMap and globalInnovation
 		return (innovationMap, globalInnovation)
 	
@@ -241,7 +244,7 @@ class Genotype():
 			if c == otherCon:
 				valid = False
 		# check that connection is going upwards in layer
-		if(otherCon.getNodeIn().getNodeLayer() >= otherCon.getNodeIn().getNodeLayer()):
+		if(otherCon.getNodeIn().getNodeLayer() >= otherCon.getNodeOut().getNodeLayer()):
 			valid = False
 		return valid
 
@@ -270,7 +273,7 @@ class Genotype():
 				if(child.connections[childInd].getInnovationNumber() == parent.connections[parInd].getInnovationNumber()):
 					# swap genes if random number below pointcxpb
 					swap = r.random()
-					if(swap <= .5):
+					if(swap <= .25):
 						# TAKE WEIGHT HERE NOT THE CONNECTION
 						child.connections[childInd] = parent.connections[parInd].getCopy()
 		return child
@@ -301,7 +304,7 @@ class Genotype():
 					found = True
 				oInd += 1
 			if(not found):
-				numDijoint += 1
+				numDisjoint += 1
 		weightDifference = np.fabs(self.getAverageWeight() - other.getAverageWeight())
 		# N is the number of genes in the larger genome
 		N = len(self.connections) if (len(self.connections) > len(other.connections)) else len(other.connections)
@@ -326,14 +329,14 @@ class Genotype():
 	finds the range of innovation numbers in the calling object
 	@return a tuple containing (min innov #, max innov #)
 	'''
-	def findRangeofInnovationNumbers(self):
+	def findRangeOfInnovationNumbers(self):
 		# set max in min initially to worst values possible
 		maxInnov = -1
 		minInnov = sys.maxsize
 		for c in self.connections:
 			if(c.getInnovationNumber() > maxInnov):
-				maxInnov = c.getInnovation()
-			elif(c.getInnovationNumber() < minInnov):
+				maxInnov = c.getInnovationNumber()
+			if(c.getInnovationNumber() < minInnov):
 				minInnov = c.getInnovationNumber()
 		return (minInnov, maxInnov)
 
@@ -367,7 +370,7 @@ class Genotype():
 		result += "\n"
 		for c in self.connections:
 			if c.getStatus():
-				result += str(c.getNodeIn().getNodeNum()) + " >>> " + str(c.getWeight()) + " >>> " + str(c.getNodeOut().getNodeNum())
+				result += str(c.getNodeIn().getNodeNum()) + " >>> " + str(c.getWeight()) + " >>> " + str(c.getNodeOut().getNodeNum()) + " [" + str(c.getInnovationNumber()) + "]"
 				result += "\n"
 		result += "\n"
 		return result
