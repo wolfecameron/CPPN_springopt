@@ -138,6 +138,7 @@ class Genotype():
 		# deactivate old connection and insert new node 
 		connect = self.connections[conInd % len(self.connections)]
 		connect.setStatus(False)
+		oldInnov = connect.getInnovationNumber()
 		oldOut = connect.getNodeOut()
 		oldIn = connect.getNodeIn()
 
@@ -147,26 +148,22 @@ class Genotype():
 		self.gSize += 1
 
 		# check current innovationMap to determine innovation numbers of two new connections
-		con1 = (oldIn.getNodeNum(),self.nodes[self.size() - 1].getNodeNum())
-		con2 = (self.nodes[self.size() - 1].getNodeNum(), oldOut.getNodeNum())
 		innovation1 = 0
 		innovation2 = 0
 		k = innovationMap.keys()
 
-		# if either of these connections exist, assign to them correct innovation number
-		# otherwise given them next available innovation number
-		if(con1 in k):
-			innovation1 = innovationMap[con1]
+		# check innovation map to see if this structural mutation has occurred in this generation already
+		# map format: (innovation # of gene that is split) --> (new in connection innov num, new out connection innov num)
+		if(oldInnov in k):
+			innov = innovationMap[oldInnov]
+			innovation1 = innov[0]
+			innovation2 = innov[1]
 		else:
+			# add this mutation into the map for this generation just in case it occurs again
 			innovation1 = globalInnovation
-			innovationMap[con1] = innovation1
-			globalInnovation += 1
-		if(con2 in k):
-			innovation2 = innovationMap[con2]
-		else:
-			innovation2 = globalInnovation
-			innovationMap[con2] = innovation2
-			globalInnovation += 1
+			innovation2 = globalInnovation + 1
+			globalInnovation += 2
+			innovationMap[oldInnov] = (innovation1, innovation2)
 
 		# add connections for new node, first one has original weight and second has weight of 1
 		self.connections.append(Connection(oldIn, self.nodes[self.size() - 1], 1, innovation1))
@@ -216,24 +213,27 @@ class Genotype():
 	@param globalInnovation current global count of innovation numbers
 	@return updated state of innovationMap and globalInnovation
 	'''
-	def connectionMutate(self, innovationMap, globalInnovation):
+	def connectionMutate(self, globalInnovation):
 		# sort nodes based on topology of CPPN
-		sortedNodes = sorted(self.nodes,key = lambda x: x.getNodeLayer())
 		foundGoodConnection = False
 		tryCount = 0
 		maxTries = 30
-		newWeight = r.uniform(-1,1)
+		newWeight = r.uniform(-0.5,0.5)
 		connect = None
 		# only allow network to attempt to form connections a certain number of times - prevents infinite loop
 		while(not foundGoodConnection and tryCount < maxTries):
 			# choose two random indexes for in and out nodes of connection such that in < out
-			inInd = r.randint(0,len(sortedNodes) - 2) 
-			outInd = r.randint(inInd, len(sortedNodes) - 1)
+			inInd = r.randint(0,len(self.nodes) - 2) 
+			outInd = r.randint(inInd, len(self.nodes) - 1)
 			# create possible connection and check if valid
-			connect = Connection(self.nodes[inInd],self.nodes[outInd],newWeight,0)
+			connect = Connection(self.nodes[inInd], self.nodes[outInd], newWeight, globalInnovation)
+			# if a valid connection is found, add it into the network and increment the global innovation count
 			if(self.validConnection(connect)):
 				foundGoodConnection = True
+				self.connections.append(connect)
+				globalInnovation += 1
 			tryCount += 1
+		'''
 		if(foundGoodConnection):
 			# check if new conneciton is already created and assign innovation accordingly 
 			conTup = (connect.getNodeIn().getNodeNum(), connect.getNodeOut().getNodeNum())	
@@ -242,13 +242,14 @@ class Genotype():
 				innovation = innovationMap[conTup]
 				self.connections.append(Connection(connect.getNodeIn(), connect.getNodeOut(), connect.getWeight(),innovation))
 			else:
-				self.connections.append(Connection(connect.getNodeIn(), connect.getNodeOut(), connect.getWeight(), globalInnovation))
-				innovationMap[conTup] = globalInnovation
-				globalInnovation += 1
+			self.connections.append(Connection(connect.getNodeIn(), connect.getNodeOut(), connect.getWeight(), globalInnovation))
+			innovationMap[conTup] = globalInnovation
+			globalInnovation += 1
+		'''
 		#else:
 			#print("Valid connection could not be found.")
 		# return updated version of innovationMap and globalInnovation
-		return (innovationMap, globalInnovation)
+		return globalInnovation
 	
 
 	'''

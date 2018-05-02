@@ -24,8 +24,7 @@ main function that runs the evolutionary algorithm
 '''
 def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb):
 	# always maintain a global state of all existing connections innov nums
-	innovationMap = getOriginalInnovationMap(numIn,numOut)
-	globalInnovation = (numIn*numOut) + 1
+	globalInnovation = ((numIn + 1) * numOut) + 1
 	pop = []
 	for loop in range(popSize):
 		pop.append(Genotype(numIn, numOut))
@@ -33,23 +32,20 @@ def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cx
 	for g in range(numGen):
 		print("RUNNING GENERATION " + str(g))
 		# evaluate function handles speciation of population
-		THRESHOLD = 1.0
+		THRESHOLD = 1.5
 		THETA1 = 1.0
 		THETA2 = 1.0
 		THETA3 = 0.4
 		species = evaluateFitness(pop, THRESHOLD, THETA1, THETA2, THETA3)
-		print(len(species))
+		#print(len(species))
 		partialPop = getFittestFromSpecies(species)
 		pop = binarySelect(pop, partialPop)
 		# always apply mutation and crossover after selection
 		applyWeightMutation(pop, weight_mutpb)
-		popTup = applyConMutation(pop, con_mutpb, innovationMap, globalInnovation)
-		innovationMap = popTup[0]
-		globalInnovation = popTup[1]
-		popTup = applyNodeMutation(pop, node_mutpb, innovationMap, globalInnovation)
-		innovationMap = popTup[0]
-		globalInnovation = popTup[1]
+		globalInnovation = applyConMutation(pop, con_mutpb, globalInnovation)
+		globalInnovation = applyNodeMutation(pop, node_mutpb, globalInnovation)
 		pop = applyCrossover(pop, cxpb)
+		#print(len(pop))
 	# return the resultant population after evolution done
 	return pop
 
@@ -115,7 +111,7 @@ if __name__ == "__main__":
 	weight_mutpb = .8
 	con_mutpb = .3
 	node_mutpb = .15
-	cxpb = .0
+	cxpb = .05
 	finalPop = main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
 	ind = finalPop[25]
 	print(ind.getOutput([0,0])[0])

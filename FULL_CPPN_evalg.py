@@ -57,41 +57,36 @@ def applyWeightMutation(population, mutpb):
 
 '''
 method for applying connection mutation to a population
+@param population current pop that is being mutated
 @param conPb probability a connection is going to be added to a certain individual
-@param innovationMap, map of innovation numbers used to assign to new gene
 @param globalInnovation, next available innovation number to assign to a gene
-@return updated version of innovationMap and innovation number 
+@return updated version of globalInnovation number
 '''
-def applyConMutation(population, conPb, innovationMap, globalInnovation):
-	innovationMap_new = innovationMap
-	globalInnovation_new = globalInnovation
+def applyConMutation(population, conPb, globalInnovation):
 	for org in population:
 		# go through each individual and decide if connection should be added
 		if(r.random() <= conPb):
 			# update innovation tracking variables each time connection added
-			conTup = org.connectionMutate(innovationMap_new, globalInnovation_new)
-			innovationMap_new = conTup[0]
-			globalInnovation_new = conTup[1]
-	return (innovationMap_new, globalInnovation_new)
+			globalInnovation = org.connectionMutate(globalInnovation)
+	return  globalInnovation
 
 '''
 method for applying node mutation to a population
 @param nodePb probability that each individual in population will be node mutated
-@innovationMap current list of genes and corresponding innovationNumbers
 @param globalInnovation next available innovation number to assign to new genes
 @return updated value of innovationMap and innovation number
 '''
-def applyNodeMutation(population, nodePb, innovationMap, globalInnovation):
-	innovationMap_new = innovationMap
-	globalInnovation_new = globalInnovation
+def applyNodeMutation(population, nodePb, globalInnovation):
+	innovationMap = {}
 	for org in population:
 		# go through each individual and decide if node should be added
 		if(r.random() <= nodePb):
-			# update innovation tracking variables when node is added
-			innovTup = org.nodeMutate(innovationMap_new, globalInnovation_new)
-			innovationMap_new = innovTup[0]
-			globalInnovation_new = innovTup[1]
-	return (innovationMap_new, globalInnovation_new)
+			# update innovation tracking variables when node is added, this allows you 
+			# to prevent the same mutation having different innov nums in same generation
+			innovTup = org.nodeMutate(innovationMap, globalInnovation)
+			innovationMap = innovTup[0]
+			globalInnovation = innovTup[1]
+	return globalInnovation
 
 
 '''
