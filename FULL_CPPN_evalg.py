@@ -16,16 +16,17 @@ process continues until a new population of same length is created
 @return new population after selection is performed
 IMPLEMENT TOURNAMENT SELECTION AS WELL!
 '''
-def binarySelect(population):
+def binarySelect(population, partialPop):
 	#stores all selected individuals from binary tournaments
-	newPop = []
+	newPop = partialPop # set equal to partial pop so best inds copied directly into new generation
 	# all individuals get a chance to compete twice
 	pop1 = copy.deepcopy(population)
 	pop2 = copy.deepcopy(population)
 	r.shuffle(pop1)
 	r.shuffle(pop2)
+	# ONLY CONTINUE ADDING ELEMENTS IF PARTIAL POP IS NOT OF SIZE EQUAL TO POPSIZE
 	#performs binary selection on first copy of population
-	while(len(pop1) > 0):
+	while(len(partialPop) < len(population) and len(pop1) > 0):
 		# pop two individuals but only put one into new population
 		ind1 = pop1.pop()
 		ind2 = pop1.pop()
@@ -34,7 +35,7 @@ def binarySelect(population):
 		else:
 			newPop.append(ind2)
 	#performs binary selection on second copy of population
-	while(len(pop2) > 0):
+	while(len(partialPop) < len(population) and len(pop2) > 0):
 		ind1 = pop2.pop()
 		ind2 = pop2.pop()
 		if(ind1.fitness < ind2.fitness):
@@ -44,32 +45,54 @@ def binarySelect(population):
 	return newPop
 
 '''
-method for applying mutation/crossover to a population
+method for applying weight mutation to a population
 @param mutpb probability that an individual in a population is mutated
-@param cxpb probability that an individual in a population is crossed over
-@param innovationMap dictionary containing key-value of (inNode,outNode) -> innovation number
 @return (new population, new state of innovationMap, new global innovation number)
 '''
-def applyMutation(population, mutpb, innovationMap, globalInnovation):
-	# new population is created as old pop is traversed and mutated
-	newPop = []
-	for orgInd in range(len(population)):
+def applyWeightMutation(population, mutpb):
+	# mutate individuals weight iff random sample < mutpb
+	for org in population:
 		if(r.random() <= mutpb):
-			# choose one type of mutation to apply randomly
-			mutType = r.random()
-			if(0<= mutType < .33):
-				population[orgInd].weightMutate(mutpb)
-			#elif(.25 <= mutType < .3):
-			#	population[orgInd].activationMutate()
-			elif(.33 <= mutType < .66):
-				newData = population[orgInd].connectionMutate(innovationMap,globalInnovation)
-				innovationMap = newData[0]
-				globalInnovation = newData[1]
-			else:
-				newData = population[orgInd].nodeMutate(innovationMap, globalInnovation)
-				innovationMap = newData[0]
-				globalInnovation = newData[1]
-	return (population, innovationMap, globalInnovation)
+			org.weightMutate()
+
+'''
+method for applying connection mutation to a population
+@param conPb probability a connection is going to be added to a certain individual
+@param innovationMap, map of innovation numbers used to assign to new gene
+@param globalInnovation, next available innovation number to assign to a gene
+@return updated version of innovationMap and innovation number 
+'''
+def applyConMutation(population, conPb, innovationMap, globalInnovation):
+	innovationMap_new = innovationMap
+	globalInnovation_new = globalInnovation
+	for org in population:
+		# go through each individual and decide if connection should be added
+		if(r.random() <= conPb):
+			# update innovation tracking variables each time connection added
+			conTup = org.connectionMutate(innovationMap_new, globalInnovation_new)
+			innovationMap_new = conTup[0]
+			globalInnovation_new = conTup[1]
+	return (innovationMap_new, globalInnovation_new)
+
+'''
+method for applying node mutation to a population
+@param nodePb probability that each individual in population will be node mutated
+@innovationMap current list of genes and corresponding innovationNumbers
+@param globalInnovation next available innovation number to assign to new genes
+@return updated value of innovationMap and innovation number
+'''
+def applyNodeMutation(population, nodePb, innovationMap, globalInnovation):
+	innovationMap_new = innovationMap
+	globalInnovation_new = globalInnovation
+	for org in population:
+		# go through each individual and decide if node should be added
+		if(r.random() <= nodePb):
+			# update innovation tracking variables when node is added
+			innovTup = org.nodeMutate(innovationMap_new, globalInnovation_new)
+			innovationMap_new = innovTup[0]
+			globalInnovation_new = innovTup[1]
+	return (innovationMap_new, globalInnovation_new)
+
 
 '''
 method for applying crossover to an entire population
@@ -121,4 +144,20 @@ def speciatePopulation(pop, thresh, theta1, theta2, theta3):
 			species.append([currOrg])
 	return species
 
+'''
+finds the fittest organism in each species and automatically puts it into the next generation
+@param species Genotypes separated into a 2D array to model a species
+@return a partial new population only containing the best species individuals
+'''
+def getFittestFromSpecies(species):
+	partialPop = []
+	for spec in species:
+		fittest = None
+		# find the fittest Genotype in a species
+		for org in spec:
+			if(fittest == None or fittest.getFitness() > org.getFitness()):
+				fittest = org
+		# append the fittest element from each species directly into next population
+		partialPop.append(fittest)
+	return partialPop
 

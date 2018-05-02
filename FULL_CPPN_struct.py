@@ -180,15 +180,17 @@ class Genotype():
 	@param mutpb float value between 0-1 that specifies the probability of weight mutation
 	@return true if any weight mutation was applied false otherwise
 	'''
-	def weightMutate(self, mutpb):
-		mutate = False
+	def weightMutate(self):
 		variance = 1.0
+		typeOfChange_pb = .9
 		for c in self.connections:
-			if(r.random() <= mutpb):
+			# 90% chance to perturb weight, 10% chance to pick completely new one
+			if(r.random() <= typeOfChange_pb):
 				# mutate weights based on a normal distribution around old weight
-				mutate = True
-				c.weight = np.random.normal(c.weight, variance)
-		return mutate
+				c.setWeight(np.random.normal(c.weight, variance))
+			else:
+				# set weight equal to something new
+				c.setWeight(r.uniform(-1,1))
 
 	'''
 	activation mutatation function for CPPN structure

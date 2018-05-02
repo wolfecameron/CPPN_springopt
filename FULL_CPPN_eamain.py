@@ -1,5 +1,5 @@
 from FULL_CPPN_struct import Genotype
-from FULL_CPPN_evalg import binarySelect, applyMutation, applyCrossover, speciatePopulation
+from FULL_CPPN_evalg import binarySelect, applyWeightMutation, applyConMutation, applyNodeMutation, applyCrossover, speciatePopulation, getFittestFromSpecies
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -23,7 +23,7 @@ main function that runs the evolutionary algorithm
 @param mutpb the probability of mutation
 @return the final population after EA is completed
 '''
-def main(numIn, numOut, numGen, popSize, cxpb, mutpb):
+def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb):
 	# always maintain a global state of all existing connections innov nums
 	innovationMap = getOriginalInnovationMap(numIn,numOut)
 	globalInnovation = (numIn*numOut) + 1
@@ -34,17 +34,22 @@ def main(numIn, numOut, numGen, popSize, cxpb, mutpb):
 	for g in range(numGen):
 		print("RUNNING GENERATION " + str(g))
 		# evaluate function handles speciation of population
-		THRESHOLD = 3.0
+		THRESHOLD = 1.0
 		THETA1 = 1.0
 		THETA2 = 1.0
 		THETA3 = 0.4
-		pop = evaluateFitness(pop, THRESHOLD, THETA1, THETA2, THETA3)
-		pop = binarySelect(pop)
+		species = evaluateFitness(pop, THRESHOLD, THETA1, THETA2, THETA3)
+		print(len(species))
+		partialPop = getFittestFromSpecies(species)
+		pop = binarySelect(pop, partialPop)
 		# always apply mutation and crossover after selection
-		popTup = applyMutation(pop, mutpb, innovationMap, globalInnovation)
-		pop = popTup[0]
-		innovationMap = popTup[1]
-		globalInnovation = popTup[2]
+		applyWeightMutation(pop, weight_mutpb)
+		popTup = applyConMutation(pop, con_mutpb, innovationMap, globalInnovation)
+		innovationMap = popTup[0]
+		globalInnovation = popTup[1]
+		popTup = applyNodeMutation(pop, node_mutpb, innovationMap, globalInnovation)
+		innovationMap = popTup[0]
+		globalInnovation = popTup[1]
 		pop = applyCrossover(pop, cxpb)
 	# return the resultant population after evolution done
 	return pop
@@ -60,8 +65,7 @@ def evaluateFitness(population, threshold, theta1, theta2, theta3):
 	inputs = [[1,1],[0,1],[1,0],[0,0]]
 	expectedOutput_tmp = [0,1,1,0]
 	expectedOutput = np.array(expectedOutput_tmp, copy = True)
-	#species = speciatePopulation(population, threshold, theta1, theta2, theta3)
-	'''
+	species = speciatePopulation(population, threshold, theta1, theta2, theta3)
 	# go through every species and calculate fitness for all individuals in the species
 	total_fitness = 0.0
 	for spInd in range(len(species)):
@@ -82,13 +86,9 @@ def evaluateFitness(population, threshold, theta1, theta2, theta3):
 	# append average fitness into global list so that fitness can be tracked
 	AVERAGE_FITNESSES.append(total_fitness/len(population))
 	# parse population from species list and return, all individuals have fitness assigned
-	newPop = []
-	for spec in species:
-		for org in spec:
-			newPop.append(org)
+	return species
 	'''
 	total_fitness = 0.0
-	newPop = []
 	for currOrg in population:
 		actualOutput_tmp = []
 		for i in range(4):
@@ -100,12 +100,10 @@ def evaluateFitness(population, threshold, theta1, theta2, theta3):
 		for x in range(len(actualOutput_tmp)):
 			totalDifference += (actualOutput_tmp[x] - expectedOutput_tmp[x])**2
 		currOrg.setFitness(totalDifference) 
-		newPop.append(currOrg)
 		total_fitness += totalDifference
 	# append average fitness into global list so that fitness can be tracked
 	AVERAGE_FITNESSES.append(total_fitness/len(population))
-	return newPop
-
+	'''
 
 '''
 function to create the original dictionary of innovation numbers
@@ -127,13 +125,16 @@ def getOriginalInnovationMap(numIn,numOut):
 
 # main function for running EA
 if __name__ == "__main__":
+	 # order of parameters for main : (numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
 	numIn = 2
 	numOut = 1
-	numGen = 250
+	numGen = 100
 	popSize = 150
-	cxpb = .15
-	mutpb = .4
-	finalPop = main(numIn, numOut, numGen, popSize, cxpb, mutpb)
+	weight_mutpb = .8
+	con_mutpb = .3
+	node_mutpb = .15
+	cxpb = .0
+	finalPop = main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
 	ind = finalPop[25]
 	print(ind.getOutput([0,0])[0])
 	print(ind.getOutput([0,1])[0])

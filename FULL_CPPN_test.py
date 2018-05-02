@@ -1,6 +1,8 @@
 from FULL_CPPN_node import Node
 from FULL_CPPN_con import Connection
 from FULL_CPPN_struct import Genotype
+from FULL_CPPN_evalg import applyWeightMutation
+import copy
 
 '''
 Helper method for printing out the results of a test to user
@@ -288,7 +290,7 @@ print("CHECK THAT WEIGHTS ABOVE STAY SAME GOING IN AND EQUAL 1 GOING OUT")
 # check weight mutation method
 g1 = Genotype(100,1)
 gcopy = g1.getCopy()
-g1.weightMutate(.2)
+g1.weightMutate()
 result = False
 for x,y in zip(gcopy.connections,g1.connections):
 	if(not x.getWeight() == y.getWeight()):
@@ -298,7 +300,7 @@ testNum += 1
 
 g1 = Genotype(2,1)
 print(g1)
-g1.weightMutate(1)
+g1.weightMutate()
 print(g1)
 print("CHECK THAT ALL WEIGHTS WERE CHANGED")
 
@@ -419,8 +421,48 @@ g1.connectionMutate(innovMap, innovNum)
 print(g1)
 print(g1.getOutput([2,3]))
 
+# extra weight mutation tests
+size = 3
+gens = []
+for x in range(size):
+	gens.append(Genotype(1,1))
+gens_og = copy.deepcopy(gens)
+for org in gens:
+	org.weightMutate()
+result = True
+
+# check all weights are different 
+for orgInd in range(len(gens)):
+	org1 = gens[orgInd]
+	org2 = gens_og[orgInd]
+	for cInd in range(len(org1.connections)):
+		con1 = org1.connections[cInd]
+		con2 = org2.connections[cInd]
+		if(con1.getWeight() == con2.getWeight()):
+			result = False
+failedTests = printTestResults(result, testNum, failedTests)
+testNum += 1
 
 
+gens = []
+for x in range(size):
+	gens.append(Genotype(1,1))
+gens_og = copy.deepcopy(gens)
+for org in gens:
+	applyWeightMutation(gens, 1.0)
+result = True
+
+# check all weights are different 
+for orgInd in range(len(gens)):
+	org1 = gens[orgInd]
+	org2 = gens_og[orgInd]
+	for cInd in range(len(org1.connections)):
+		con1 = org1.connections[cInd]
+		con2 = org2.connections[cInd]
+		if(con1.getWeight() == con2.getWeight()):
+			result = False
+failedTests = printTestResults(result, testNum, failedTests)
+testNum += 1
 
 print("\n")
 print("***** RESULT: " + str(failedTests) + " TESTS FAILED *****")
