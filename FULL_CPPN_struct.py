@@ -169,8 +169,8 @@ class Genotype():
 			globalInnovation += 1
 
 		# add connections for new node, first one has original weight and second has weight of 1
-		self.connections.append(Connection(oldIn, self.nodes[self.size() - 1], connect.getWeight(), innovation1))
-		self.connections.append(Connection(self.nodes[self.size() - 1], oldOut, 1, innovation2))
+		self.connections.append(Connection(oldIn, self.nodes[self.size() - 1], 1, innovation1))
+		self.connections.append(Connection(self.nodes[self.size() - 1], oldOut, connect.getWeight(), innovation2))
 		return (innovationMap, globalInnovation)
 
 

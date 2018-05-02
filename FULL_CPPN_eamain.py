@@ -11,7 +11,6 @@ final individuals are returned after the evolutionary algorithm is completed
 
 # following lists used to track data as the main function runs
 AVERAGE_FITNESSES = []
-GENERATION = []
 
 '''
 main function that runs the evolutionary algorithm
@@ -87,23 +86,6 @@ def evaluateFitness(population, threshold, theta1, theta2, theta3):
 	AVERAGE_FITNESSES.append(total_fitness/len(population))
 	# parse population from species list and return, all individuals have fitness assigned
 	return species
-	'''
-	total_fitness = 0.0
-	for currOrg in population:
-		actualOutput_tmp = []
-		for i in range(4):
-			actualOutput_tmp.append(currOrg.getOutput(inputs[i])[0])
-		actualOutput = np.array(actualOutput_tmp, copy = True)
-		# must multiply original fitness by size of species to make speciation work
-		# one species should not be able to dominate the population
-		totalDifference = 0.0
-		for x in range(len(actualOutput_tmp)):
-			totalDifference += (actualOutput_tmp[x] - expectedOutput_tmp[x])**2
-		currOrg.setFitness(totalDifference) 
-		total_fitness += totalDifference
-	# append average fitness into global list so that fitness can be tracked
-	AVERAGE_FITNESSES.append(total_fitness/len(population))
-	'''
 
 '''
 function to create the original dictionary of innovation numbers
