@@ -26,24 +26,25 @@ class Genotype():
 		self.nodes = []
 		self.connections = []
 		self.fitness = 0
-		# variable used to keep nodes in topological order
-		self.highestTopology = 0
 
 		# create input nodes
 		for i in range(self.numIn):
-			self.nodes.append(Node(i,0,0,r.choice([0,1,2,3,4,5])))
+			self.nodes.append(Node(i,0,0,r.choice([1])))#[0,1,2,3,4,5])))
 
 		# create output nodes, output nodes always have step function
 		for i in range(self.numOut):
-			self.nodes.append(Node(i + self.numIn,0,sys.maxsize,0))
+			self.nodes.append(Node(i + self.numIn,0,sys.maxsize,1))#0))
 
 		# used to track innovation number as connections are created
 		innovationCounter = 0
+
+		# initialize weights between -1/(numConnections) -> 1/(numConnections)
+		weightRange = 1/float(self.numIn)
 		
 		# fully connect all inputs to outputs, must handle innovation numbers
 		for x in range(self.numIn):
 			for y in range(self.numOut):
-				initWeight = r.uniform(-2,2)
+				initWeight = np.random.normal(0, weightRange)
 				self.connections.append(Connection(self.nodes[x], self.nodes[self.numIn + y], initWeight, innovationCounter))
 				innovationCounter += 1
 	
@@ -75,6 +76,8 @@ class Genotype():
 		if(not(len(inputs) == (self.numIn - 1))):
 			print("The length of the list of inputs does not match the number of desired inputs.")
 		else:
+			# must clear all node values before running the network
+			self.clearAllValues()
 			# sort connections list by the layer of the in node
 			sortedConnection = sorted(self.connections,key = lambda x: x.getNodeIn().getNodeLayer())
 			# set values of input nodes
@@ -83,25 +86,35 @@ class Genotype():
 			# set value of bias node
 			self.nodes[self.numIn - 1].setNodeValue(1)
 			# activate network by going through sorted connection list and querying all connections
-			for c in sortedConnection:
-				if c.getStatus():		
-					# FORMULA: nodeOut.val += activation(nodeIn.val)*weight
-					c.getNodeOut().setNodeValue(c.getNodeOut().getNodeValue() + (c.getNodeIn().activate()*c.getWeight()))
+			for c in range(len(sortedConnection)):
+				if sortedConnection[c].getStatus():
+					# do not activate the inputs, only hidden/output nodes
+					if sortedConnection[c].getNodeIn().getNodeLayer() > 0:		
+						# FORMULA: nodeOut.val += activation(nodeIn.val)*weight
+						sortedConnection[c].getNodeOut().setNodeValue(sortedConnection[c].getNodeOut().getNodeValue() + (sortedConnection[c].getNodeIn().activate()*sortedConnection[c].getWeight()))
+					else:
+						sortedConnection[c].getNodeOut().setNodeValue(sortedConnection[c].getNodeOut().getNodeValue() + (sortedConnection[c].getNodeIn().getNodeValue()*sortedConnection[c].getWeight()))
 			# put all output values in a single list and return
 			outputs = [] 
 			outInd = self.numIn 
 			foundAllOutputs = False
 			while(outInd < len(self.nodes) and not foundAllOutputs):
 				if(self.nodes[outInd].getNodeLayer() == sys.maxsize):
-					out = self.nodes[outInd].getNodeValue()
+					out = self.nodes[outInd].activate()
 					outputs.append(out)
 				else:
 					foundAllOutputs = True
 				outInd += 1
-			self.gSize += 1
+			#self.gSize += 1
 			return outputs
 
-
+	'''
+	helper method for getOutput
+	clears all node values to 0 before activating the network
+	'''
+	def clearAllValues(self):
+		for nodeInd in range(len(self.nodes)):
+			self.nodes[nodeInd].setNodeValue(0)
 
 
 	# basic mutator methods were not needed for this class, node and connection lists modified by mutation/XOVER methods etc
@@ -121,21 +134,25 @@ class Genotype():
 		ogIndex = conInd - 1 # use to prevent infinite loop in case all connections deactivated
 		while((not self.connections[conInd % len(self.connections)].getStatus()) and not(conInd == ogIndex)):
 			conInd += 1
+
 		# deactivate old connection and insert new node 
 		connect = self.connections[conInd % len(self.connections)]
 		connect.setStatus(False)
 		oldOut = connect.getNodeOut()
 		oldIn = connect.getNodeIn()
+
 		# layer of new node halfway between two parent nodes
 		newLayer = oldIn.getNodeLayer() + ((oldOut.getNodeLayer() - oldIn.getNodeLayer()) / 2)
-		self.nodes.append(Node(self.size(), 0, newLayer, r.choice([0,1,2,3,4,5])))
+		self.nodes.append(Node(self.size(), 0, newLayer, r.choice([1])))#[0,1,2,3,4,5])))
 		self.gSize += 1
+
 		# check current innovationMap to determine innovation numbers of two new connections
 		con1 = (oldIn.getNodeNum(),self.nodes[self.size() - 1].getNodeNum())
 		con2 = (self.nodes[self.size() - 1].getNodeNum(), oldOut.getNodeNum())
 		innovation1 = 0
 		innovation2 = 0
 		k = innovationMap.keys()
+
 		# if either of these connections exist, assign to them correct innovation number
 		# otherwise given them next available innovation number
 		if(con1 in k):
@@ -150,6 +167,7 @@ class Genotype():
 			innovation2 = globalInnovation
 			innovationMap[con2] = innovation2
 			globalInnovation += 1
+
 		# add connections for new node, first one has original weight and second has weight of 1
 		self.connections.append(Connection(oldIn, self.nodes[self.size() - 1], connect.getWeight(), innovation1))
 		self.connections.append(Connection(self.nodes[self.size() - 1], oldOut, 1, innovation2))
@@ -187,7 +205,7 @@ class Genotype():
 				foundPossible = True
 			else:
 				index = r.randint(0,len(self.nodes) - 1)
-		self.nodes[index].setActKey(r.choice([0,1,2,3,4,5]))
+		self.nodes[index].setActKey(1)#r.choice([0,1,2,3,4,5]))
 
 	'''
 	connection mutate method for the CPPN structure
@@ -225,8 +243,8 @@ class Genotype():
 				self.connections.append(Connection(connect.getNodeIn(), connect.getNodeOut(), connect.getWeight(), globalInnovation))
 				innovationMap[conTup] = globalInnovation
 				globalInnovation += 1
-		else:
-			print("Valid connection could not be found.")
+		#else:
+			#print("Valid connection could not be found.")
 		# return updated version of innovationMap and globalInnovation
 		return (innovationMap, globalInnovation)
 	

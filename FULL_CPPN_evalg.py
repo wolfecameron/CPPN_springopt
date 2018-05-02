@@ -1,5 +1,5 @@
 import copy
-import random
+import random as r
 '''
 File that implements helper methods for the CPPN evolutionary algorithm
 File contains a main variation algorithm, mutation algorithm, 
@@ -22,8 +22,8 @@ def binarySelect(population):
 	# all individuals get a chance to compete twice
 	pop1 = copy.deepcopy(population)
 	pop2 = copy.deepcopy(population)
-	random.shuffle(pop1)
-	random.shuffle(pop2)
+	r.shuffle(pop1)
+	r.shuffle(pop2)
 	#performs binary selection on first copy of population
 	while(len(pop1) > 0):
 		# pop two individuals but only put one into new population
@@ -55,12 +55,13 @@ def applyMutation(population, mutpb, innovationMap, globalInnovation):
 	newPop = []
 	for orgInd in range(len(population)):
 		if(r.random() <= mutpb):
-			mutType = random.random()
-			if(0<= mutType < .25):
+			# choose one type of mutation to apply randomly
+			mutType = r.random()
+			if(0<= mutType < .33):
 				population[orgInd].weightMutate(mutpb)
-			elif(.25 <= mutType < .5):
-				population[orgInd].activationMutate()
-			elif(.5 <= mutType < .75):
+			#elif(.25 <= mutType < .3):
+			#	population[orgInd].activationMutate()
+			elif(.33 <= mutType < .66):
 				newData = population[orgInd].connectionMutate(innovationMap,globalInnovation)
 				innovationMap = newData[0]
 				globalInnovation = newData[1]
@@ -80,10 +81,10 @@ def applyCrossover(population, cxpb):
 	newPop = []
 	# individuals are crossed over with those next to them
 	# shuffle population to create new possibilities for crossover
-	random.shuffle(population)
+	r.shuffle(population)
 	for orgInd in range(len(population)):
 		doCx = r.random()
-		if(doCX <= cxpb and orgInd < len(population) - 1):
+		if(doCx <= cxpb and orgInd < len(population) - 1):
 			newInd = population[orgInd].crossover(population[orgInd + 1])
 			newPop.append(newInd)
 		else:
@@ -102,7 +103,7 @@ def speciatePopulation(pop, thresh, theta1, theta2, theta3):
 	species = [[]]
 	species[0].append(pop[0])
 	for orgInd in range(1,len(pop)):
-		currOrg = pop[ordIng]
+		currOrg = pop[orgInd]
 		spInd = 0
 		foundSpecies = False
 		# find correct species for each individual and add it into the vector for that species
@@ -121,5 +122,3 @@ def speciatePopulation(pop, thresh, theta1, theta2, theta3):
 	return species
 
 
-
-speciatePopulation([1,2,3,4], 15)

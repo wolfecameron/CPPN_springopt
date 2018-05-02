@@ -411,6 +411,14 @@ result = not (result == 'n' or result == 'N')
 failedTests = printTestResults(result, testNum, failedTests)
 testNum += 1
 
+# extra activation tests
+g1 = Genotype(2,1)
+g1.nodeMutate(innovMap, innovNum)
+g1.nodeMutate(innovMap, innovNum)
+g1.connectionMutate(innovMap, innovNum)
+print(g1)
+print(g1.getOutput([2,3]))
+
 
 
 
