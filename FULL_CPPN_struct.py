@@ -27,6 +27,10 @@ class Genotype():
 		self.connections = []
 		self.fitness = 0
 
+		# sepcies instance variable used to track species in a population
+		# assigned in the speciation method based on distance to other members of a species 
+		self.species = 0
+
 		# create input nodes
 		for i in range(self.numIn):
 			self.nodes.append(Node(i,0,0,r.choice([1])))#[0,1,2,3,4,5])))
@@ -326,7 +330,7 @@ class Genotype():
 				oInd += 1
 			if(not found):
 				numDisjoint += 1
-		weightDifference = np.fabs(self.getAverageWeight() - other.getAverageWeight())
+		weightDifference = np.fabs(self.getTotalWeight() - other.getTotalWeight())
 		# N is the number of genes in the larger genome
 		N = len(self.connections) if (len(self.connections) > len(other.connections)) else len(other.connections)
 		# distance formula: O1*disjoint + O2*excess + O3*averageWeightDiff
@@ -335,14 +339,14 @@ class Genotype():
 
 	'''
 	helper method for get distance method
-	returns the average value of weights for each network
+	returns the total sum of weight across all connections in a network
 	@return average value of weights for calling network
 	'''
-	def getAverageWeight(self):
+	def getTotalWeight(self):
 		weightTotal = 0.0
 		for c in self.connections:
 			weightTotal += c.getWeight()
-		return weightTotal/len(self.connections)
+		return weightTotal
 
 
 	'''

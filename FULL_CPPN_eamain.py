@@ -32,7 +32,7 @@ def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cx
 	for g in range(numGen):
 		print("RUNNING GENERATION " + str(g))
 		# evaluate function handles speciation of population
-		THRESHOLD = 1.5
+		THRESHOLD = 4.0
 		THETA1 = 1.0
 		THETA2 = 1.0
 		THETA3 = 0.4
@@ -61,6 +61,7 @@ def evaluateFitness(population, threshold, theta1, theta2, theta3):
 	expectedOutput_tmp = [0,1,1,0]
 	expectedOutput = np.array(expectedOutput_tmp, copy = True)
 	species = speciatePopulation(population, threshold, theta1, theta2, theta3)
+	print(len(species))
 	# go through every species and calculate fitness for all individuals in the species
 	total_fitness = 0.0
 	for spInd in range(len(species)):
@@ -82,23 +83,6 @@ def evaluateFitness(population, threshold, theta1, theta2, theta3):
 	AVERAGE_FITNESSES.append(total_fitness/len(population))
 	# parse population from species list and return, all individuals have fitness assigned
 	return species
-
-'''
-function to create the original dictionary of innovation numbers
-before EA is run
-@param numIn number of inputs to each genotype
-@param numOut number of outputs from each genotype
-@return the original innovation map for evolution process
-'''
-def getOriginalInnovationMap(numIn,numOut):
-	# first connections from input to output all have a unique innovation number
-	innovationMap = {}
-	counter = 0
-	for inInd in range(numIn + 1):
-		conTup = (inInd, numIn + 1)
-		innovationMap[conTup] = counter
-		counter += 1
-	return innovationMap
 
 
 # main function for running EA
