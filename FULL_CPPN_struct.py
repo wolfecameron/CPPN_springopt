@@ -29,7 +29,7 @@ class Genotype():
 
 		# sepcies instance variable used to track species in a population
 		# assigned in the speciation method based on distance to other members of a species 
-		self.species = 0
+		self.species = sys.maxsize
 
 		# create input nodes
 		for i in range(self.numIn):
@@ -83,7 +83,7 @@ class Genotype():
 			# must clear all node values before running the network
 			self.clearAllValues()
 			# sort connections list by the layer of the in node
-			sortedConnection = sorted(self.connections,key = lambda x: x.getNodeIn().getNodeLayer())
+			sortedConnection = sorted(self.connections, key = lambda x: x.getNodeIn().getNodeLayer())
 			# set values of input nodes
 			for nodeInd in range(self.numIn - 1):
 				self.nodes[nodeInd].setNodeValue(inputs[nodeInd])
@@ -172,6 +172,8 @@ class Genotype():
 		# add connections for new node, first one has original weight and second has weight of 1
 		self.connections.append(Connection(oldIn, self.nodes[self.size() - 1], 1, innovation1))
 		self.connections.append(Connection(self.nodes[self.size() - 1], oldOut, connect.getWeight(), innovation2))
+
+		self.species = sys.maxsize # must find new species now that structure is different
 		return (innovationMap, globalInnovation)
 
 
@@ -237,22 +239,7 @@ class Genotype():
 				self.connections.append(connect)
 				globalInnovation += 1
 			tryCount += 1
-		'''
-		if(foundGoodConnection):
-			# check if new conneciton is already created and assign innovation accordingly 
-			conTup = (connect.getNodeIn().getNodeNum(), connect.getNodeOut().getNodeNum())	
-			# create new connection to append using connect variable because must correct innov num	
-			if(conTup in innovationMap.keys()):
-				innovation = innovationMap[conTup]
-				self.connections.append(Connection(connect.getNodeIn(), connect.getNodeOut(), connect.getWeight(),innovation))
-			else:
-			self.connections.append(Connection(connect.getNodeIn(), connect.getNodeOut(), connect.getWeight(), globalInnovation))
-			innovationMap[conTup] = globalInnovation
-			globalInnovation += 1
-		'''
-		#else:
-			#print("Valid connection could not be found.")
-		# return updated version of innovationMap and globalInnovation
+		self.species = sys.maxsize # must find new species now that structure has changed
 		return globalInnovation
 	
 
@@ -301,6 +288,8 @@ class Genotype():
 					if(swap <= .25):
 						# TAKE WEIGHT HERE NOT THE CONNECTION
 						child.connections[childInd] = parent.connections[parInd].getCopy()
+		
+		child.species = sys.maxsize # must find new species because child is different
 		return child
 
 
@@ -348,6 +337,19 @@ class Genotype():
 			weightTotal += c.getWeight()
 		return weightTotal
 
+	'''
+	method for getting the average distance between calling genome and a list of others
+	@param others list of other genotypes
+	@param theta1-3 described above
+	@return average distance from calling genotype to all individuals in given list
+	'''
+	def getAverageDistance(self, others, theta1, theta2, theta3):
+		totalDistance = 0.0
+		# add all distances to the total distance
+		for other in others:
+			totalDistance += self.getDistance(other, theta1, theta2, theta3)
+		
+		return totalDistance/len(others)
 
 	'''
 	helper method for getDistance method
@@ -363,6 +365,7 @@ class Genotype():
 				maxInnov = c.getInnovationNumber()
 			if(c.getInnovationNumber() < minInnov):
 				minInnov = c.getInnovationNumber()
+		
 		return (minInnov, maxInnov)
 
 

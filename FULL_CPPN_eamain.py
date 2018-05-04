@@ -1,5 +1,5 @@
 from FULL_CPPN_struct import Genotype
-from FULL_CPPN_evalg import binarySelect, applyWeightMutation, applyConMutation, applyNodeMutation, applyCrossover, speciatePopulation, getFittestFromSpecies
+from FULL_CPPN_evalg import binarySelect, tournamentSelect, applyWeightMutation, applyConMutation, applyNodeMutation, applyCrossover, speciatePopulationFirstTime, speciatePopulationNotFirstTime, getFittestFromSpecies
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -32,14 +32,15 @@ def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cx
 	for g in range(numGen):
 		print("RUNNING GENERATION " + str(g))
 		# evaluate function handles speciation of population
-		THRESHOLD = 4.0
+		THRESHOLD = 3.0
 		THETA1 = 1.0
 		THETA2 = 1.0
 		THETA3 = 0.4
-		species = evaluateFitness(pop, THRESHOLD, THETA1, THETA2, THETA3)
-		#print(len(species))
+		tournSize = 3
+		species = evaluateFitness(pop, THRESHOLD, THETA1, THETA2, THETA3, g)
+		print(len(species))
 		partialPop = getFittestFromSpecies(species)
-		pop = binarySelect(pop, partialPop)
+		pop = tournamentSelect(pop, tournSize, partialPop)
 		# always apply mutation and crossover after selection
 		applyWeightMutation(pop, weight_mutpb)
 		globalInnovation = applyConMutation(pop, con_mutpb, globalInnovation)
@@ -47,7 +48,17 @@ def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cx
 		pop = applyCrossover(pop, cxpb)
 		#print(len(pop))
 	# return the resultant population after evolution done
-	return pop
+	return findFittest(pop)
+
+'''
+method for finding fittest individual in a population
+'''
+def findFittest(pop):
+	bestInd = None
+	for org in pop:
+		if(bestInd == None or bestInd.getFitness() > org.getFitness()):
+			bestInd = org
+	return bestInd 
 
 '''
 evaluation function for the given evolutionary algorithm
@@ -56,12 +67,15 @@ this is often altered to needed constraints of the problem
 all individuals is being found
 @return population after fitness of all individuals is found
 '''
-def evaluateFitness(population, threshold, theta1, theta2, theta3):
+def evaluateFitness(population, threshold, theta1, theta2, theta3, g):
 	inputs = [[1,1],[0,1],[1,0],[0,0]]
 	expectedOutput_tmp = [0,1,1,0]
 	expectedOutput = np.array(expectedOutput_tmp, copy = True)
-	species = speciatePopulation(population, threshold, theta1, theta2, theta3)
-	print(len(species))
+	if(g == 0):
+		species = speciatePopulationFirstTime(population, threshold, theta1, theta2, theta3)
+	else:
+		species = speciatePopulationNotFirstTime(population, threshold, theta1, theta2, theta3)
+	#print(len(species))
 	# go through every species and calculate fitness for all individuals in the species
 	total_fitness = 0.0
 	for spInd in range(len(species)):
@@ -77,7 +91,7 @@ def evaluateFitness(population, threshold, theta1, theta2, theta3):
 			totalDifference = 0.0
 			for x in range(len(actualOutput_tmp)):
 				totalDifference += (actualOutput_tmp[x] - expectedOutput_tmp[x])**2
-			species[spInd][orgInd].setFitness(totalDifference*len(species[spInd])) 
+			species[spInd][orgInd].setFitness(totalDifference) 
 			total_fitness += totalDifference
 	# append average fitness into global list so that fitness can be tracked
 	AVERAGE_FITNESSES.append(total_fitness/len(population))
@@ -90,14 +104,13 @@ if __name__ == "__main__":
 	 # order of parameters for main : (numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
 	numIn = 2
 	numOut = 1
-	numGen = 100
+	numGen = 150
 	popSize = 150
-	weight_mutpb = .8
-	con_mutpb = .3
-	node_mutpb = .15
-	cxpb = .05
-	finalPop = main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
-	ind = finalPop[25]
+	weight_mutpb = .3
+	con_mutpb = .1
+	node_mutpb = .05
+	cxpb = .001
+	ind = main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
 	print(ind.getOutput([0,0])[0])
 	print(ind.getOutput([0,1])[0])
 	print(ind.getOutput([1,0])[0])
