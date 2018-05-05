@@ -1,5 +1,5 @@
 from FULL_CPPN_struct import Genotype
-from FULL_CPPN_evalg import binarySelect, tournamentSelect, applyWeightMutation, applyConMutation, applyNodeMutation, applyCrossover, speciatePopulationFirstTime, speciatePopulationNotFirstTime, getFittestFromSpecies
+from FULL_CPPN_evalg import binarySelect, tournamentSelect, applyWeightMutation, applyConMutation, applyNodeMutation, applyCrossover, evaluateFitness, evaluateFitness_fitsharing, getFittestFromSpecies
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -28,7 +28,8 @@ def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cx
 	pop = []
 	for loop in range(popSize):
 		pop.append(Genotype(numIn, numOut))
-	# ***** MAIN EA LOOP *****
+	
+	### ***** MAIN EA LOOP ***** ###
 	for g in range(numGen):
 		print("RUNNING GENERATION " + str(g))
 		# evaluate function handles speciation of population
@@ -37,7 +38,9 @@ def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cx
 		THETA2 = 1.0
 		THETA3 = 0.4
 		tournSize = 3
-		species = evaluateFitness(pop, THRESHOLD, THETA1, THETA2, THETA3, g)
+		evaluationTup = evaluateFitness_fitsharing(pop, THRESHOLD, THETA1, THETA2, THETA3, g)
+		species = evaluationTup[0]
+		AVERAGE_FITNESSES.append(evaluationTup[1])
 		print(len(species))
 		partialPop = getFittestFromSpecies(species)
 		pop = tournamentSelect(pop, tournSize, partialPop)
@@ -46,7 +49,7 @@ def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cx
 		globalInnovation = applyConMutation(pop, con_mutpb, globalInnovation)
 		globalInnovation = applyNodeMutation(pop, node_mutpb, globalInnovation)
 		pop = applyCrossover(pop, cxpb)
-		#print(len(pop))
+	
 	# return the resultant population after evolution done
 	return findFittest(pop)
 
@@ -56,47 +59,11 @@ method for finding fittest individual in a population
 def findFittest(pop):
 	bestInd = None
 	for org in pop:
-		if(bestInd == None or bestInd.getFitness() > org.getFitness()):
+		if(bestInd == None or bestInd.getFitness() < org.getFitness()):
 			bestInd = org
+	
 	return bestInd 
 
-'''
-evaluation function for the given evolutionary algorithm
-this is often altered to needed constraints of the problem
-@param population the population for which the fitness of 
-all individuals is being found
-@return population after fitness of all individuals is found
-'''
-def evaluateFitness(population, threshold, theta1, theta2, theta3, g):
-	inputs = [[1,1],[0,1],[1,0],[0,0]]
-	expectedOutput_tmp = [0,1,1,0]
-	expectedOutput = np.array(expectedOutput_tmp, copy = True)
-	if(g == 0):
-		species = speciatePopulationFirstTime(population, threshold, theta1, theta2, theta3)
-	else:
-		species = speciatePopulationNotFirstTime(population, threshold, theta1, theta2, theta3)
-	#print(len(species))
-	# go through every species and calculate fitness for all individuals in the species
-	total_fitness = 0.0
-	for spInd in range(len(species)):
-		specSize = len(species[spInd])
-		for orgInd in range(len(species[spInd])):
-			currOrg = species[spInd][orgInd]
-			actualOutput_tmp = []
-			for i in range(4):
-				actualOutput_tmp.append(currOrg.getOutput(inputs[i])[0])
-			actualOutput = np.array(actualOutput_tmp, copy = True)
-			# must multiply original fitness by size of species to make speciation work
-			# one species should not be able to dominate the population
-			totalDifference = 0.0
-			for x in range(len(actualOutput_tmp)):
-				totalDifference += (actualOutput_tmp[x] - expectedOutput_tmp[x])**2
-			species[spInd][orgInd].setFitness(totalDifference) 
-			total_fitness += totalDifference
-	# append average fitness into global list so that fitness can be tracked
-	AVERAGE_FITNESSES.append(total_fitness/len(population))
-	# parse population from species list and return, all individuals have fitness assigned
-	return species
 
 
 # main function for running EA
@@ -106,9 +73,9 @@ if __name__ == "__main__":
 	numOut = 1
 	numGen = 150
 	popSize = 150
-	weight_mutpb = .3
-	con_mutpb = .1
-	node_mutpb = .05
+	weight_mutpb = .1
+	con_mutpb = .05
+	node_mutpb = .03
 	cxpb = .001
 	ind = main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
 	print(ind.getOutput([0,0])[0])

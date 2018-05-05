@@ -1,5 +1,6 @@
 import copy
 import random as r
+import numpy as np
 import sys
 '''
 File that implements helper methods for the CPPN evolutionary algorithm
@@ -25,7 +26,7 @@ def tournamentSelect(population, tournSize, partialPop):
 		# put best of individuals into new population
 		bestInd = None
 		for ind in tournament:
-			if(bestInd == None or ind.getFitness() < bestInd.getFitness()):
+			if(bestInd == None or ind.getFitness() > bestInd.getFitness()):
 				bestInd = ind
 		newPop.append(bestInd.getCopy())
 
@@ -56,7 +57,7 @@ def binarySelect(population, partialPop):
 		# pop two individuals but only put one into new population
 		ind1 = pop1.pop()
 		ind2 = pop1.pop()
-		if(ind1.getFitness() < ind2.getFitness()):
+		if(ind1.getFitness() > ind2.getFitness()):
 			newPop.append(ind1.getCopy())
 		else:
 			newPop.append(ind2.getCopy())
@@ -65,7 +66,7 @@ def binarySelect(population, partialPop):
 	while(len(partialPop) < len(population) and len(pop2) > 0):
 		ind1 = pop2.pop()
 		ind2 = pop2.pop()
-		if(ind1.getFitness() < ind2.getFitness()):
+		if(ind1.getFitness() > ind2.getFitness()):
 			newPop.append(ind1.getCopy())
 		else:
 			newPop.append(ind2.getCopy())
@@ -95,6 +96,7 @@ def applyConMutation(population, conPb, globalInnovation):
 		if(r.random() <= conPb):
 			# update innovation tracking variables each time connection added
 			globalInnovation = org.connectionMutate(globalInnovation)
+	
 	return  globalInnovation
 
 '''
@@ -113,6 +115,7 @@ def applyNodeMutation(population, nodePb, globalInnovation):
 			innovTup = org.nodeMutate(innovationMap, globalInnovation)
 			innovationMap = innovTup[0]
 			globalInnovation = innovTup[1]
+	
 	return globalInnovation
 
 
@@ -243,9 +246,86 @@ def getFittestFromSpecies(species):
 		fittest = None
 		# find the fittest Genotype in a species
 		for org in spec:
-			if(fittest == None or fittest.getFitness() > org.getFitness()):
+			if(fittest == None or fittest.getFitness() < org.getFitness()):
 				fittest = org
 		# append the fittest element from each species directly into next population
 		partialPop.append(fittest.getCopy())
 	return partialPop
+
+'''
+evaluation function for the given evolutionary algorithm
+this is often altered to needed constraints of the problem
+@param population the population for which the fitness of 
+all individuals is being found
+@return population after fitness of all individuals is found
+return has average fitness at the second index of the returned tuple
+'''
+def evaluateFitness(population, threshold, theta1, theta2, theta3, g):
+	inputs = [[1,1],[0,1],[1,0],[0,0]]
+	expectedOutput_tmp = [0,1,1,0]
+	expectedOutput = np.array(expectedOutput_tmp, copy = True)
+	if(g == 0):
+		species = speciatePopulationFirstTime(population, threshold, theta1, theta2, theta3)
+	else:
+		species = speciatePopulationNotFirstTime(population, threshold, theta1, theta2, theta3)
+	#print(len(species))
+	# go through every species and calculate fitness for all individuals in the species
+	total_fitness = 0.0
+	for spInd in range(len(species)):
+		specSize = len(species[spInd])
+		for orgInd in range(len(species[spInd])):
+			currOrg = species[spInd][orgInd]
+			actualOutput_tmp = []
+			for i in range(4):
+				actualOutput_tmp.append(currOrg.getOutput(inputs[i])[0])
+			actualOutput = np.array(actualOutput_tmp, copy = True)
+			# must multiply original fitness by size of species to make speciation work
+			# one species should not be able to dominate the population
+			totalDifference = 0.0
+			for x in range(len(actualOutput_tmp)):
+				totalDifference += (1-(actualOutput_tmp[x] - expectedOutput_tmp[x])**2)
+			species[spInd][orgInd].setFitness(totalDifference) 
+			total_fitness += totalDifference
+
+	# parse population from species list and return, all individuals have fitness assigned
+	return (species, totalFitness/len(population))
+
+'''
+evaluation function for the given evolutionary algorithm
+this is often altered to needed constraints of the problem
+@param population the population for which the fitness of 
+all individuals is being found
+@return population after fitness of all individuals is found
+return has average fitness at the second index of the returned tuple
+'''
+def evaluateFitness_fitsharing(population, threshold, theta1, theta2, theta3, g):
+	inputs = [[1,1],[0,1],[1,0],[0,0]]
+	expectedOutput_tmp = [0.0,1.0,1.0,0.0]
+	expectedOutput = np.array(expectedOutput_tmp, copy = True)
+	if(g == 0):
+		species = speciatePopulationFirstTime(population, threshold, theta1, theta2, theta3)
+	else:
+		species = speciatePopulationNotFirstTime(population, threshold, theta1, theta2, theta3)
+	#print(len(species))
+	# go through every species and calculate fitness for all individuals in the species
+	total_fitness = 0.0
+	for spInd in range(len(species)):
+		specSize = len(species[spInd])
+		for orgInd in range(len(species[spInd])):
+			currOrg = species[spInd][orgInd]
+			actualOutput_tmp = []
+			for i in range(4):
+				actualOutput_tmp.append(currOrg.getOutput(inputs[i])[0])
+			actualOutput = np.array(actualOutput_tmp, copy = True)
+			# must multiply original fitness by size of species to make speciation work
+			# one species should not be able to dominate the population
+			totalDifference = 0.0
+			for x in range(len(actualOutput_tmp)):
+				# subtract difference squared from one so that fitness can be maximized
+				totalDifference += (1 - (actualOutput_tmp[x] - expectedOutput_tmp[x])**2)
+			species[spInd][orgInd].setFitness(totalDifference/len(species[spInd])) 
+			total_fitness += totalDifference/len(species[spInd])
+	
+	# return with all fitnesses assigned
+	return (species, total_fitness/len(population))
 

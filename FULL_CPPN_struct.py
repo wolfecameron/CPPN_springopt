@@ -239,7 +239,7 @@ class Genotype():
 				self.connections.append(connect)
 				globalInnovation += 1
 			tryCount += 1
-		self.species = sys.maxsize # must find new species now that structure has changed
+		#self.species = sys.maxsize # must find new species now that structure has changed
 		return globalInnovation
 	
 
@@ -289,7 +289,7 @@ class Genotype():
 						# TAKE WEIGHT HERE NOT THE CONNECTION
 						child.connections[childInd] = parent.connections[parInd].getCopy()
 		
-		child.species = sys.maxsize # must find new species because child is different
+		#child.species = sys.maxsize # must find new species because child is different
 		return child
 
 
