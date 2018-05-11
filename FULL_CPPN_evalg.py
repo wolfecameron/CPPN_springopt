@@ -329,3 +329,81 @@ def evaluateFitness_fitsharing(population, threshold, theta1, theta2, theta3, g)
 	# return with all fitnesses assigned
 	return (species, total_fitness/len(population))
 
+
+'''
+another fitness evaluation function using niche count to calculate fitness
+@params same as other fitness evaluations
+@return population and average fitness in a tuple
+'''
+def evaluateFitness_nichecount(population, threshold, theta1, theta2, theta3, g):
+	# alpha is a parameter for tuning fitness sharing function
+	ALPHA = 1 
+	inputs = [[1,1],[0,1],[1,0],[0,0]]
+	expectedOutput_tmp = [0.0,1.0,1.0,0.0]
+	expectedOutput = np.array(expectedOutput_tmp, copy = True)
+	sharingMatrix = getSharingMatrix(population, threshold, ALPHA, theta1, theta2, theta3)
+	# go through every species and calculate fitness for all individuals in the species
+	total_fitness = 0.0
+	for orgInd in range(len(population)):
+		currOrg = population[orgInd]
+		actualOutput_tmp = []
+		for i in range(4):
+			actualOutput_tmp.append(currOrg.getOutput(inputs[i])[0])
+		actualOutput = np.array(actualOutput_tmp, copy = True)
+		# must multiply original fitness by size of species to make speciation work
+		# one species should not be able to dominate the population
+		totalDifference = 0.0
+		# nicheCount can be found by summing the row in sharing matrix corresponding to a given organism
+		nicheCount = np.sum(sharingMatrix[orgInd])
+		for x in range(len(actualOutput_tmp)):
+			# subtract difference squared from one so that fitness can be maximized
+			totalDifference += (1 - (actualOutput_tmp[x] - expectedOutput_tmp[x])**2)
+		population[orgInd].setFitness(totalDifference/nicheCount) 
+		total_fitness += totalDifference/nicheCount
+	
+	# return with all fitnesses assigned
+	return (population, total_fitness/len(population))
+
+
+'''
+method for generating a map that stores sharing function between all 
+individuals of a population, later used for explicit fitness sharing
+@param population the pop for which sharing matrix is being generated
+@param threshold maximum distance between networks to be same species
+@param alpha parameter for fitness sharing function - generally set to 1 or 2
+@param theta1-3 parameters for calculating distance between genomes
+@return matrix containing all sharing information between species
+'''
+def getSharingMatrix(population, threshold, alpha, theta1, theta2, theta3):
+	# stores all sharing info
+	result = np.ones((len(population), len(population)))
+	for ind1 in range(len(population)):
+		for ind2 in range(len(population)):
+			# order does not matter, matrix is symmetric
+			# all diagonal entries should be 1, hence > and not >=
+			if(ind2 > ind1):
+				org1 = population[ind1]
+				org2 = population[ind2]
+				distance = org1.getDistance(org2, theta1, theta2, theta3)
+				result[ind1][ind2] = calculateSharingFunction(distance, threshold, alpha)
+				result[ind2][ind1] = result[ind1][ind2]
+	# return matrix containing all fitness sharing values
+	return result
+
+'''
+helper function for sharing matrix
+takes hamming distance of two genomes and converts it
+into the output of the sharing function
+@param distance hamming distance between genomes
+@param threshold speciation threshold
+@param alpha fitness sharing parameter - usually 1 or 2
+@return sharing function value for given distance and threshold
+'''
+def calculateSharingFunction(distance, threshold, alpha):
+	if(distance <= threshold):
+		return 1 - (distance/threshold)**alpha
+	else:
+		return 0
+
+	
+

@@ -1,5 +1,6 @@
 from FULL_CPPN_struct import Genotype
-from FULL_CPPN_evalg import binarySelect, tournamentSelect, applyWeightMutation, applyConMutation, applyNodeMutation, applyCrossover, evaluateFitness, evaluateFitness_fitsharing, getFittestFromSpecies
+from FULL_CPPN_evalg import binarySelect, tournamentSelect, applyWeightMutation, applyConMutation, applyNodeMutation
+from FULL_CPPN_evalg import applyCrossover, evaluateFitness, evaluateFitness_fitsharing, evaluateFitness_nichecount, getFittestFromSpecies
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -33,17 +34,18 @@ def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cx
 	for g in range(numGen):
 		print("RUNNING GENERATION " + str(g))
 		# evaluate function handles speciation of population
-		THRESHOLD = 3.0
+		THRESHOLD = 2.5
 		THETA1 = 1.0
 		THETA2 = 1.0
 		THETA3 = 0.4
 		tournSize = 3
-		evaluationTup = evaluateFitness_fitsharing(pop, THRESHOLD, THETA1, THETA2, THETA3, g)
-		species = evaluationTup[0]
+		evaluationTup = evaluateFitness_nichecount(pop, THRESHOLD, THETA1, THETA2, THETA3, g)
+		pop = evaluationTup[0]
 		AVERAGE_FITNESSES.append(evaluationTup[1])
-		print(len(species))
-		partialPop = getFittestFromSpecies(species)
-		pop = tournamentSelect(pop, tournSize, partialPop)
+		#print(len(species))
+		#partialPop = getFittestFromSpecies(species)
+		partialPop = []
+		pop = binarySelect(pop, partialPop)
 		# always apply mutation and crossover after selection
 		applyWeightMutation(pop, weight_mutpb)
 		globalInnovation = applyConMutation(pop, con_mutpb, globalInnovation)
@@ -72,11 +74,11 @@ if __name__ == "__main__":
 	numIn = 2
 	numOut = 1
 	numGen = 150
-	popSize = 150
-	weight_mutpb = .1
+	popSize = 100
+	weight_mutpb = .25
 	con_mutpb = .05
 	node_mutpb = .03
-	cxpb = .001
+	cxpb = .05
 	ind = main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
 	print(ind.getOutput([0,0])[0])
 	print(ind.getOutput([0,1])[0])
