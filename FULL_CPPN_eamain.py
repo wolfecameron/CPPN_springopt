@@ -1,6 +1,7 @@
 from FULL_CPPN_struct import Genotype
 from FULL_CPPN_evalg import binarySelect, tournamentSelect, applyWeightMutation, applyConMutation, applyNodeMutation
 from FULL_CPPN_evalg import applyCrossover, evaluateFitness, evaluateFitness_fitsharing, evaluateFitness_nichecount, getFittestFromSpecies
+from FULL_CPPN_vis import visHiddenNodes
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -34,6 +35,10 @@ def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cx
 	for g in range(numGen):
 		print("RUNNING GENERATION " + str(g))
 		# evaluate function handles speciation of population
+#		if(g == 75):
+#			for x in pop:
+#				print(x)
+#				input()
 		THRESHOLD = 2.5
 		THETA1 = 1.0
 		THETA2 = 1.0
@@ -53,7 +58,7 @@ def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cx
 		pop = applyCrossover(pop, cxpb)
 	
 	# return the resultant population after evolution done
-	return findFittest(pop)
+	return pop#findFittest(pop)
 
 '''
 method for finding fittest individual in a population
@@ -75,15 +80,17 @@ if __name__ == "__main__":
 	numOut = 1
 	numGen = 150
 	popSize = 100
-	weight_mutpb = .25
+	weight_mutpb = .3
 	con_mutpb = .05
-	node_mutpb = .03
-	cxpb = .05
-	ind = main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
-	print(ind.getOutput([0,0])[0])
-	print(ind.getOutput([0,1])[0])
-	print(ind.getOutput([1,0])[0])
-	print(ind.getOutput([1,1])[0])
+	node_mutpb = .01
+	cxpb = .01
+	pop = main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
+	for ind in pop:	
+		print(ind.getOutput([0,0])[0])
+		print(ind.getOutput([0,1])[0])
+		print(ind.getOutput([1,0])[0])
+		print(ind.getOutput([1,1])[0])
+		input("View next by hitting anything.")
 	plt.plot(AVERAGE_FITNESSES)
 	plt.title("XOR - CPPN")
 	plt.ylabel("Average Fitness")

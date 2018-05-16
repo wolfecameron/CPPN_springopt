@@ -176,6 +176,17 @@ class Genotype():
 		self.species = sys.maxsize # must find new species now that structure is different
 		return (innovationMap, globalInnovation)
 
+	'''
+	method to find number of hidden nodes in a given structure
+	@return number of hidden nodes in calling genotype
+	'''
+	def getHiddenNodes(self):
+		totalHidden = 0
+		for n in self.nodes:
+			# hidden nodes have layer between input and output
+			if(n.getNodeLayer() > 0 and n.getNodeLayer() < sys.maxsize):
+				totalHidden += 1
+		return totalHidden
 
 	''' 
 	weight mutation method for CPPN
