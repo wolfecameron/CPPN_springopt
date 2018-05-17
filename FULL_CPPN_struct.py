@@ -173,7 +173,7 @@ class Genotype():
 		self.connections.append(Connection(oldIn, self.nodes[self.size() - 1], 1, innovation1))
 		self.connections.append(Connection(self.nodes[self.size() - 1], oldOut, connect.getWeight(), innovation2))
 
-		self.species = sys.maxsize # must find new species now that structure is different
+		#species number already set to default when fittest individuals retrieved from species
 		return (innovationMap, globalInnovation)
 
 	'''
@@ -250,7 +250,7 @@ class Genotype():
 				self.connections.append(connect)
 				globalInnovation += 1
 			tryCount += 1
-		#self.species = sys.maxsize # must find new species now that structure has changed
+		
 		return globalInnovation
 	
 
@@ -300,7 +300,6 @@ class Genotype():
 						# TAKE WEIGHT HERE NOT THE CONNECTION
 						child.connections[childInd] = parent.connections[parInd].getCopy()
 		
-		#child.species = sys.maxsize # must find new species because child is different
 		return child
 
 
@@ -330,9 +329,18 @@ class Genotype():
 				oInd += 1
 			if(not found):
 				numDisjoint += 1
-		weightDifference = np.fabs(self.getTotalWeight() - other.getTotalWeight())
+		# must calculate average weight difference between matching genes
+		weightDifference = 0.0
+		numMatchingConnections = 0
+		for con1 in self.connections:
+			for con2 in other.connections:
+				if(con1.getInnovationNumber() == con2.getInnovationNumber()):
+					weightDifference += np.fabs(con1.getWeight() - con2.getWeight())
+					numMatchingConnections += 1
+		weightDifference /= numMatchingConnections
 		# N is the number of genes in the larger genome
 		N = len(self.connections) if (len(self.connections) > len(other.connections)) else len(other.connections)
+		
 		# distance formula: O1*disjoint + O2*excess + O3*averageWeightDiff
 		return ((theta1*numExcess)/N) + ((theta2*numDisjoint)/N) + ((theta3*weightDifference))
 

@@ -35,27 +35,26 @@ def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cx
 	for g in range(numGen):
 		print("RUNNING GENERATION " + str(g))
 		# evaluate function handles speciation of population
-#		if(g == 75):
-#			for x in pop:
-#				print(x)
-#				input()
-		THRESHOLD = 2.5
+		if(g == 145):
+			visHiddenNodes(pop)
+		THRESHOLD = 3.0
 		THETA1 = 1.0
 		THETA2 = 1.0
 		THETA3 = 0.4
 		tournSize = 3
 		evaluationTup = evaluateFitness_nichecount(pop, THRESHOLD, THETA1, THETA2, THETA3, g)
-		pop = evaluationTup[0]
+		species = evaluationTup[0]
 		AVERAGE_FITNESSES.append(evaluationTup[1])
 		#print(len(species))
-		#partialPop = getFittestFromSpecies(species)
-		partialPop = []
+		popTup = getFittestFromSpecies(species)
+		partialPop = popTup[0]
+		pop = popTup[1]
 		pop = binarySelect(pop, partialPop)
 		# always apply mutation and crossover after selection
 		applyWeightMutation(pop, weight_mutpb)
 		globalInnovation = applyConMutation(pop, con_mutpb, globalInnovation)
 		globalInnovation = applyNodeMutation(pop, node_mutpb, globalInnovation)
-		pop = applyCrossover(pop, cxpb)
+		#pop = applyCrossover(pop, cxpb)
 	
 	# return the resultant population after evolution done
 	return pop#findFittest(pop)
@@ -80,17 +79,18 @@ if __name__ == "__main__":
 	numOut = 1
 	numGen = 150
 	popSize = 100
-	weight_mutpb = .3
-	con_mutpb = .05
+	weight_mutpb = .2
+	con_mutpb = .1
 	node_mutpb = .01
 	cxpb = .01
 	pop = main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
 	for ind in pop:	
-		print(ind.getOutput([0,0])[0])
-		print(ind.getOutput([0,1])[0])
-		print(ind.getOutput([1,0])[0])
-		print(ind.getOutput([1,1])[0])
-		input("View next by hitting anything.")
+		if(ind.getHiddenNodes() > 0):
+			print(ind.getOutput([0,0])[0])
+			print(ind.getOutput([0,1])[0])
+			print(ind.getOutput([1,0])[0])
+			print(ind.getOutput([1,1])[0])
+			input("View next by hitting anything.")
 	plt.plot(AVERAGE_FITNESSES)
 	plt.title("XOR - CPPN")
 	plt.ylabel("Average Fitness")

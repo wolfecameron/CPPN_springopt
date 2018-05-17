@@ -80,7 +80,8 @@ method for applying weight mutation to a population
 def applyWeightMutation(population, mutpb):
 	# mutate individuals weight iff random sample < mutpb
 	for org in population:
-		if(r.random() <= mutpb):
+		# only apply mutation if not a representative for the species
+		if(org.species == sys.maxsize and r.random() <= mutpb):
 			org.weightMutate()
 
 '''
@@ -92,10 +93,12 @@ method for applying connection mutation to a population
 '''
 def applyConMutation(population, conPb, globalInnovation):
 	for org in population:
-		# go through each individual and decide if connection should be added
-		if(r.random() <= conPb):
-			# update innovation tracking variables each time connection added
-			globalInnovation = org.connectionMutate(globalInnovation)
+		# only mutate if not a representative for the species
+		if(org.species == sys.maxsize):
+			# go through each individual and decide if connection should be added
+			if(r.random() <= conPb):
+				# update innovation tracking variables each time connection added
+				globalInnovation = org.connectionMutate(globalInnovation)
 	
 	return  globalInnovation
 
@@ -108,13 +111,16 @@ method for applying node mutation to a population
 def applyNodeMutation(population, nodePb, globalInnovation):
 	innovationMap = {}
 	for org in population:
-		# go through each individual and decide if node should be added
-		if(r.random() <= nodePb):
-			# update innovation tracking variables when node is added, this allows you 
-			# to prevent the same mutation having different innov nums in same generation
-			innovTup = org.nodeMutate(innovationMap, globalInnovation)
-			innovationMap = innovTup[0]
-			globalInnovation = innovTup[1]
+		# only apply mutation if not a representative for a species
+
+		if(org.species == sys.maxsize):
+			# go through each individual and decide if node should be added
+			if(r.random() <= nodePb):
+				# update innovation tracking variables when node is added, this allows you 
+				# to prevent the same mutation having different innov nums in same generation
+				innovTup = org.nodeMutate(innovationMap, globalInnovation)
+				innovationMap = innovTup[0]
+				globalInnovation = innovTup[1]
 	
 	return globalInnovation
 
@@ -130,13 +136,14 @@ def applyCrossover(population, cxpb):
 	# individuals are crossed over with those next to them
 	# shuffle population to create new possibilities for crossover
 	r.shuffle(population)
-	for orgInd in range(len(population)):
-		doCx = r.random()
-		if(doCx <= cxpb and orgInd < len(population) - 1):
-			newInd = population[orgInd].crossover(population[orgInd + 1])
-			newPop.append(newInd)
-		else:
-			newPop.append(population[orgInd])
+	for orgInd in range(len(population) - 1):
+		if(population[orgInd].species == sys.maxsize):
+			if(r.random() <= cxpb):
+				newInd = population[orgInd].crossover(population[orgInd + 1])
+				newPop.append(newInd)
+			else:
+				newPop.append(population[orgInd])
+
 	return newPop
 
 
@@ -157,8 +164,8 @@ def speciatePopulationFirstTime(pop, thresh, theta1, theta2, theta3):
 		foundSpecies = False
 		# find correct species for each individual and add it into the vector for that species
 		while(spInd < len(species) and not foundSpecies):
-			# get distance from original element in that species to decide if a member
-			dist = currOrg.getAverageDistance(species[spInd],theta1,theta2,theta3)
+			# get distance from representative element in that species - check if below threshold
+			dist = currOrg.getDistance(species[spInd][0],theta1,theta2,theta3)
 			if(dist <= thresh):
 				foundSpecies = True
 			else:
@@ -166,10 +173,9 @@ def speciatePopulationFirstTime(pop, thresh, theta1, theta2, theta3):
 		# either add to the species it was found to match or create new species
 		if(foundSpecies):
 			species[spInd].append(currOrg)
-			currOrg.species = spInd
 		else:
 			species.append([currOrg])
-			currOrg.species = len(species) - 1
+
 	return species
 
 '''
@@ -182,41 +188,35 @@ method for speciating population after it has already been speciated
 def speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3):
 	species = [[]]
 	sortedPop = sorted(pop, key = lambda x: x.species)
-	# for debugging purposes
 	#for x in sortedPop:
-	#	print(x.species)
-	#input("check sorted")
+		#print(x.species)
+	#input()
 	# store index and current species
 	foundNotSpeciated = False
-	popIndex = 1 # index in the sortedPop list
-	currSpeciesInd = 0 # index of species that is currently being constructed 
-	currSpecies = sortedPop[0].species # tracks number of species being currently constructed
 	species[0].append(pop[0])
-
+	index = 1 # index in the sortedPop lists
 	# add all species that already have a species number
-	while(not foundNotSpeciated and popIndex < len(sortedPop)):
-		org = sortedPop[popIndex]
+	while(not foundNotSpeciated and index < len(sortedPop)):
+		org = sortedPop[index]
 		if(org.species == sys.maxsize):
 			foundNotSpeciated = True
-		elif(org.species == currSpecies):
-			species[currSpeciesInd].append(org)
-			popIndex += 1
+#		elif(org.species == currSpecies):
+#			species[currSpeciesInd].append(org)
+#			popIndex += 1
 		else:
-			currSpeciesInd += 1
-			popIndex += 1
-			currSpecies = org.species
+			index += 1
 			species.append([org])
 
 	# add all species that need to be assigned a species
-	for orgInd in range(popIndex, len(pop)):
+	for orgInd in range(index, len(pop)):
 		currOrg = sortedPop[orgInd]
 		spInd = 0
 		foundSpecies = False
 
 		# loop through all species and find best one for current org
 		while(spInd < len(species) and not foundSpecies):
-			# get distance from original element in that species to decide if a member
-			dist = currOrg.getAverageDistance(species[spInd], theta1, theta2, theta3)
+			# get distance from representative element in that species to decide if a member
+			dist = currOrg.getDistance(species[spInd][0], theta1, theta2, theta3)
 			if(dist <= thresh):
 				foundSpecies = True
 			else:
@@ -231,7 +231,7 @@ def speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3):
 			# must create new species, make it's number one larger than current largest species num
 			species.append([currOrg])
 			currOrg.species = species[len(species) - 1][0].species + 1
-
+	print(len(species))
 	return species
 
 
@@ -242,15 +242,28 @@ finds the fittest organism in each species and automatically puts it into the ne
 '''
 def getFittestFromSpecies(species):
 	partialPop = []
-	for spec in species:
+	for specInd in range(len(species)):
 		fittest = None
 		# find the fittest Genotype in a species
-		for org in spec:
+		for orgInd in range(len(species[specInd])):
+			org = species[specInd][orgInd]
+			org.species = sys.maxsize
+			# update fittest individuals as you move through the species
 			if(fittest == None or fittest.getFitness() < org.getFitness()):
 				fittest = org
 		# append the fittest element from each species directly into next population
-		partialPop.append(fittest.getCopy())
-	return partialPop
+		# assign correct species number - all others reset to default values to be reassigned
+		fittest = fittest.getCopy()
+		fittest.species = specInd
+		partialPop.append(fittest)
+
+	# must return population with all species numbers set to 0
+	newPop = []
+	for spec in species:
+		for org in spec:
+			newPop.append(org)
+
+	return (partialPop, newPop)
 
 '''
 evaluation function for the given evolutionary algorithm
@@ -344,25 +357,34 @@ def evaluateFitness_nichecount(population, threshold, theta1, theta2, theta3, g)
 	sharingMatrix = getSharingMatrix(population, threshold, ALPHA, theta1, theta2, theta3)
 	# go through every species and calculate fitness for all individuals in the species
 	total_fitness = 0.0
-	for orgInd in range(len(population)):
-		currOrg = population[orgInd]
-		actualOutput_tmp = []
-		for i in range(4):
-			actualOutput_tmp.append(currOrg.getOutput(inputs[i])[0])
-		actualOutput = np.array(actualOutput_tmp, copy = True)
-		# must multiply original fitness by size of species to make speciation work
-		# one species should not be able to dominate the population
-		totalDifference = 0.0
-		# nicheCount can be found by summing the row in sharing matrix corresponding to a given organism
-		nicheCount = np.sum(sharingMatrix[orgInd])
-		for x in range(len(actualOutput_tmp)):
-			# subtract difference squared from one so that fitness can be maximized
-			totalDifference += (1 - (actualOutput_tmp[x] - expectedOutput_tmp[x])**2)
-		population[orgInd].setFitness(totalDifference/nicheCount) 
-		total_fitness += totalDifference/nicheCount
-	
+	# create species matrix for selection purposes, put best of each species automatically forward
+	if(g == 0):
+		species = speciatePopulationFirstTime(population, threshold, theta1, theta2, theta3)
+	else:
+		species = speciatePopulationNotFirstTime(population, threshold, theta1, theta2, theta3)
+	# row variable used to track row position in the sharing matrix
+	row = 0
+	for spInd in range(len(species)):
+		currSpecies = species[spInd]
+		for orgInd in range(len(currSpecies)):
+			currOrg = species[spInd][orgInd]
+			actualOutput_tmp = []
+			for i in range(4):
+				actualOutput_tmp.append(currOrg.getOutput(inputs[i])[0])
+			actualOutput = np.array(actualOutput_tmp, copy = True)
+			# must multiply original fitness by size of species to make speciation work
+			# one species should not be able to dominate the population
+			totalDifference = 0.0
+			# nicheCount can be found by summing the row in sharing matrix corresponding to a given organism
+			nicheCount = np.sum(sharingMatrix[row])
+			for x in range(len(actualOutput_tmp)):
+				# subtract difference squared from one so that fitness can be maximized
+				totalDifference += (1 - (actualOutput_tmp[x] - expectedOutput_tmp[x])**2)
+			species[spInd][orgInd].setFitness(totalDifference/nicheCount) 
+			total_fitness = totalDifference/nicheCount
+			row += 1
 	# return with all fitnesses assigned
-	return (population, total_fitness/len(population))
+	return (species, total_fitness/len(population))
 
 
 '''
