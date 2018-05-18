@@ -61,6 +61,7 @@ def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cx
 
 '''
 method for finding fittest individual in a population
+@return the individual within pop with the best fitness
 '''
 def findFittest(pop):
 	bestInd = None
@@ -70,20 +71,12 @@ def findFittest(pop):
 	
 	return bestInd 
 
-
-
-# main function for running EA
-if __name__ == "__main__":
-	 # order of parameters for main : (numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
-	numIn = 2
-	numOut = 1
-	numGen = 150
-	popSize = 100
-	weight_mutpb = .2
-	con_mutpb = .1
-	node_mutpb = .01
-	cxpb = .01
-	pop = main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
+'''
+prints xor results for each individual of the final population
+used to determine how the CPPN performed
+@param pop the population that was created during evolution
+'''
+def printResultingInds(pop):
 	for ind in pop:	
 		if(ind.getHiddenNodes() > 0):
 			print(ind.getOutput([0,0])[0])
@@ -91,8 +84,32 @@ if __name__ == "__main__":
 			print(ind.getOutput([1,0])[0])
 			print(ind.getOutput([1,1])[0])
 			input("View next by hitting anything.")
+
+'''
+creates a line graph of average fitnesses throughout evolution
+used to determine performance of the CPPN
+'''
+def plotFitnessResults(fitnesses):
 	plt.plot(AVERAGE_FITNESSES)
 	plt.title("XOR - CPPN")
 	plt.ylabel("Average Fitness")
 	plt.xlabel("Generation")
 	plt.show()
+
+
+
+
+# main function for running EA
+if __name__ == "__main__":
+	# order of parameters for main : (numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
+	numIn = 2
+	numOut = 1
+	numGen = 150
+	popSize = 100
+	weight_mutpb = .25
+	con_mutpb = .1
+	node_mutpb = .02
+	cxpb = .0
+	pop = main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
+	printResultingInds(pop)
+	plotFitnessResults(AVERAGE_FITNESSES)

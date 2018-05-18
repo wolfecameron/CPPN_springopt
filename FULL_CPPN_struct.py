@@ -181,12 +181,8 @@ class Genotype():
 	@return number of hidden nodes in calling genotype
 	'''
 	def getHiddenNodes(self):
-		totalHidden = 0
-		for n in self.nodes:
-			# hidden nodes have layer between input and output
-			if(n.getNodeLayer() > 0 and n.getNodeLayer() < sys.maxsize):
-				totalHidden += 1
-		return totalHidden
+		# num hidden can be determined using instance variables
+		return self.size() - self.numIn - self.numOut
 
 	''' 
 	weight mutation method for CPPN
@@ -234,7 +230,7 @@ class Genotype():
 		# sort nodes based on topology of CPPN
 		foundGoodConnection = False
 		tryCount = 0
-		maxTries = 30
+		maxTries = 50
 		newWeight = r.uniform(-0.5,0.5)
 		connect = None
 		# only allow network to attempt to form connections a certain number of times - prevents infinite loop
