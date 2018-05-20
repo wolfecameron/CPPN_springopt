@@ -8,6 +8,8 @@ from deap import tools
 from deap import algorithms
 from deap import creator
 from FULL_CPPN_struct import Genotype
+from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover
+from FULL_CPPN_innovation import GlobalInnovation
 
 '''
 evaluation function for evolution
@@ -34,8 +36,9 @@ POP_SIZE = 150
 toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = POP_SIZE)
 
 # register all functions needed for evolution in the toolbox
+toolbox.register("mate", xover)
+toolbox.register("weightMutate", weightMutate)
+toolbox.register("connectionMutate", conMutate)
+toolbox.register("nodeMutate", nodeMutate)
 
 
-pop = toolbox.population()
-print(pop[0])
-print(str(pop[0].species))
