@@ -9,6 +9,14 @@ from deap import algorithms
 from deap import creator
 from FULL_CPPN_struct import Genotype
 
+'''
+evaluation function for evolution
+@param individual the organism that is being evaluated
+@param sharingMatrix used for explicit fitness sharing
+'''
+def evaluate(pop, sharingMatrix):
+	return 0
+
 # create class for maximizing fitness and creating individual
 creator.create("FitnessMax", base.Fitness, weights = (1.0,))
 creator.create("Individual", Genotype, fitness = creator.FitnessMax)
@@ -25,6 +33,9 @@ toolbox.register("individual", Genotype, NUM_IN, NUM_OUT)
 POP_SIZE = 150
 toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = POP_SIZE)
 
+# register all functions needed for evolution in the toolbox
+
 
 pop = toolbox.population()
 print(pop[0])
+print(str(pop[0].species))
