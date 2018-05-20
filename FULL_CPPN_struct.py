@@ -113,7 +113,7 @@ class Genotype():
 				else:
 					foundAllOutputs = True
 				outInd += 1
-			#self.gSize += 1
+			
 			return outputs
 
 	'''
