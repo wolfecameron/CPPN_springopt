@@ -13,12 +13,16 @@ All mutation, crossover, and activation features are implemented in the structur
 # genotype class implements the CPPN structure
 class Genotype():
 
+	# all default values for constructor parameters declared below
+	DEF_NUMIN = 2
+	DEF_NUMOUT = 1
+
 	'''
 	Constructor for the genotype class, initializes genotype object and builds initial, simple network
 	@param numIn the number of inputs into the network (excluding bias)
 	@param numOut the number of outputs out of the network
 	'''
-	def __init__(self, numIn, numOut):
+	def __init__(self, numIn = DEF_NUMIN, numOut = DEF_NUMOUT):
 		# add one to numIn to account for bias
 		self.numIn = numIn + 1 
 		self.numOut = numOut
