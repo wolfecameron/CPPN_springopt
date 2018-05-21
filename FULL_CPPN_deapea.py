@@ -13,6 +13,7 @@ from FULL_CPPN_innovation import GlobalInnovation
 import numpy as np
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
 from FULL_CPPN_evalg import getFittestFromSpecies
+import random as r
 
 '''
 fitness evaluation used for DEAP CPPN implementation
@@ -21,18 +22,17 @@ fitness evaluation used for DEAP CPPN implementation
 @row the row of the sharingMatrix that corresponds to the current individual
 @return fitness of individual in a tuple
 '''
-def evaluate(individual, sharingMatrix):
+def evaluate(individual, sharingMatrix, row):
 	# store inputs and actual/expected values in same order in lists 
 	inputs = [[0,0], [1,0], [0,1], [1,1]]
 	expectedOutputs = [0,1,1,0]
 	actualOutputs = []
 	# get output of individual for all different inputs
 	for values in inputs:
-		actualOutputs.append(individual.getOutput(values))
+		actualOutputs.append(individual.getOutput(values)[0])
 	fitness = 0.0
 	# find niche count of first row and then delete first row
-	nicheCount = np.sum(sharingMatrix[0])
-	sharingMatrix = numpy.delete(sharingMatrix, (0), axis=0)
+	nicheCount = np.sum(sharingMatrix[row])
 	for i in range(len(expectedOutputs)):
 		# return the 1 - the difference so that fitness can be maximized
 		fitness += (1 - (expectedOutputs[i] - actualOutputs[i])**2)
@@ -57,7 +57,9 @@ POP_SIZE = 150
 toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = POP_SIZE)
 
 # register all functions needed for evolution in the toolbox
+TOURN_SIZE = 3
 toolbox.register("evaluate", evaluate)
+toolbox.register("select", tools.selTournament, tournsize = TOURN_SIZE)
 toolbox.register("mate", xover)
 toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
@@ -70,28 +72,90 @@ the main function for the DEAP evolutionary algorithm
 the main EA loop is contained inside of this function
 NOTE: pop size is set where the population function is registered
 '''
-def main(nGen, weightMutpb, conMutpb, thresh, alpha, theta1, theta2, theta3):
+def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, theta2, theta3, numIn, numOut):
 	pop = toolbox.population()
+	# use global innovation object to track the creation of new innovation numbers during evolution
+	gb = GlobalInnovation(numIn, numOut)
 	for g in range(NGEN):
-		sharingMatrix = getSharingMatrix(pop, threshold, alpha, theta1, theta2, theta3)
-		fits = toolbox.map(toolbox.evaluate, pop, sharingMatrix)
+		# create sharing matrix to use to calculate niche count
+		sharingMatrix = getSharingMatrix(pop, thresh, alpha, theta1, theta2, theta3)
+		fits = []
+
+		# use row counter as the correct index into the sharing matrix for fitness calculation
+		# find all fitness values for individuals in population
+		row = 0 
+		for ind in pop:
+			fits.append(evaluate(ind, sharingMatrix, row))
+			row += 1
+
+		# assign all the fitness values to the individuals
+		# NOTE: each elements of fits will be a tuple	
 		for ind,fit in zip(pop,fits):
 			ind.fitness.values = fit
-			ind.fitness = fit
+			ind.fitness = fit[0]
+		
+		# speciate the population after finding corresponding fitnesses
 		species = []
 		if(g == 0):
 			species = speciatePopulationFirstTime(pop, thresh, theta1, theta2, theta3)
 		else:
 			species = speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3)
+		
 		# fittest from species function selects all species representatives
 		# and sets the species variable for the rest of the population to sys.maxsize
 		fitTup = getFittestFromSpecies(species)
 		bestInSpecies = fitTup[0]
 		pop = fitTup[1]
+		pop = toolbox.select(pop, k = len(pop))
+		
+		# append the extra fittest individuals into the species
+		for ind in bestInSpecies:
+			pop.append(ind)
+		
+		# apply weight mutations
+		for ind in pop:
+			if(r.random() <= weightMutpb):
+				toolbox.weightMutate(ind)
+				# must invalidate individuals fitness if mutation applied
+				del ind.fitness
+		
+		# apply node mutations
+		for ind in pop:
+			if(r.random() <= nodeMutpb):
+				toolbox.nodeMutate(ind, gb)
+				del ind.fitness
 
+		# apply connection mutations
+		for ind in pop:
+			if(r.random() <= conMutpb):
+				toolbox.connectionMutate(ind, gb)
+				del ind.fitness
+
+		# apply crossover
+		for child1, child2 in zip(pop[::2], pop[1::2]):
+			if(r.random() <= cxPb):
+				toolbox.mate(child1, child2)
+				del child1.fitness
+				del child2.fitness
+
+	# return the population after it has been evolved
+	return pop
 
 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-	main()
+	NGEN = 150
+	WEIGHT_MUTPB = .25
+	NODE_MUTPB = .02
+	CON_MUTPB = .1
+	CXPB = 0.0
+	THRESHOLD = 3.0
+	ALPHA = 1.0
+	THETA1 = 1.0
+	THETA2 = 1.0
+	THETA3 = 0.4
+	NUM_IN = 2
+	NUM_OUT = 1
+	# run main EA loop
+	main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)

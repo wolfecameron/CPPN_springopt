@@ -241,13 +241,17 @@ finds the fittest organism in each species and automatically puts it into the ne
 @return a partial new population only containing the best species individuals
 '''
 def getFittestFromSpecies(species):
+	# store list of best individuals and the full population with species set to 0
 	partialPop = []
+	newPop = []
 	for specInd in range(len(species)):
 		fittest = None
 		# find the fittest Genotype in a species
 		for orgInd in range(len(species[specInd])):
 			org = species[specInd][orgInd]
 			org.species = sys.maxsize
+			newPop.append(org)
+
 			# update fittest individuals as you move through the species
 			if(fittest == None or fittest.getFitness() < org.getFitness()):
 				fittest = org
@@ -256,12 +260,6 @@ def getFittestFromSpecies(species):
 		fittest = fittest.getCopy()
 		fittest.species = specInd
 		partialPop.append(fittest)
-
-	# must return population with all species numbers set to 0
-	newPop = []
-	for spec in species:
-		for org in spec:
-			newPop.append(org)
 
 	return (partialPop, newPop)
 

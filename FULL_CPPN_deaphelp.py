@@ -69,9 +69,9 @@ def xover(individual1, individual2):
 	# cross individuals over and return new one as long as neither are representatives
 	# of a species
 	if(individual1.species == sys.maxsize and individual2.species == sys.maxsize):
-		newInd = individual1.crossover(individual2)
+		(newInd1, newInd2) = individual1.crossoverReturnBoth(individual2)
 
-	return newInd,
+	return (newInd1, newInd2)
 
 
 

@@ -302,6 +302,41 @@ class Genotype():
 		
 		return child
 
+	'''
+	crossover function for two Genotypes
+	Same as other crossover but this one creates two new individuals to return 
+	takes all genes from fitter parent and adds to new individual
+	then takes genes that are same between two parents and chooses randomly between them
+	@param other the Genotype that is being crossed over with the calling genotype
+	@param pointcxpb probability that genes with similar innov num will be swapped for each iteration
+	@return a tuple containing the two newly crossed over individuals
+	MAKE 3 DIFFERENT CROSSOVERS - gaussian and average!!!!
+	'''
+	def crossoverReturnBoth(self, other):
+		# keep disjoint genes from more fit parent
+		SWAP_PB = .25
+		child = None
+		parent = None
+		if(self.getFitness() > other.getFitness()):
+			child = self.getCopy()
+			parent = other.getCopy()
+		else:
+			child = other.getCopy()
+			parent = self.getCopy()
+		# traverse connection, crossover those with same innov number
+		for childInd in range(len(child.connections)):
+			for parInd in range(len(parent.connections)):
+				if(child.connections[childInd].getInnovationNumber() == parent.connections[parInd].getInnovationNumber()):
+					# swap genes if random number below pointcxpb
+					swap = r.random()
+					if(swap <= SWAP_PB):
+						# swap the connections between the two individuals
+						tmp = child.connections[childInd].getCopy()
+						child.connections[childInd] = parent.connections[parInd].getCopy()
+						parent.connections[parInd] = tmp
+		
+		return (child, parent)
+
 
 	'''
 	method to find the distance between two networks' topologies
