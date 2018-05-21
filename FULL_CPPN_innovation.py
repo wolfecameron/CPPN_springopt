@@ -37,7 +37,7 @@ class GlobalInnovation():
 	def incrementInnov(self):
 		self.current += 1
 
-		
+
 	'''
 	method to add an entry into the current innovation dictionary
 	@oldInnov integer value representing the innovation number of the connection
@@ -66,5 +66,7 @@ class GlobalInnovation():
 	prints out all current data stored in the class
 	'''
 	def __str__(self):
-		print("NEXT INNOVATION NUMBER: " + str(self.current))
-		print("CURRENT DICTIONARY STATE: " + str(self.innovDict))
+		result = ""
+		result += ("NEXT INNOVATION NUMBER: " + str(self.current) + "\n")
+		result += ("CURRENT DICTIONARY STATE: " + str(self.innovDict) + "\n")
+		return result

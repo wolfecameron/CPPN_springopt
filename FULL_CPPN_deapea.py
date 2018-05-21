@@ -41,8 +41,9 @@ def evaluate(individual, sharingMatrix, row):
 
 
 # create class for maximizing fitness and creating individual
+# must name fitness atribute fit_obj because fitness is a instance variable of Genotype class
 creator.create("FitnessMax", base.Fitness, weights = (1.0,))
-creator.create("Individual", Genotype, fitness = creator.FitnessMax)
+creator.create("Individual", Genotype, fit_obj = creator.FitnessMax) 
 
 # initialize the toolbox
 toolbox = base.Toolbox()
@@ -50,7 +51,7 @@ toolbox = base.Toolbox()
 # register function to create individual in the toolbox
 NUM_IN = 2
 NUM_OUT = 1
-toolbox.register("individual", Genotype, NUM_IN, NUM_OUT)
+toolbox.register("individual", creator.Individual, NUM_IN, NUM_OUT)
 
 # register function to create population in the toolbox
 POP_SIZE = 150
@@ -77,6 +78,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 	# use global innovation object to track the creation of new innovation numbers during evolution
 	gb = GlobalInnovation(numIn, numOut)
 	for g in range(NGEN):
+		print("RUNNING GENERATION " + str(g))
 		# create sharing matrix to use to calculate niche count
 		sharingMatrix = getSharingMatrix(pop, thresh, alpha, theta1, theta2, theta3)
 		fits = []
@@ -85,13 +87,13 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 		# find all fitness values for individuals in population
 		row = 0 
 		for ind in pop:
-			fits.append(evaluate(ind, sharingMatrix, row))
+			fits.append(toolbox.evaluate(ind, sharingMatrix, row))
 			row += 1
 
 		# assign all the fitness values to the individuals
 		# NOTE: each elements of fits will be a tuple	
 		for ind,fit in zip(pop,fits):
-			ind.fitness.values = fit
+			ind.fit_obj.values = fit
 			ind.fitness = fit[0]
 		
 		# speciate the population after finding corresponding fitnesses
@@ -117,26 +119,30 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 			if(r.random() <= weightMutpb):
 				toolbox.weightMutate(ind)
 				# must invalidate individuals fitness if mutation applied
-				del ind.fitness
+				del ind.fit_obj.values
 		
 		# apply node mutations
 		for ind in pop:
 			if(r.random() <= nodeMutpb):
 				toolbox.nodeMutate(ind, gb)
-				del ind.fitness
+				del ind.fit_obj.values
 
 		# apply connection mutations
 		for ind in pop:
 			if(r.random() <= conMutpb):
 				toolbox.connectionMutate(ind, gb)
-				del ind.fitness
+				del ind.fit_obj.values
 
 		# apply crossover
 		for child1, child2 in zip(pop[::2], pop[1::2]):
 			if(r.random() <= cxPb):
 				toolbox.mate(child1, child2)
-				del child1.fitness
-				del child2.fitness
+				del child1.fit_obj.values
+				del child2.fit_obj.values
+
+		# must clear the dictionary of innovation numbers for the coming generation
+		# only check to see if same innovation occurs twice in a single generation
+		gb.clearDict()
 
 	# return the population after it has been evolved
 	return pop
@@ -145,6 +151,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
+
 	NGEN = 150
 	WEIGHT_MUTPB = .25
 	NODE_MUTPB = .02
@@ -157,5 +164,13 @@ if __name__ == '__main__':
 	THETA3 = 0.4
 	NUM_IN = 2
 	NUM_OUT = 1
+
 	# run main EA loop
-	main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
+	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
+	inputs = [[0,0],[0,1],[1,0],[1,1]]
+	for ind in finalPop:
+		print("\n")
+		for ins in inputs:
+			print(ind.getOutput(ins)[0])
+		print("\n")
+		input()

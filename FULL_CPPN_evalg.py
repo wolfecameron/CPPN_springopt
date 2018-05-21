@@ -231,7 +231,7 @@ def speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3):
 			# must create new species, make it's number one larger than current largest species num
 			species.append([currOrg])
 			currOrg.species = species[len(species) - 1][0].species + 1
-	print(len(species))
+	#print(len(species))
 	return species
 
 

@@ -48,7 +48,6 @@ method for applying node mutation to an individual
 '''
 def nodeMutate(individual, globalInnovation):
 	# only apply mutation if not a representative for a species
-	print("MADE IT HERE!")
 	if(individual.species == sys.maxsize):
 		# update innovation tracking variables when node is added, this allows you 
 		# to prevent the same mutation having different innov nums in same generation
