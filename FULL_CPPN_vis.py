@@ -30,3 +30,29 @@ def visHiddenNodes(pop):
 	plt.ylabel("Frequency")
 	# display the graph
 	plt.show()
+
+'''
+creates bar graphing showing the number of connections in a the population's networks
+shows frequency of each number of connections
+@param pop population for which visualization is being generated
+'''
+def visConnections(pop):
+	allConnections = []
+	# generate all total number connection values for population
+	for ind in pop:
+		allConnections.append(len(ind.connections))
+	# store all data in dictionary so that it can be turned into a bar graph
+	dataDict = {}
+	for val in allConnections:
+		if(val in dataDict.keys()):
+			dataDict[val] = dataDict[val] + 1
+		else:
+			dataDict[val] = 1
+	# create bar graph to display with connection data
+	ax = plt.subplot(111)
+	ax.bar(dataDict.keys(), dataDict.values() ,width=0.2,color='b',align='center')
+	plt.title("NUMBER OF CONNECTIONS AMONG INDIVIDUALS")
+	plt.xlabel("Number of Connections")
+	plt.ylabel("Frequency")
+	# display the graph
+	plt.show()

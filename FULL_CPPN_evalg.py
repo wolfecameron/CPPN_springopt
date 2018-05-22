@@ -44,6 +44,8 @@ IMPLEMENT TOURNAMENT SELECTION AS WELL!
 '''
 def binarySelect(population, partialPop):
 	#stores all selected individuals from binary tournaments
+	for ind in partialPop:
+		population.append(ind)
 	newPop = partialPop # set equal to partial pop so best inds copied directly into new generation
 	# all individuals get a chance to compete twice
 	pop1 = copy.deepcopy(population)
@@ -239,6 +241,7 @@ def speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3):
 finds the fittest organism in each species and automatically puts it into the next generation
 @param species Genotypes separated into a 2D array to model a species
 @return a partial new population only containing the best species individuals
+post: len(partialPop) + len(newPop) == POP_SIZE , you don't want to add fittest into both lists
 '''
 def getFittestFromSpecies(species):
 	# store list of best individuals and the full population with species set to 0
@@ -248,13 +251,17 @@ def getFittestFromSpecies(species):
 		fittest = None
 		# find the fittest Genotype in a species
 		for orgInd in range(len(species[specInd])):
+			# get current organism and reset its species
 			org = species[specInd][orgInd]
 			org.species = sys.maxsize
-			newPop.append(org)
-
 			# update fittest individuals as you move through the species
+			# only append to new pop if it's known that a given org is not the fittest
 			if(fittest == None or fittest.getFitness() < org.getFitness()):
+				if(not fittest == None):
+					newPop.append(fittest)
 				fittest = org
+			else:
+				newPop.append(org)
 		# append the fittest element from each species directly into next population
 		# assign correct species number - all others reset to default values to be reassigned
 		fittest = fittest.getCopy()
@@ -409,6 +416,22 @@ def getSharingMatrix(population, threshold, alpha, theta1, theta2, theta3):
 				result[ind2][ind1] = result[ind1][ind2]
 	# return matrix containing all fitness sharing values
 	return result
+
+'''
+method for creating a list of niche counts from a sharingMatrix
+@param sharingMatrix the sharing matrix for which the niche counts are being found
+@return a list containing all niche counts for organisms
+'''
+def getNicheCounts(sharingMatrix):
+	result = []
+	row = 0
+	# go through each row in the sharing matrix and find its sum
+	while(row < sharingMatrix.shape[0]):
+		result.append(np.sum(sharingMatrix[row]))
+		row += 1
+
+	return result
+
 
 '''
 helper function for sharing matrix

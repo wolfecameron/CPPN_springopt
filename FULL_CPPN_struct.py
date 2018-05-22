@@ -234,14 +234,14 @@ class Genotype():
 		# sort nodes based on topology of CPPN
 		foundGoodConnection = False
 		tryCount = 0
-		maxTries = 50
+		maxTries = 20
 		newWeight = r.uniform(-0.5,0.5)
 		connect = None
 		# only allow network to attempt to form connections a certain number of times - prevents infinite loop
 		while(not foundGoodConnection and tryCount < maxTries):
 			# choose two random indexes for in and out nodes of connection such that in < out
-			inInd = r.randint(0,len(self.nodes) - 2) 
-			outInd = r.randint(inInd, len(self.nodes) - 1)
+			inInd = r.randint(0,len(self.nodes) - 1) 
+			outInd = r.randint(0, len(self.nodes) - 1)
 			# create possible connection and check if valid
 			connect = Connection(self.nodes[inInd], self.nodes[outInd], newWeight, globalInnovation)
 			# if a valid connection is found, add it into the network and increment the global innovation count

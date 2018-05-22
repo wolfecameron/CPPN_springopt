@@ -1,7 +1,7 @@
 from FULL_CPPN_struct import Genotype
 from FULL_CPPN_evalg import binarySelect, tournamentSelect, applyWeightMutation, applyConMutation, applyNodeMutation
 from FULL_CPPN_evalg import applyCrossover, evaluateFitness, evaluateFitness_fitsharing, evaluateFitness_nichecount, getFittestFromSpecies
-from FULL_CPPN_vis import visHiddenNodes
+from FULL_CPPN_vis import visHiddenNodes, visConnections
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -37,6 +37,8 @@ def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cx
 		# evaluate function handles speciation of population
 		if(g == 145):
 			visHiddenNodes(pop)
+		if(g == 75):
+			visConnections(pop)
 		THRESHOLD = 3.0
 		THETA1 = 1.0
 		THETA2 = 1.0

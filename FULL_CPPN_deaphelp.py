@@ -15,9 +15,7 @@ registered as the mutation function in the DEAP toolbox
 @param mutpb the probability of a mutation occurring
 '''
 def weightMutate(individual):
-	# only mutate if the individual is not a species representative
-	if(individual.species == sys.maxsize):
-			individual.weightMutate()
+	individual.weightMutate()
 	# must return as tuple to be compatible with DEAP
 	return individual,
 
@@ -29,12 +27,10 @@ method for applying connection mutation to an individual
 @return updated version of globalInnovation number
 '''
 def conMutate(individual, globalInnovation):
-	# only mutate if not a representative for the species
-	if(individual.species == sys.maxsize):
-		# update innovation tracking variables each time connection added
-		innovResult = globalInnovation.getNextInnov()
-		innovResult = individual.connectionMutate(innovResult)
-		globalInnovation.current = innovResult
+	# update innovation tracking variables each time connection added
+	innovResult = globalInnovation.getNextInnov()
+	innovResult = individual.connectionMutate(innovResult)
+	globalInnovation.current = innovResult
 
 	return  individual,
 
@@ -47,14 +43,12 @@ method for applying node mutation to an individual
 @return updated value of innovationMap and innovation number
 '''
 def nodeMutate(individual, globalInnovation):
-	# only apply mutation if not a representative for a species
-	if(individual.species == sys.maxsize):
-		# update innovation tracking variables when node is added, this allows you 
-		# to prevent the same mutation having different innov nums in same generation
-		innovTup = individual.nodeMutate(globalInnovation.innovDict, globalInnovation.getNextInnov())
-		# update tracking variables in the global innovation object
-		globalInnovation.innovDict = innovTup[0]
-		globalInnovation.current = innovTup[1]
+	# update innovation tracking variables when node is added, this allows you 
+	# to prevent the same mutation having different innov nums in same generation
+	innovTup = individual.nodeMutate(globalInnovation.innovDict, globalInnovation.getNextInnov())
+	# update tracking variables in the global innovation object
+	globalInnovation.innovDict = innovTup[0]
+	globalInnovation.current = innovTup[1]
 	
 	return individual,
 
@@ -65,10 +59,8 @@ method for applying crossover to two individuals
 @return new population after crossover
 '''
 def xover(individual1, individual2):
-	# cross individuals over and return new one as long as neither are representatives
-	# of a species
-	if(individual1.species == sys.maxsize and individual2.species == sys.maxsize):
-		(newInd1, newInd2) = individual1.crossoverReturnBoth(individual2)
+	# cross individuals over and return both new individuals
+	(newInd1, newInd2) = individual1.crossoverReturnBoth(individual2)
 
 	return (newInd1, newInd2)
 
