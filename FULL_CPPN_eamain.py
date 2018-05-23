@@ -37,8 +37,6 @@ def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cx
 		# evaluate function handles speciation of population
 		if(g == 145):
 			visHiddenNodes(pop)
-		if(g == 75):
-			visConnections(pop)
 		THRESHOLD = 3.0
 		THETA1 = 1.0
 		THETA2 = 1.0
@@ -46,6 +44,7 @@ def main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cx
 		tournSize = 3
 		evaluationTup = evaluateFitness_nichecount(pop, THRESHOLD, THETA1, THETA2, THETA3, g)
 		species = evaluationTup[0]
+		print(len(species))
 		AVERAGE_FITNESSES.append(evaluationTup[1])
 		#print(len(species))
 		popTup = getFittestFromSpecies(species)
@@ -107,9 +106,9 @@ if __name__ == "__main__":
 	numIn = 2
 	numOut = 1
 	numGen = 150
-	popSize = 100
-	weight_mutpb = .25
-	con_mutpb = .1
+	popSize = 150
+	weight_mutpb = .2
+	con_mutpb = .15
 	node_mutpb = .02
 	cxpb = .0
 	pop = main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)

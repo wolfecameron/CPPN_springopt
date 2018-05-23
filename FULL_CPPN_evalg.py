@@ -44,8 +44,6 @@ IMPLEMENT TOURNAMENT SELECTION AS WELL!
 '''
 def binarySelect(population, partialPop):
 	#stores all selected individuals from binary tournaments
-	for ind in partialPop:
-		population.append(ind)
 	newPop = partialPop # set equal to partial pop so best inds copied directly into new generation
 	# all individuals get a chance to compete twice
 	pop1 = copy.deepcopy(population)
@@ -53,7 +51,6 @@ def binarySelect(population, partialPop):
 	r.shuffle(pop1)
 	r.shuffle(pop2)
 	# ONLY CONTINUE ADDING ELEMENTS IF PARTIAL POP IS NOT OF SIZE EQUAL TO POPSIZE
-	
 	#performs binary selection on first copy of population
 	while(len(partialPop) < len(population) and len(pop1) > 0):
 		# pop two individuals but only put one into new population
@@ -254,14 +251,12 @@ def getFittestFromSpecies(species):
 			# get current organism and reset its species
 			org = species[specInd][orgInd]
 			org.species = sys.maxsize
+			newPop.append(org)
 			# update fittest individuals as you move through the species
 			# only append to new pop if it's known that a given org is not the fittest
 			if(fittest == None or fittest.getFitness() < org.getFitness()):
-				if(not fittest == None):
-					newPop.append(fittest)
 				fittest = org
-			else:
-				newPop.append(org)
+
 		# append the fittest element from each species directly into next population
 		# assign correct species number - all others reset to default values to be reassigned
 		fittest = fittest.getCopy()

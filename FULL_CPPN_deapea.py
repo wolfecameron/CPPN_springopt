@@ -12,7 +12,7 @@ from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover
 from FULL_CPPN_innovation import GlobalInnovation
 import numpy as np
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
-from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts
+from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
 from FULL_CPPN_vis import visConnections, visHiddenNodes
 import random as r
 import sys
@@ -34,7 +34,7 @@ def evaluate(individual, nicheCounts, row):
 		actualOutputs.append(individual.getOutput(values)[0])
 	fitness = 0.0
 	# find niche count of first row and then delete first row
-	nicheCount = nicheCounts[row]
+	nicheCount = np.sum(nicheCounts[row])
 	for i in range(len(expectedOutputs)):
 		# return the 1 - the difference so that fitness can be maximized
 		fitness += (1 - (expectedOutputs[i] - actualOutputs[i])**2)
@@ -64,7 +64,8 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = P
 # register all functions needed for evolution in the toolbox
 TOURN_SIZE = 2
 toolbox.register("evaluate", evaluate)
-toolbox.register("select", tools.selTournament, k = 1, tournsize = TOURN_SIZE, fit_attr = "fit_obj")
+toolbox.register("select", binarySelect)
+#toolbox.register("select", tools.selTournament, k = 1, tournsize = TOURN_SIZE, fit_attr = "fit_obj")
 toolbox.register("mate", xover)
 toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
@@ -84,17 +85,14 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 	for g in range(NGEN):
 		print("RUNNING GENERATION " + str(g))
 		# create sharing matrix to use to calculate niche count
-		print("*making sharing matrix")
-		print(len(pop))
-		if(g == 35):
+		if(g == 145):
 			visConnections(pop)
 			visHiddenNodes(pop)
 
-		nicheCounts = getNicheCounts(getSharingMatrix(pop, thresh, alpha, theta1, theta2, theta3))
+		nicheCounts = getSharingMatrix(pop, thresh, alpha, theta1, theta2, theta3)
 		fits = []
 		# use row counter as the correct index into the sharing matrix for fitness calculation
 		# find all fitness values for individuals in population
-		print("*getting fitness")
 		row = 0 
 		for ind in pop:
 			fits.append(toolbox.evaluate(ind, nicheCounts, row))
@@ -107,31 +105,27 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 			ind.fitness = fit[0]
 		
 		# speciate the population after finding corresponding fitnesses
-		print("*creating species")
 		species = []
 		if(g == 0):
 			species = speciatePopulationFirstTime(pop, thresh, theta1, theta2, theta3)
 		else:
 			species = speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3)
-		print(len(species))
-		#input()
 		
+		print("Num Species: " + str(len(species)))
+
 		# fittest from species function selects all species representatives
 		# and sets the species variable for the rest of the population to sys.maxsize
 		fitTup = getFittestFromSpecies(species)
 		bestInSpecies = fitTup[0]
-		print(len(bestInSpecies))
 		#input("Looking at the number of individuals directly selected")
 		pop = fitTup[1]
-		print("*selecting new population")
-		pop = toolbox.select(pop, k = len(pop))
+		pop = toolbox.select(pop, bestInSpecies)
 		
 		# append the extra fittest individuals into the species
-		for ind in bestInSpecies:
-			pop.append(ind)
+		#for ind in bestInSpecies:
+		#	pop.append(ind)
 		
 		# apply weight mutations
-		print("*performing weight mutation")
 		for ind in pop:
 			if(ind.species == sys.maxsize and r.random() <= weightMutpb):
 				toolbox.weightMutate(ind)
@@ -139,30 +133,24 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 				del ind.fit_obj.values
 		
 		# apply node mutations
-		print("*performing node mutation")
 		for ind in pop:
 			if(ind.species == sys.maxsize and r.random() <= nodeMutpb):
-				print("Node mutation happening!")
 				toolbox.nodeMutate(ind, gb)
 				del ind.fit_obj.values
 
 		# apply connection mutations
-		print("*performing connection mutation")
 		for ind in pop:
 			if(ind.species == sys.maxsize and r.random() <= conMutpb):
 				toolbox.connectionMutate(ind, gb)
 				del ind.fit_obj.values
 
 		# apply crossover
-		print("*performing crossover")
 		for child1, child2 in zip(pop[::2], pop[1::2]):
 			if(child1.species == sys.maxsize and child2.species == sys.maxsize and r.random() <= cxPb):
 				toolbox.mate(child1, child2)
 				del child1.fit_obj.values
 				del child2.fit_obj.values
-		print("length of population")
-		print(len(pop))
-		#input()
+
 		# must clear the dictionary of innovation numbers for the coming generation
 		# only check to see if same innovation occurs twice in a single generation
 		gb.clearDict()
@@ -175,10 +163,10 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
 
-	NGEN = 40
-	WEIGHT_MUTPB = .2
-	NODE_MUTPB = .005
-	CON_MUTPB = .01
+	NGEN = 150
+	WEIGHT_MUTPB = .25
+	NODE_MUTPB = .02
+	CON_MUTPB = .1
 	CXPB = -1.0
 	THRESHOLD = 3.0
 	ALPHA = 1.0
