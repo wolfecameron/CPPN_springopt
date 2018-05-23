@@ -164,7 +164,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 if __name__ == '__main__':
 
 	NGEN = 150
-	WEIGHT_MUTPB = .25
+	WEIGHT_MUTPB = .3
 	NODE_MUTPB = .02
 	CON_MUTPB = .1
 	CXPB = -1.0

@@ -107,7 +107,7 @@ if __name__ == "__main__":
 	numOut = 1
 	numGen = 150
 	popSize = 150
-	weight_mutpb = .25
+	weight_mutpb = .35
 	con_mutpb = .1
 	node_mutpb = .02
 	cxpb = .0

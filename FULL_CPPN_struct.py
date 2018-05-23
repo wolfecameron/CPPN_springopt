@@ -95,7 +95,7 @@ class Genotype():
 			self.nodes[self.numIn - 1].setNodeValue(1)
 			# activate network by going through sorted connection list and querying all connections
 			for c in range(len(sortedConnection)):
-				if sortedConnection[c].getStatus():
+				if(sortedConnection[c].getStatus()):
 					# do not activate the inputs, only hidden/output nodes
 					if sortedConnection[c].getNodeIn().getNodeLayer() > 0:		
 						# FORMULA: nodeOut.val += activation(nodeIn.val)*weight
