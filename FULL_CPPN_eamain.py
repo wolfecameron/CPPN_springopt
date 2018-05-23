@@ -107,8 +107,8 @@ if __name__ == "__main__":
 	numOut = 1
 	numGen = 150
 	popSize = 150
-	weight_mutpb = .2
-	con_mutpb = .15
+	weight_mutpb = .25
+	con_mutpb = .1
 	node_mutpb = .02
 	cxpb = .0
 	pop = main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)

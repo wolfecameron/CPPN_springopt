@@ -164,7 +164,7 @@ def speciatePopulationFirstTime(pop, thresh, theta1, theta2, theta3):
 		# find correct species for each individual and add it into the vector for that species
 		while(spInd < len(species) and not foundSpecies):
 			# get distance from representative element in that species - check if below threshold
-			dist = currOrg.getDistance(species[spInd][0],theta1,theta2,theta3)
+			dist = currOrg.getDistance(species[spInd][0], theta1, theta2, theta3)
 			if(dist <= thresh):
 				foundSpecies = True
 			else:
@@ -187,9 +187,7 @@ method for speciating population after it has already been speciated
 def speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3):
 	species = [[]]
 	sortedPop = sorted(pop, key = lambda x: x.species)
-	#for x in sortedPop:
-		#print(x.species)
-	#input()
+
 	# store index and current species
 	foundNotSpeciated = False
 	species[0].append(pop[0])
@@ -225,11 +223,10 @@ def speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3):
 		if(foundSpecies):
 			# add org to species it was found to match and set its species number accordingly
 			species[spInd].append(currOrg)
-			currOrg.species = species[spInd][0].species
 		else:
 			# must create new species, make it's number one larger than current largest species num
 			species.append([currOrg])
-			currOrg.species = species[len(species) - 1][0].species + 1
+		currOrg.species = spInd
 	#print(len(species))
 	return species
 
@@ -238,7 +235,6 @@ def speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3):
 finds the fittest organism in each species and automatically puts it into the next generation
 @param species Genotypes separated into a 2D array to model a species
 @return a partial new population only containing the best species individuals
-post: len(partialPop) + len(newPop) == POP_SIZE , you don't want to add fittest into both lists
 '''
 def getFittestFromSpecies(species):
 	# store list of best individuals and the full population with species set to 0
@@ -380,6 +376,7 @@ def evaluateFitness_nichecount(population, threshold, theta1, theta2, theta3, g)
 			for x in range(len(actualOutput_tmp)):
 				# subtract difference squared from one so that fitness can be maximized
 				totalDifference += (1 - (actualOutput_tmp[x] - expectedOutput_tmp[x])**2)
+			totalDifference = totalDifference**2
 			species[spInd][orgInd].setFitness(totalDifference/nicheCount) 
 			total_fitness = totalDifference/nicheCount
 			row += 1
