@@ -7,6 +7,7 @@ DEAP framework
 '''
 from FULL_CPPN_struct import Genotype
 import sys
+import random as r
 
 '''
 function for applying weight mutation to an individual
@@ -29,8 +30,7 @@ method for applying connection mutation to an individual
 def conMutate(individual, globalInnovation):
 	# update innovation tracking variables each time connection added
 	innovResult = globalInnovation.getNextInnov()
-	innovResult = individual.connectionMutate(innovResult)
-	globalInnovation.current = innovResult
+	globalInnovation.current = individual.connectionMutate(innovResult)
 
 	return  individual,
 
@@ -63,6 +63,32 @@ def xover(individual1, individual2):
 	(newInd1, newInd2) = individual1.crossoverReturnBoth(individual2)
 
 	return (newInd1, newInd2)
+
+
+'''
+this method takes a partial population that was yielded by selecting 
+from species and clones individuals to make the population have the 
+correct number of individuals
+@param partialPop the partial population that needs to be cloned to create a full population
+@param popSize the desired size of the resulting population
+@return population of indivdiuals with size == popSize
+'''
+def makeFullPop(partialPop, popSize):
+	# start at a random location in the partial population and begin cloning individuals
+	ogSize = len(partialPop)
+	index = r.randint(0, len(partialPop) - 1)
+	# continually add copies of individuals for the partial population
+	# until partial population is of the correct size
+	while(len(partialPop) < popSize):
+		currentOrg = partialPop[index % ogSize].getCopy()
+		currentOrg.species = sys.maxsize
+		partialPop.append(currentOrg)
+		index += 1
+
+	return partialPop
+
+
+
 
 
 

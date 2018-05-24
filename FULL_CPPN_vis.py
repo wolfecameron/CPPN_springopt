@@ -56,3 +56,25 @@ def visConnections(pop):
 	plt.ylabel("Frequency")
 	# display the graph
 	plt.show()
+
+'''
+method for quickly finding the number of solutions that passed XOR
+@param pop the population of solutions that are being tested on XOR
+@return tuple containing (number that passed test, number that failed test)
+'''
+def findNumGoodSolutions(pop):
+	inputs = [[0,0],[0,1],[1,0],[1,1]]
+	numSolved = 0
+	numFailed = 0
+	# evaluate XOR for every individual in population
+	for ind in pop:
+		outputs = []
+		for ins in inputs:
+			outputs.append(ind.getOutput(ins)[0])
+		GOOD_THRESH = .4
+		if(outputs[0] < GOOD_THRESH and outputs[1] > GOOD_THRESH and outputs[2] > GOOD_THRESH and outputs[3] < GOOD_THRESH):
+			numSolved += 1
+		else:
+			numFailed +=1 
+
+	return (numSolved, numFailed)

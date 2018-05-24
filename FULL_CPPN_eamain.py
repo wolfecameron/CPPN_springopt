@@ -1,7 +1,7 @@
 from FULL_CPPN_struct import Genotype
 from FULL_CPPN_evalg import binarySelect, tournamentSelect, applyWeightMutation, applyConMutation, applyNodeMutation
 from FULL_CPPN_evalg import applyCrossover, evaluateFitness, evaluateFitness_fitsharing, evaluateFitness_nichecount, getFittestFromSpecies
-from FULL_CPPN_vis import visHiddenNodes, visConnections
+from FULL_CPPN_vis import visHiddenNodes, visConnections, findNumGoodSolutions
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -110,7 +110,10 @@ if __name__ == "__main__":
 	weight_mutpb = .35
 	con_mutpb = .1
 	node_mutpb = .02
-	cxpb = .0
+	cxpb = .1
 	pop = main(numIn, numOut, numGen, popSize, weight_mutpb, con_mutpb, node_mutpb, cxpb)
+	xor_result = findNumGoodSolutions(pop)
+	print("Number of Good Solutions: " + str(xor_result[0]))
+	print("Number of Bad Solutions: " + str(xor_result[1]))
 	printResultingInds(pop)
 	plotFitnessResults(AVERAGE_FITNESSES)

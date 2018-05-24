@@ -350,7 +350,7 @@ def evaluateFitness_nichecount(population, threshold, theta1, theta2, theta3, g)
 	inputs = [[1,1],[0,1],[1,0],[0,0]]
 	expectedOutput_tmp = [0.0,1.0,1.0,0.0]
 	expectedOutput = np.array(expectedOutput_tmp, copy = True)
-	sharingMatrix = getSharingMatrix(population, threshold, ALPHA, theta1, theta2, theta3)
+	#sharingMatrix = getSharingMatrix(population, threshold, ALPHA, theta1, theta2, theta3)
 	# go through every species and calculate fitness for all individuals in the species
 	total_fitness = 0.0
 	# create species matrix for selection purposes, put best of each species automatically forward
@@ -372,13 +372,13 @@ def evaluateFitness_nichecount(population, threshold, theta1, theta2, theta3, g)
 			# one species should not be able to dominate the population
 			totalDifference = 0.0
 			# nicheCount can be found by summing the row in sharing matrix corresponding to a given organism
-			nicheCount = np.sum(sharingMatrix[row])
+			#nicheCount = np.sum(sharingMatrix[row])
 			for x in range(len(actualOutput_tmp)):
 				# subtract difference squared from one so that fitness can be maximized
 				totalDifference += (1 - (actualOutput_tmp[x] - expectedOutput_tmp[x])**2)
 			totalDifference = totalDifference**2
-			species[spInd][orgInd].setFitness(totalDifference/nicheCount) 
-			total_fitness = totalDifference/nicheCount
+			species[spInd][orgInd].setFitness(totalDifference/len(species[spInd]))#/nicheCount) 
+			total_fitness = totalDifference#/nicheCount
 			row += 1
 	# return with all fitnesses assigned
 	return (species, total_fitness/len(population))
