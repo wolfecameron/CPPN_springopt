@@ -65,7 +65,7 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = P
 TOURN_SIZE = 2
 toolbox.register("evaluate", evaluate)
 toolbox.register("select", binarySelect)
-toolbox.register("tournSelect", tools.selTournament, k = 2, tournsize = TOURN_SIZE, fit_attr = "fit_obj")
+toolbox.register("tournSelect", tools.selTournament, k = 1, tournsize = TOURN_SIZE, fit_attr = "fit_obj")
 toolbox.register("mate", xover)
 toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
@@ -83,56 +83,92 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 	# use global innovation object to track the creation of new innovation numbers during evolution
 	gb = GlobalInnovation(numIn, numOut)
 	# the following variables are used to track the improvement of species over generations
-	#NUM_STAGNANT_GENS = 15
-	#speciesLastFitness = []
-	#speciesNotImproveCount = []
+	NUM_STAGNANT_GENERATIONS = 50
+	LAST_FITNESS = []
+	CURRENT_STAG_GENS = []
 
 	for g in range(NGEN):
 		print("RUNNING GENERATION " + str(g))
+		#user = input("would you like to see sorted pop with species?")
+		#if(user == 'y'):
+		#	sortedPop = sorted(pop, key = lambda x: x.species)
+		#	for x in sortedPop:
+		#		print(x.species)
 		# create sharing matrix to use to calculate niche count
 		if(g == 145):
 			visConnections(pop)
 			visHiddenNodes(pop)
 
-		species = []
+		# create a 2D array representing species from the population
 		if(g == 0):
 			species = speciatePopulationFirstTime(pop, thresh, theta1, theta2, theta3)
 		else:
 			species = speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3)
 
-		#nicheCounts = getSharingMatrix(pop, thresh, alpha, theta1, theta2, theta3)
-		# use row counter as the correct index into the sharing matrix for fitness calculation
-		# find all fitness values for individuals in population
-		for spec in species:
-			for ind in spec:
-				fit = (toolbox.evaluate(ind, len(spec)))
+		
+		# find all fitness values for individuals in population, update fitness tracking for species
+		for specInd in range(len(species)):
+			avgSpecFit = 0.0
+			for ind in species[specInd]:
+				fit = (toolbox.evaluate(ind, len(species[specInd])))
+				avgSpecFit += fit[0]
 				ind.fit_obj.values = fit
 				ind.fitness = fit[0]
+			avgSpecFit /= len(species[specInd])
+			
+			# check if fitness is stagnant for current generations and update stagnant counter appropriately
+			if(specInd < len(LAST_FITNESS)):
+				if(avgSpecFit/LAST_FITNESS[specInd] <= 1.05):
+					CURRENT_STAG_GENS[specInd] = CURRENT_STAG_GENS[specInd] + 1
+				else:
+					CURRENT_STAG_GENS[specInd] = 0
+			
+			# if this is the first generation for a species, append values for it into both tracking lists
+			else:
+				LAST_FITNESS.append(avgSpecFit)
+				CURRENT_STAG_GENS.append(0)
+
+		# traverse the list of stagnance counters to see if any species need to be eliminated
+		index = 0
+		for spec in CURRENT_STAG_GENS:
+			if(spec >= NUM_STAGNANT_GENERATIONS):
+				print(len(species))
+				del species[index]
+				del CURRENT_STAG_GENS[index]
+				del LAST_FITNESS[index]
+				index -= 1
+				print(len(species))
+			index += 1
+
 
 		# assign all the fitness values to the individuals
 		# NOTE: each elements of fits will be a tuple	
 		#for ind,fit in zip(pop,fits):
 		#	ind.fit_obj.values = fit
 		#	ind.fitness = fit[0]
-		
+		tournamentSelectSpecies = []
+
 		# speciate the population after finding corresponding fitnesses
 		print("Num Species: " + str(len(species)))
-		newPop = []
 		# go through each species and select the best individuals from each species
 		for specInd in range(len(species)):
-			bestInds = toolbox.tournSelect(species[specInd])
-			fittest = -1
-			for ind in range(len(bestInds)):
-				bestInds[ind].species = sys.maxsize
-				if(fittest == -1 or bestInds[ind].fitness > bestInds[fittest].fitness):
-					fittest = ind
-			bestInds[fittest].species = specInd
-			for ind in bestInds:
-				newPop.append(ind)
+			# set all species back to 0 first:
+			for org in species[specInd]:
+				org.species = sys.maxsize
+			bestInd = toolbox.tournSelect(species[specInd])[0]
+			bestInd = bestInd.getCopy()
+			tournamentSelectSpecies.append(bestInd)
+		
+		fitTup = getFittestFromSpecies(species)
+		bestInSpecies = fitTup[0]
+		pop = fitTup[1]
+
+		for org in tournamentSelectSpecies:
+			bestInSpecies.append(org)	
 
 		# clone individuals within the species to make a full population
-		pop = makeFullPop(newPop, 150)
-		print(len(pop))
+		#pop = makeFullPop(newPop, 150)
+		#print(len(pop))
 
 		# fittest from species function selects all species representatives
 		# and sets the species variable for the rest of the population to sys.maxsize
@@ -140,7 +176,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 		#bestInSpecies = fitTup[0]
 		#input("Looking at the number of individuals directly selected")
 		#pop = fitTup[1]
-		#pop = toolbox.select(pop, bestInSpecies)
+		pop = toolbox.select(pop, bestInSpecies)
 		
 		# append the extra fittest individuals into the species
 		#for ind in bestInSpecies:

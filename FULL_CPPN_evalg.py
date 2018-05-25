@@ -52,7 +52,7 @@ def binarySelect(population, partialPop):
 	r.shuffle(pop2)
 	# ONLY CONTINUE ADDING ELEMENTS IF PARTIAL POP IS NOT OF SIZE EQUAL TO POPSIZE
 	#performs binary selection on first copy of population
-	while(len(partialPop) < len(population) and len(pop1) > 0):
+	while(len(partialPop) < len(population) and len(pop1) > 1):
 		# pop two individuals but only put one into new population
 		ind1 = pop1.pop()
 		ind2 = pop1.pop()
@@ -62,7 +62,7 @@ def binarySelect(population, partialPop):
 			newPop.append(ind2.getCopy())
 	
 	#performs binary selection on second copy of population
-	while(len(partialPop) < len(population) and len(pop2) > 0):
+	while(len(partialPop) < len(population) and len(pop2) > 1):
 		ind1 = pop2.pop()
 		ind2 = pop2.pop()
 		if(ind1.getFitness() > ind2.getFitness()):
