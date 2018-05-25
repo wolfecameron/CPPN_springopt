@@ -82,20 +82,25 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 	pop = toolbox.population()
 	# use global innovation object to track the creation of new innovation numbers during evolution
 	gb = GlobalInnovation(numIn, numOut)
+	
 	# the following variables are used to track the improvement of species over generations
-	NUM_STAGNANT_GENERATIONS = 50
+	# if a species' fitness becomes stagnant - it is penalized
+	MIN_NUM_STAGNANT_GENERATIONS = 35
+	STAGNATION_THRESHOLD = 1.05
 	LAST_FITNESS = []
 	CURRENT_STAG_GENS = []
 
+	# the following is used for modifying the speciation threshold
+	GENERATION_TO_MODIFY_THRESH = 30 # this is the first generation that the threshold can begin being adjusted
+	DESIRED_NUM_SPECIES = 5
+	THRESH_MOD = .1
+	LAST_NUM_SPECIES = -1
+
 	for g in range(NGEN):
 		print("RUNNING GENERATION " + str(g))
-		#user = input("would you like to see sorted pop with species?")
-		#if(user == 'y'):
-		#	sortedPop = sorted(pop, key = lambda x: x.species)
-		#	for x in sortedPop:
-		#		print(x.species)
-		# create sharing matrix to use to calculate niche count
-		if(g == 145):
+
+		# use the following conditional to visualize certain properties of population near end of evolution
+		if(g == NGEN - 1):
 			visConnections(pop)
 			visHiddenNodes(pop)
 
@@ -105,39 +110,55 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 		else:
 			species = speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3)
 
-		
+		# determine if speciation threshold needs to be modified and apply modification
+		if(g >= GENERATION_TO_MODIFY_THRESH):
+			numSpecies = len(species)
+			# increase threshold if there are too many species and the number is still increasing
+			if(numSpecies > DESIRED_NUM_SPECIES):
+				if(LAST_NUM_SPECIES == -1 or numSpecies > LAST_NUM_SPECIES):
+					thresh += THRESH_MOD
+			# decrease theshold if there are too many species and the number of species is not increasing
+			elif(numSpecies < DESIRED_NUM_SPECIES):
+				if(LAST_NUM_SPECIES == -1 or numSpecies <= LAST_NUM_SPECIES):
+					thresh -= THRESH_MOD
+
+
 		# find all fitness values for individuals in population, update fitness tracking for species
 		for specInd in range(len(species)):
 			avgSpecFit = 0.0
 			for ind in species[specInd]:
-				fit = (toolbox.evaluate(ind, len(species[specInd])))
+				# actual fitness value must be divided by the number of individuals in a given species
+				# this keeps any given species from taking over a population - speciation fosters diversity
+				fit = toolbox.evaluate(ind, len(species[specInd]))
 				avgSpecFit += fit[0]
 				ind.fit_obj.values = fit
 				ind.fitness = fit[0]
+			# must find average fitness of species to compare against previous generation and see if species is stagnant
 			avgSpecFit /= len(species[specInd])
 			
 			# check if fitness is stagnant for current generations and update stagnant counter appropriately
 			if(specInd < len(LAST_FITNESS)):
-				if(avgSpecFit/LAST_FITNESS[specInd] <= 1.05):
+				if(avgSpecFit/LAST_FITNESS[specInd] <= STAGNATION_THRESHOLD):
 					CURRENT_STAG_GENS[specInd] = CURRENT_STAG_GENS[specInd] + 1
 				else:
+					# reset stagnation counter is a species improves enough to be above the threshold
 					CURRENT_STAG_GENS[specInd] = 0
 			
-			# if this is the first generation for a species, append values for it into both tracking lists
+			# if this is the first generation for a species, append values for it into both stagnation-tracking lists
 			else:
 				LAST_FITNESS.append(avgSpecFit)
 				CURRENT_STAG_GENS.append(0)
 
-		# traverse the list of stagnance counters to see if any species need to be eliminated
+		# traverse the list of stagnance counters to see if any species need to be penalized for being stagnant
 		index = 0
 		for spec in CURRENT_STAG_GENS:
-			if(spec >= NUM_STAGNANT_GENERATIONS):
-				print(len(species))
-				del species[index]
-				del CURRENT_STAG_GENS[index]
-				del LAST_FITNESS[index]
-				index -= 1
-				print(len(species))
+			# if stagnant generations too high, penalize the species
+			if(spec >= MIN_NUM_STAGNANT_GENERATIONS):
+				# penalizing stagnant species
+				for org in species[index]:
+					# penalization increases as the number of stagnant generations increases
+					org.fitness /= (float(2*spec)/MIN_NUM_STAGNANT_GENERATIONS)
+					org.fit_obj.values = (org.fitness,)	
 			index += 1
 
 
@@ -181,44 +202,44 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 		# append the extra fittest individuals into the species
 		#for ind in bestInSpecies:
 		#	pop.append(ind)
-		
-		# apply weight mutations
-		for ind in pop:
-			if(ind.species == sys.maxsize and r.random() <= weightMutpb):
-				toolbox.weightMutate(ind)
-				# must invalidate individuals fitness if mutation applied
-				del ind.fit_obj.values
-		
-		# apply node mutations
-		for ind in pop:
-			if(ind.species == sys.maxsize and r.random() <= nodeMutpb):
-				toolbox.nodeMutate(ind, gb)
-				del ind.fit_obj.values
 
-		# apply connection mutations
-		for ind in pop:
-			if(ind.species == sys.maxsize and r.random() <= conMutpb):
-				toolbox.connectionMutate(ind, gb)
-				del ind.fit_obj.values
+		# only apply mutation if there will be another iteration of selection following this
+		if(g < NGEN - 1):
+			# apply weight mutations
+			for ind in pop:
+				if(ind.species == sys.maxsize and r.random() <= weightMutpb):
+					toolbox.weightMutate(ind)
+					# must invalidate individuals fitness if mutation applied
+					del ind.fit_obj.values
+			
+			# apply node mutations
+			for ind in pop:
+				if(ind.species == sys.maxsize and r.random() <= nodeMutpb):
+					toolbox.nodeMutate(ind, gb)
+					del ind.fit_obj.values
 
-		# apply crossover
-		for child1, child2 in zip(pop[::2], pop[1::2]):
-			interspecies_probability = .01
-			dist = child1.getDistance(child2, theta1, theta2, theta3)
-			if(child1.species == sys.maxsize and child2.species == sys.maxsize and dist < thresh and r.random() <= cxPb):
-				toolbox.mate(child1, child2)
-				del child1.fit_obj.values
-				del child2.fit_obj.values
-			elif(child1.species == sys.maxsize and child2.species == sys.maxsize and r.random() <= interspecies_probability):
-				toolbox.mate(child1, child2)
-				del child1.fit_obj.values
-				del child2.fit_obj.values
+			# apply connection mutations
+			for ind in pop:
+				if(ind.species == sys.maxsize and r.random() <= conMutpb):
+					toolbox.connectionMutate(ind, gb)
+					del ind.fit_obj.values
+
+			# apply crossover
+			for child1, child2 in zip(pop[::2], pop[1::2]):
+				interspecies_probability = .01
+				dist = child1.getDistance(child2, theta1, theta2, theta3)
+				if(child1.species == sys.maxsize and child2.species == sys.maxsize and dist < thresh and r.random() <= cxPb):
+					toolbox.mate(child1, child2)
+					del child1.fit_obj.values
+					del child2.fit_obj.values
+				elif(child1.species == sys.maxsize and child2.species == sys.maxsize and r.random() <= interspecies_probability):
+					toolbox.mate(child1, child2)
+					del child1.fit_obj.values
+					del child2.fit_obj.values
 
 		# must clear the dictionary of innovation numbers for the coming generation
 		# only check to see if same innovation occurs twice in a single generation
-		#print(gb)
 		gb.clearDict()
-		#input()
 
 	# return the population after it has been evolved
 	return pop
