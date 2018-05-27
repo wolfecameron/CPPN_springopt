@@ -323,6 +323,7 @@ class Genotype():
 		else:
 			child = other.getCopy()
 			parent = self.getCopy()
+		betterInd = child.getCopy() # return crossover over individual and the original fitter individual
 		# traverse connection, crossover those with same innov number
 		for childInd in range(len(child.connections)):
 			for parInd in range(len(parent.connections)):
@@ -331,11 +332,45 @@ class Genotype():
 					swap = r.random()
 					if(swap <= SWAP_PB):
 						# swap the connections between the two individuals
-						tmp = child.connections[childInd].getCopy()
-						child.connections[childInd] = parent.connections[parInd].getCopy()
-						parent.connections[parInd] = tmp
+						tmp = child.connections[childInd].getWeight()
+						child.connections[childInd].setWeight(parent.connections[parInd].getWeight())
+						parent.connections[parInd].setWeight(tmp)
 		
-		return (child, parent)
+		return (child, betterInd)
+
+
+	'''
+	Another type of crossover functions
+	same as the one above, exept instead of switching the weights,
+	the average of the weights is found and this is what's used for the child's weight
+	@param other the other individuals with which this genome is being crossed over
+	@return individual that has been crossed over with other and the better individual of the two
+	(child, betterInd)
+	'''
+	def crossoverAvg(self, other):
+		# find more fit parent and this will serve as beginning for new child
+		SWAP_PB = .5
+		child = None
+		parent = None
+		if(self.getFitness() > other.getFitness()):
+			child = self.getCopy()
+			parent = other.getCopy()
+		else:
+			child = other.getCopy()
+			parent = self.getCopy()
+		betterInd = child.getCopy() # return crossover over individual and the original fitter individual
+		# traverse connection, crossover those with same innov number
+		for childInd in range(len(child.connections)):
+			for parInd in range(len(parent.connections)):
+				if(child.connections[childInd].getInnovationNumber() == parent.connections[parInd].getInnovationNumber()):
+					# swap genes if random number below pointcxpb
+					swap = r.random()
+					if(swap <= SWAP_PB):
+						# find the average of two weights and set this equal to weight for the child
+						newWeight = (child.connections[childInd].getWeight() + parent.connections[parInd].getWeight())/2
+						child.connections[childInd].setWeight(newWeight)
+		
+		return (child, betterInd)
 
 
 	'''

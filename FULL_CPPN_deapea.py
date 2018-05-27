@@ -8,7 +8,7 @@ from deap import tools
 from deap import algorithms
 from deap import creator
 from FULL_CPPN_struct import Genotype
-from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, makeFullPop
+from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg
 from FULL_CPPN_innovation import GlobalInnovation
 import numpy as np
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
@@ -65,8 +65,8 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = P
 TOURN_SIZE = 2
 toolbox.register("evaluate", evaluate)
 toolbox.register("select", binarySelect)
-toolbox.register("tournSelect", tools.selTournament, k = 1, tournsize = TOURN_SIZE, fit_attr = "fit_obj")
-toolbox.register("mate", xover)
+toolbox.register("tournSelect", tools.selTournament, tournsize = TOURN_SIZE, fit_attr = "fit_obj")
+toolbox.register("mate", xover_avg)
 toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
 toolbox.register("nodeMutate", nodeMutate)
@@ -161,12 +161,6 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 					org.fit_obj.values = (org.fitness,)	
 			index += 1
 
-
-		# assign all the fitness values to the individuals
-		# NOTE: each elements of fits will be a tuple	
-		#for ind,fit in zip(pop,fits):
-		#	ind.fit_obj.values = fit
-		#	ind.fitness = fit[0]
 		tournamentSelectSpecies = []
 
 		# speciate the population after finding corresponding fitnesses
@@ -176,10 +170,12 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 			# set all species back to 0 first:
 			for org in species[specInd]:
 				org.species = sys.maxsize
-			bestInd = toolbox.tournSelect(species[specInd])[0]
+			bestInd = toolbox.tournSelect(species[specInd], k = 1)[0]
 			bestInd = bestInd.getCopy()
 			tournamentSelectSpecies.append(bestInd)
 		
+		# fittest from species function selects all species representatives
+		# and sets the species variable for the rest of the population to sys.maxsize
 		fitTup = getFittestFromSpecies(species)
 		bestInSpecies = fitTup[0]
 		pop = fitTup[1]
@@ -187,16 +183,9 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 		for org in tournamentSelectSpecies:
 			bestInSpecies.append(org)	
 
-		# clone individuals within the species to make a full population
-		#pop = makeFullPop(newPop, 150)
-		#print(len(pop))
 
-		# fittest from species function selects all species representatives
-		# and sets the species variable for the rest of the population to sys.maxsize
-		#fitTup = getFittestFromSpecies(species)
-		#bestInSpecies = fitTup[0]
-		#input("Looking at the number of individuals directly selected")
-		#pop = fitTup[1]
+
+		# select from rest of population to form the full sized population
 		pop = toolbox.select(pop, bestInSpecies)
 		
 		# append the extra fittest individuals into the species
@@ -223,19 +212,30 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 				if(ind.species == sys.maxsize and r.random() <= conMutpb):
 					toolbox.connectionMutate(ind, gb)
 					del ind.fit_obj.values
-
+			
 			# apply crossover
-			for child1, child2 in zip(pop[::2], pop[1::2]):
-				interspecies_probability = .01
+			# go through population looking at every pair of individuals next to each other 
+			for child1Ind, child2Ind in zip(range(0,len(pop),2), range(1,len(pop),2)):
+				interspecies_probability = .001 # probability individuals crossed over if not in same species
+				child1 = pop[child1Ind]
+				child2 = pop[child2Ind]
 				dist = child1.getDistance(child2, theta1, theta2, theta3)
+
+				# crossover happens with different probability depending if individuals in question are in same species
 				if(child1.species == sys.maxsize and child2.species == sys.maxsize and dist < thresh and r.random() <= cxPb):
-					toolbox.mate(child1, child2)
-					del child1.fit_obj.values
-					del child2.fit_obj.values
+					# cross individuals over and put them into the population
+					xTup = toolbox.mate(child1, child2)
+					pop[child1Ind] = xTup[0]
+					pop[child2Ind] = xTup[1]
+					del pop[child1Ind].fit_obj.values
+					del pop[child2Ind].fit_obj.values
 				elif(child1.species == sys.maxsize and child2.species == sys.maxsize and r.random() <= interspecies_probability):
-					toolbox.mate(child1, child2)
-					del child1.fit_obj.values
-					del child2.fit_obj.values
+					xTup = toolbox.mate(child1, child2)
+					pop[child1Ind] = xTup[0]
+					pop[child2Ind] = xTup[1]
+					del pop[child1Ind].fit_obj.values
+					del pop[child2Ind].fit_obj.values
+			
 
 		# must clear the dictionary of innovation numbers for the coming generation
 		# only check to see if same innovation occurs twice in a single generation
@@ -253,7 +253,7 @@ if __name__ == '__main__':
 	WEIGHT_MUTPB = .35
 	NODE_MUTPB = .02
 	CON_MUTPB = .1
-	CXPB = .1
+	CXPB = .15
 	THRESHOLD = 3.0
 	ALPHA = 1.0
 	THETA1 = 1.0

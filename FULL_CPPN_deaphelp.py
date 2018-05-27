@@ -55,12 +55,24 @@ def nodeMutate(individual, globalInnovation):
 
 '''
 method for applying crossover to two individuals
-@param population the population of genotypes that is being crossed over
-@return new population after crossover
+@param individua1,2 the individuals that are being crossed over
+@return child and parent ind resulting from the crossover
 '''
 def xover(individual1, individual2):
 	# cross individuals over and return both new individuals
 	(newInd1, newInd2) = individual1.crossoverReturnBoth(individual2)
+
+	return (newInd1, newInd2)
+
+'''
+same as above exepct instead of using the regular crossover function 
+the average crossover function is used
+@param individual1,2 the individuals being crossed over
+@return child and parent ind resulting from the crossover
+'''
+def xover_avg(individual1, individual2):
+	# cross individuals over
+	(newInd1, newInd2) = individual1.crossoverAvg(individual2)
 
 	return (newInd1, newInd2)
 
