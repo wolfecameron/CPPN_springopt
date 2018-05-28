@@ -14,34 +14,11 @@ import numpy as np
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
 from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
 from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
+from FULL_CPPN_evaluation import evaluate_classification
+from FULL_CPPN_gendata import genGaussianData, genCircularData
 import random as r
 import sys
 
-'''
-fitness evaluation used for DEAP CPPN implementation
-@params individual the organism that is currently being evaluated
-@param nicheCounts used to find the sharing percentage of an individual for explicit fitness sharing
-@row the row of the sharingMatrix that corresponds to the current individual
-@return fitness of individual in a tuple
-'''
-def evaluate(individual, nicheCounts):
-	# store inputs and actual/expected values in same order in lists 
-	inputs = [[0,0], [1,0], [0,1], [1,1]]
-	expectedOutputs = [0,1,1,0]
-	actualOutputs = []
-	# get output of individual for all different inputs
-	for values in inputs:
-		actualOutputs.append(individual.getOutput(values)[0])
-	fitness = 0.0
-	# find niche count of first row and then delete first row
-	#nicheCount = np.sum(nicheCounts[row])
-	for i in range(len(expectedOutputs)):
-		# return the 1 - the difference so that fitness can be maximized
-		fitness += (1 - (expectedOutputs[i] - actualOutputs[i])**2)
-	# square the resulting fitness	
-	fitness = fitness**2
-
-	return (fitness/nicheCounts),
 
 
 # create class for maximizing fitness and creating individual
@@ -63,7 +40,7 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = P
 
 # register all functions needed for evolution in the toolbox
 TOURN_SIZE = 3
-toolbox.register("evaluate", evaluate)
+toolbox.register("evaluate", evaluate_classification)
 toolbox.register("select", binarySelect)
 toolbox.register("tournSelect", tools.selTournament, fit_attr = "fitness")
 toolbox.register("mate", xover_avg)
@@ -71,6 +48,11 @@ toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
 toolbox.register("nodeMutate", nodeMutate)
 toolbox.register("map", map)
+
+# generate the classification data set that will be used for evolution
+DATA_SIZE = 100
+MAX_VALUE = 2
+DATA_SET = genCircularData(DATA_SIZE, 1.7, MAX_VALUE)
 
 
 '''
@@ -129,7 +111,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 			for ind in species[specInd]:
 				# actual fitness value must be divided by the number of individuals in a given species
 				# this keeps any given species from taking over a population - speciation fosters diversity
-				fit = toolbox.evaluate(ind, len(species[specInd]))
+				fit = toolbox.evaluate(ind, len(species[specInd]), DATA_SET)
 				avgSpecFit += fit[0]
 				ind.fit_obj.values = fit
 				ind.fitness = fit[0]
@@ -249,7 +231,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
 
-	NGEN = 150
+	NGEN = 400
 	WEIGHT_MUTPB = .35
 	NODE_MUTPB = .02
 	CON_MUTPB = .1
@@ -264,7 +246,13 @@ if __name__ == '__main__':
 	# main parameters: nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, theta2, theta3, numIn, numOut
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-	xor_result = findNumGoodSolutions(finalPop)
-	print("Number of Good Solutions: " + str(xor_result[0]))
-	print("Number of Bad Solutions: " + str(xor_result[1]))
+	averageSuccessful = 0.0
+	# generate the classification data set that will be used for evolution
+	DATA_SIZE = 100
+	MAX_VALUE = 2
+	for org in finalPop:
+		result = toolbox.evaluate(org, 1, DATA_SET)[0]
+		averageSuccessful += result/len(DATA_SET)
+
+	print("Here is the percent accuracy: " + str(averageSuccessful/POP_SIZE))
 

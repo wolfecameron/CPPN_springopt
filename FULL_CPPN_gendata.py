@@ -8,6 +8,7 @@ representing a x,y location in space and a classification of 1 or 0
 '''
 import random as r
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 '''
@@ -53,41 +54,55 @@ def genCircularData(size, innerRadius, maxValue):
 	binaryThreshold = .5
 	# generate all data for dataset first, determine its classification later
 	for it in range(size):
-		samp1 = r.random()
-		samp2 = r.random()
-		# generate x location
-		if(samp1 < binaryThreshold):
-			xPos = r.random()*(-maxValue)
-		else:
-			xPos = r.random()*maxValue
-		
-		# generate y location
-		if(samp2 < binaryThreshold):
-			yPos = r.random()*(-maxValue)
-		else:
-			yPos = r.random()*maxValue
+		xPos = r.uniform(-maxValue, maxValue)
+		yPos = r.uniform(-maxValue, maxValue)
 
 		# append new point into the data set with a temporary classification number
 		dataSet.append((xPos, yPos, 0))
-
+	
 	# go through data set and find actual classification of each point
 	for dataInd in range(len(dataSet)):
 		xPos = dataSet[dataInd][0]
-		yPos = dataSet[dataInd][0]
+		yPos = dataSet[dataInd][1]
 		radius = np.sqrt(np.square(xPos) + np.square(yPos))
+		# try to create a defined divide between 1s and 0s
+		if(innerRadius - .4 <= radius <= innerRadius + .4):
+			dataSet[dataInd] = (xPos*1.5, yPos*1.5, 1)
 		# change classification if outside of inner radius
-		if(radius >= innerRadius):
+		elif(radius >= innerRadius):
 			# must reassign tuple because tuple is not mutable
 			dataSet[dataInd] = (xPos, yPos, 1)
-
+	
 	return dataSet
+
+'''
+The following function is used to graph the generated data set 
+so that it can be visualized
+All 1s appear in red and all 0s appear in blue
+'''
+def showData(dataSet):
+	x_zeros = []
+	x_ones = []
+	y_zeros = []
+	y_ones = []
+	# parse data points into appropriate sets
+	for d in dataSet:
+		if(d[2] == 1):
+			x_ones.append(d[0])
+			y_ones.append(d[1])
+		elif(d[2] == 0):
+			x_zeros.append(d[0])
+			y_zeros.append(d[1])
+
+	plt.scatter(x_zeros, y_zeros, color = 'b')
+	plt.scatter(x_ones, y_ones, color = 'r')
+	plt.show()
+
 
 # used to test data set generated correctly
 if __name__ == '__main__':
-	data1 = genGaussianData(100, 5)
-	for d in data1:
-		print(d)
-	data2 = genCircularData(100, 2, 5)
-	for d in data2:
-		print(d)
+	data1 = genGaussianData(200, 2)
+	showData(data1)
+	data2 = genCircularData(100, 1.7, 2)
+	showData(data2)
 
