@@ -37,7 +37,7 @@ class Genotype():
 
 		# create input nodes
 		for i in range(self.numIn):
-			self.nodes.append(Node(i,0,0,r.choice([1])))#[0,1,2,3,4,5])))
+			self.nodes.append(Node(i,0,0,r.choice([0,1,2,3,4,5])))
 
 		# create output nodes, output nodes always have step function
 		for i in range(self.numOut):
@@ -152,7 +152,7 @@ class Genotype():
 
 		# layer of new node halfway between two parent nodes
 		newLayer = oldIn.getNodeLayer() + ((oldOut.getNodeLayer() - oldIn.getNodeLayer()) / 2)
-		self.nodes.append(Node(self.size(), 0, newLayer, r.choice([1])))#[0,1,2,3,4,5])))
+		self.nodes.append(Node(self.size(), 0, newLayer, r.choice([0,1,2,3,4,5])))#[0,1,2,3,4,5])))
 		self.gSize += 1
 
 		# check current innovationMap to determine innovation numbers of two new connections
@@ -221,7 +221,7 @@ class Genotype():
 				foundPossible = True
 			else:
 				index = r.randint(0,len(self.nodes) - 1)
-		self.nodes[index].setActKey(1)#r.choice([0,1,2,3,4,5]))
+		self.nodes[index].setActKey(r.choice([0,1,2,3,4,5]))
 
 	'''
 	connection mutate method for the CPPN structure

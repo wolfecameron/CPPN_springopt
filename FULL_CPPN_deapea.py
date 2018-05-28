@@ -62,10 +62,10 @@ POP_SIZE = 150
 toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = POP_SIZE)
 
 # register all functions needed for evolution in the toolbox
-TOURN_SIZE = 2
+TOURN_SIZE = 3
 toolbox.register("evaluate", evaluate)
 toolbox.register("select", binarySelect)
-toolbox.register("tournSelect", tools.selTournament, tournsize = TOURN_SIZE, fit_attr = "fit_obj")
+toolbox.register("tournSelect", tools.selTournament, fit_attr = "fitness")
 toolbox.register("mate", xover_avg)
 toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
@@ -170,7 +170,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 			# set all species back to 0 first:
 			for org in species[specInd]:
 				org.species = sys.maxsize
-			bestInd = toolbox.tournSelect(species[specInd], k = 1)[0]
+			bestInd = toolbox.tournSelect(species[specInd], tournsize = 2, k = 1)[0]
 			bestInd = bestInd.getCopy()
 			tournamentSelectSpecies.append(bestInd)
 		

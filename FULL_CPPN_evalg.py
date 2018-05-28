@@ -69,6 +69,7 @@ def binarySelect(population, partialPop):
 			newPop.append(ind1.getCopy())
 		else:
 			newPop.append(ind2.getCopy())
+	
 	return newPop
 
 '''
