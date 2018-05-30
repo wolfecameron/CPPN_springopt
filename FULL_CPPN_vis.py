@@ -57,6 +57,31 @@ def visConnections(pop):
 	# display the graph
 	plt.show()
 
+
+'''
+The following function is used to visualize a general set of data
+generates a bar graph containing all values and the frequencies 
+associated with them 
+@param dataSet the data set for which the bar graph is being generated
+post: graph is displayed to user
+'''
+def visGeneralData(dataSet):
+	dataDict = {}
+	# generate dictionary based on given data
+	for d in dataSet:
+		if(d in dataDict.keys()):
+			dataDict[d] = dataDict[d] + 1
+		else:
+			dataDict[d] = 1
+	# plot data and show to user
+	ax = plt.subplot(111)
+	ax.bar(dataDict.keys(), dataDict.values() ,width=0.2,color='g',align='center')
+	plt.title("VISUALIZATIN OF DATA SET")
+	plt.xlabel("Value")
+	plt.ylabel("Frequency")
+	plt.show()
+
+
 '''
 method for quickly finding the number of solutions that passed XOR
 @param pop the population of solutions that are being tested on XOR

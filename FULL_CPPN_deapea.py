@@ -15,11 +15,12 @@ from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speci
 from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
 from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
 from FULL_CPPN_evaluation import evaluate_classification
-from FULL_CPPN_gendata import genGaussianData, genCircularData
+from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
 import random as r
 import sys
 
 
+''' ----- REGISTER ALL FUNCTIONS AND CLASSES WITH DEAP ----- '''
 
 # create class for maximizing fitness and creating individual
 # must name fitness atribute fit_obj because fitness is a instance variable of Genotype class
@@ -52,7 +53,7 @@ toolbox.register("map", map)
 # generate the classification data set that will be used for evolution
 DATA_SIZE = 100
 MAX_VALUE = 2
-DATA_SET = genCircularData(DATA_SIZE, 1.7, MAX_VALUE)
+DATA_SET = genXORData(DATA_SIZE, MAX_VALUE)
 
 
 '''
@@ -231,9 +232,9 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
 
-	NGEN = 400
+	NGEN = 500
 	WEIGHT_MUTPB = .35
-	NODE_MUTPB = .02
+	NODE_MUTPB = .05
 	CON_MUTPB = .1
 	CXPB = .15
 	THRESHOLD = 3.0

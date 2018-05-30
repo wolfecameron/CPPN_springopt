@@ -76,6 +76,35 @@ def genCircularData(size, innerRadius, maxValue):
 	return dataSet
 
 '''
+the following function generates an XOR data set
+the XOR data set has 1s in the 1st and 3rd quarant
+and 0s in the 2nd and 4th quadrant
+@param size the size of the data set
+@param maxValue the maximum x,y value a point in the data set can have
+@return a data set with datum of the form (x, y, class)
+'''
+def genXORData(size, maxValue):
+	dataSet = []
+	for it in range(size):
+		# generate x and y points for data
+		x = r.uniform(-maxValue, maxValue)
+		y = r.uniform(-maxValue, maxValue)
+		# the following lines of code make sure the divides between 1 and 0 are more defined
+		CLOSENESS_THRESH = .25
+		PUSH_FACTOR = 5
+		if(np.fabs(x) <= CLOSENESS_THRESH):
+			x *= PUSH_FACTOR
+		if(np.fabs(y) <= CLOSENESS_THRESH):
+			y *= PUSH_FACTOR
+		# use x and y points to classify the data as 1 or 0
+		if((x < 0 and y < 0) or (x > 0 and y > 0)):
+			dataSet.append((x, y, 1))
+		else:
+			dataSet.append((x, y, 0))
+
+	return dataSet
+
+'''
 The following function is used to graph the generated data set 
 so that it can be visualized
 All 1s appear in red and all 0s appear in blue
@@ -101,8 +130,13 @@ def showData(dataSet):
 
 # used to test data set generated correctly
 if __name__ == '__main__':
-	data1 = genGaussianData(200, 2)
+	SIZE = 100
+	INNER_RADIUS = 1.7
+	MAX_VALUE = 2.0
+	data1 = genGaussianData(SIZE, MAX_VALUE)
 	showData(data1)
-	data2 = genCircularData(100, 1.7, 2)
+	data2 = genCircularData(SIZE, INNER_RADIUS, MAX_VALUE)
 	showData(data2)
+	data3 = genXORData(SIZE, MAX_VALUE)
+	showData(data3)
 
