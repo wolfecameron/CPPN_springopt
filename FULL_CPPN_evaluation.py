@@ -52,4 +52,25 @@ def evaluate_classification(individual, speciesLength, dataSet):
 
 	return (numSuccessfulTrials/speciesLength),
 
+'''
+fitness evaluation for evolving a CPPN based on a picture
+@param individual the organism for which the species is being evaluated
+@param pixels the binary values for the pixels that were taken from the picture in a numpy array
+@param normIn the list of normalized inputs of the (x,y) locations in the picture
+@param speciesLength the size of a species for the given individual
+@return fitness as a single value in a tuple
+'''
+def evaluate_pic(individual, pixels, normIn, speciesLength):
+	outputs = []
+	# get all outputs for every pixel in space of picture and put all into a numpy array
+	for ins in normIn:
+		outputs.append(individual.getOutput(ins[0], ins[1])[0])
+	outputs_np = np.array(outputs, copy = True)
+	# find difference between CPPN output and target by subtracting and 
+	# squaring the two arrays, then finding the sum of the resultant array
+	totalDiff = np.sum(np.square(np.subtract(pixels, outputs_np)))
+
+	# incoorperate species sharing into the returned fitness value
+	return (totalDiff/speciesLength,)
+
 
