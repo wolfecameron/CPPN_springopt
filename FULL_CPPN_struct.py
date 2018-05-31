@@ -86,13 +86,17 @@ class Genotype():
 		else:
 			# must clear all node values before running the network
 			self.clearAllValues()
+			
 			# sort connections list by the layer of the in node
 			sortedConnection = sorted(self.connections, key = lambda x: x.getNodeIn().getNodeLayer())
+			
 			# set values of input nodes
 			for nodeInd in range(self.numIn - 1):
 				self.nodes[nodeInd].setNodeValue(inputs[nodeInd])
+			
 			# set value of bias node
 			self.nodes[self.numIn - 1].setNodeValue(1)
+			
 			# activate network by going through sorted connection list and querying all connections
 			for c in range(len(sortedConnection)):
 				if(sortedConnection[c].getStatus()):
@@ -102,6 +106,7 @@ class Genotype():
 						sortedConnection[c].getNodeOut().setNodeValue(sortedConnection[c].getNodeOut().getNodeValue() + (sortedConnection[c].getNodeIn().activate()*sortedConnection[c].getWeight()))
 					else:
 						sortedConnection[c].getNodeOut().setNodeValue(sortedConnection[c].getNodeOut().getNodeValue() + (sortedConnection[c].getNodeIn().getNodeValue()*sortedConnection[c].getWeight()))
+			
 			# put all output values in a single list and return
 			outputs = [] 
 			outInd = self.numIn 

@@ -1,6 +1,7 @@
 '''
 The following file contains functions that are used to extract needed pixel 
-data from any photo that may be used in experiment with CPPN. 
+data from any photo that may be used in experiment with CPPN. This file also
+contains the function for creating the inputs needed for CPPN structure evolutions. 
 
 These pixels can be extracted from an image and converted to binary based on 
 the greyscale version of the image
@@ -11,6 +12,20 @@ import numpy as np
 from matplotlib import colors
 
 
+'''
+method for getting numpy array of binary pixels that is used
+in fitness evaluation for CPPN
+@param filepath path to image file that CPPN is being compared to 
+@param numX width of picture in pixels
+@param numY height of picuture in pixels
+@return numpy array containing all binary pixel values from original picture
+'''
+def getBinaryPixels(filepath, numX, numY):
+	# gets normal RGB pixels in a list and converts to a numpy array of binary pixels
+	rgb_pix = getRGBPixels(filepath, numX, numY)
+	bin_pix = convertBinary(rgb_pix)
+
+	return bin_pix
 
 '''
 method for retrieving pixels from a given image
@@ -21,7 +36,7 @@ are returned in a numpy array
 @param numY the heigh of the resized photo
 @return pixels from resized photo in a list
 '''
-def getPixels(filepath, numX,numY):
+def getRGBPixels(filepath, numX,numY):
 	# declare prefered size of image
 	SIZE = (numX,numY)
 
@@ -35,8 +50,6 @@ def getPixels(filepath, numX,numY):
 
 	#resizes image to preferred size
 	im = im_tmp.resize(SIZE)
-	im.show()
-	input("Is this the correct image?")
 
 	# create a list containing tuples of pixels from resized image
 	pixels = list(im.getdata())
@@ -77,6 +90,7 @@ creates a graph of an image represented by a list of binary pixels
 @param numX width of the picture represented by pixels
 @param numY height of picture represented by pixels
 pre: length of binPixels and numX*numY must match
+pre: binPixel IS A NUMPY ARRAY
 '''
 def graphImage(binPixels, numX, numY):
 	# check precondition
@@ -91,12 +105,33 @@ def graphImage(binPixels, numX, numY):
 	fig.show()
 	input()
 
+'''
+This function generates the inputs for the CPPN that are used in 
+modeling a 2D picture/structure
+@param numX the width of the 2D space in px
+@param numY the height of the 2D space in px
+@return a list of normalized input values for the CPPN
+'''
+def getNormalizedInputs(numX, numY):
+	# find mean and std for x and y values in inputs, same for both x and y
+	tmp = np.array([x for x in range(1, numX + 1)], copy = True)
+	MEAN = np.mean(tmp)
+	STD = np.std(tmp)
+
+	#list of normalized inputs
+	normIn = [] 
+
+	#creates input list with normalized vectors, values of input are of form (x,y) in a list of tuples
+	for y in range(0,numY):
+		for x in range(0,numX):
+			tup = ((x - MEAN)/STD, (y-MEAN)/STD)
+			normIn.append(tup)
+
+	return normIn
 
 # used for quick simple testing of functions
 if __name__ == '__main__':
 	X = 50
 	Y = 50
 	file = '/home/wolfecameron/Desktop/CPPN_to/Images/spring9.png'
-	pix = getPixels(file, X, Y)
-	bin_pix = convertBinary(pix)
-	graphImage(bin_pix, X, Y)
+	getNormalizedInputs(X, Y)

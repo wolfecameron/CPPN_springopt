@@ -14,8 +14,9 @@ import numpy as np
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
 from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
 from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
-from FULL_CPPN_evaluation import evaluate_classification
+from FULL_CPPN_evaluation import evaluate_classification, evaluate_pic
 from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
+from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, graphImage
 import random as r
 import sys
 
@@ -41,7 +42,7 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = P
 
 # register all functions needed for evolution in the toolbox
 TOURN_SIZE = 3
-toolbox.register("evaluate", evaluate_classification)
+toolbox.register("evaluate", evaluate_pic)
 toolbox.register("select", binarySelect)
 toolbox.register("tournSelect", tools.selTournament, fit_attr = "fitness")
 toolbox.register("mate", xover_avg)
@@ -54,6 +55,14 @@ toolbox.register("map", map)
 DATA_SIZE = 100
 MAX_VALUE = 2
 DATA_SET = genXORData(DATA_SIZE, MAX_VALUE)
+
+# sets global parameters for 2D structure being created by CPPN, generates inputs
+NUM_X = 50
+NUM_Y = 50
+NORM_IN = getNormalizedInputs(NUM_X, NUM_Y)
+FILE_PATH = '/home/wolfecameron/Desktop/CPPN_to/Images/spring9.png'
+PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
+
 
 
 '''
@@ -78,6 +87,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 	DESIRED_NUM_SPECIES = 5
 	THRESH_MOD = .1
 	LAST_NUM_SPECIES = -1
+
 
 	for g in range(NGEN):
 		print("RUNNING GENERATION " + str(g))
@@ -112,7 +122,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 			for ind in species[specInd]:
 				# actual fitness value must be divided by the number of individuals in a given species
 				# this keeps any given species from taking over a population - speciation fosters diversity
-				fit = toolbox.evaluate(ind, len(species[specInd]), DATA_SET)
+				fit = toolbox.evaluate(ind, PIXELS, NORM_IN, len(species[specInd]))
 				avgSpecFit += fit[0]
 				ind.fit_obj.values = fit
 				ind.fitness = fit[0]
@@ -232,7 +242,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
 
-	NGEN = 500
+	NGEN = 1000
 	WEIGHT_MUTPB = .35
 	NODE_MUTPB = .05
 	CON_MUTPB = .1
@@ -247,13 +257,19 @@ if __name__ == '__main__':
 	# main parameters: nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, theta2, theta3, numIn, numOut
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-	averageSuccessful = 0.0
+	# averageSuccessful = 0.0
 	# generate the classification data set that will be used for evolution
 	DATA_SIZE = 100
 	MAX_VALUE = 2
+	n = 0
 	for org in finalPop:
-		result = toolbox.evaluate(org, 1, DATA_SET)[0]
-		averageSuccessful += result/len(DATA_SET)
+		outputs = []
+		# get all outputs for every pixel in space of picture and put all into a numpy array
+		for ins in NORM_IN:
+			outputs.append(org.getOutput([ins[0], ins[1]])[0])
+		outputs_np = np.array(outputs, copy = True)
+		graphImage(outputs_np, NUM_X, NUM_Y)
+		input("SHOWING INDIVIDUAL #" + str(n))
+		n += 1
 
-	print("Here is the percent accuracy: " + str(averageSuccessful/POP_SIZE))
 
