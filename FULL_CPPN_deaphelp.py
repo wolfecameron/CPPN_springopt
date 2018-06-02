@@ -6,6 +6,7 @@ These functions are used to register mutations functions within the
 DEAP framework
 '''
 from FULL_CPPN_struct import Genotype
+import numpy as np
 import sys
 import random as r
 
@@ -99,7 +100,32 @@ def makeFullPop(partialPop, popSize):
 
 	return partialPop
 
+'''
+activates a CPPN over a range of values and appends all outputs
+into an array which can then be used to create a heatmap of the CPPN
+output, used to visualize results of data set problems for CPPN
+@param org the CPPN that is being activated
+@param maxValue the maximum value within the CPPNs range of activation
+@param step the distance between successive activations of the CPPN
+@return numpy array containing all outputs that is resized properly to be put into the heat map
+'''
+def getOutputsForHeatMap(org, maxValue, step):
+	outputs = []
+	# start activating at upper left corner of range
+	# move down the column of pixels then move to the next row
+	# until the bottom right corner is reached
+	xVal = -maxValue
+	while(xVal <= maxValue):
+		yVal = maxValue
+		while(yVal >= -maxValue):
+			outputs.append(org.getOutput([xVal, yVal])[0])
+			yVal -= step
+		xVal += step
 
+	# put values into a numpy array and reshape it based on maxValue and step before returning
+	outputs_np = np.array(outputs, copy = True)
+	outputs_np = np.reshape(outputs_np, (int(maxValue*2/step), int(maxValue*2/step)))
+	return outputs_np
 
 
 

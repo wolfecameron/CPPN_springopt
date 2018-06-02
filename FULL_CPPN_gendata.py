@@ -36,7 +36,7 @@ def genGaussianData(size, maxValue):
 			xPos = r.random()*maxValue
 			yPos = r.random()*maxValue
 			dataSet.append((xPos,yPos, 1))
-
+	showData(dataSet)
 	return dataSet
 
 
@@ -73,6 +73,8 @@ def genCircularData(size, innerRadius, maxValue):
 			# must reassign tuple because tuple is not mutable
 			dataSet[dataInd] = (xPos, yPos, 1)
 	
+	# show data to user before fitting is performed
+	showData(dataSet)
 	return dataSet
 
 '''

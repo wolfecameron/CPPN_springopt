@@ -103,3 +103,15 @@ def findNumGoodSolutions(pop):
 			numFailed +=1 
 
 	return (numSolved, numFailed)
+
+
+'''
+creates a heat map in matplotlib using a provided numpy array
+of outputs from the CPPN
+@param outputs the numpy array of outputs being used to create the heatmap
+post: heat map displayed to user
+'''
+def showHeatMap(outputs):
+	# create heat map using imshow and display to user
+	plt.imshow(outputs, cmap='hot', interpolation='nearest')
+	plt.show()

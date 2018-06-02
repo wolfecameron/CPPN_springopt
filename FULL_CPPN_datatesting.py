@@ -11,12 +11,12 @@ from deap import tools
 from deap import algorithms
 from deap import creator
 from FULL_CPPN_struct import Genotype
-from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg
+from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg, getOutputsForHeatMap
 from FULL_CPPN_innovation import GlobalInnovation
 import numpy as np
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
 from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
-from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
+from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions, showHeatMap
 from FULL_CPPN_evaluation import evaluate_xor, evaluate_classification
 from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
 from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, graphImage
@@ -56,7 +56,7 @@ toolbox.register("map", map)
 
 # contains all constants needed to create data set
 # creates data set that is used globally
-SIZE = 200
+SIZE = 150
 INNER_RAD = 1.7
 MAX_VALUE = 2.0
 DATA_SET = genCircularData(SIZE, INNER_RAD, MAX_VALUE)
@@ -232,8 +232,8 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
 
-	NGEN = 150
-	WEIGHT_MUTPB = .25
+	NGEN = 400
+	WEIGHT_MUTPB = .35
 	NODE_MUTPB = .02
 	CON_MUTPB = .1
 	CXPB = .15
@@ -248,7 +248,15 @@ if __name__ == '__main__':
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
 	totalPercentCorrect = 0.0
+	bestInd = None
+	bestFitness = -1
 	for org in finalPop:
 		correct = toolbox.evaluate(org, 1, DATA_SET)[0]
+		# track the best individual in the population
+		if(correct > bestFitness):
+			bestInd = org.getCopy()
 		totalPercentCorrect += float(correct)/SIZE
-	print("Average Proportion Correct: " + float(totalPercentCorrect)/POP_SIZE)
+	print("Average Proportion Correct: " + str(totalPercentCorrect/POP_SIZE))
+	# display a heat map of the optimal solution's outputs to the user
+	outputs_np = getOutputsForHeatMap(bestInd, MAX_VALUE, .1)
+	showHeatMap(outputs_np)
