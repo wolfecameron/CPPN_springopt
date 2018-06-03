@@ -103,7 +103,7 @@ def genXORData(size, maxValue):
 			dataSet.append((x, y, 1))
 		else:
 			dataSet.append((x, y, 0))
-
+	showData(dataSet)
 	return dataSet
 
 '''

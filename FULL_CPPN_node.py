@@ -1,4 +1,4 @@
-from FULL_CPPN_act import stepAct, sigAct, reluAct, sinAct, gaussAct, logAct
+from FULL_CPPN_act import stepAct, sigAct, reluAct, sinAct, gaussAct, logAct, tanhAct, squareAct, absAct
 import copy
 '''
 * This file contains the node class used for the full CPPN implementation
@@ -115,4 +115,10 @@ class Node:
 			val = gaussAct(val)
 		elif(self.getActKey() == 5):
 			val = logAct(val)
+		elif(self.getActKey() == 6):
+			val = tanhAct(val)
+		elif(self.getActKey() == 7):
+			val = squareAct(val)
+		elif(self.getActKey() == 8):
+			val = absAct(val)
 		return val

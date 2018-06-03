@@ -38,3 +38,17 @@ def logAct(x):
 		return 0
 	return np.log(x)
 
+# tanh activation function
+def tanhAct(x):
+	return np.tanh(x)
+
+# square activation function
+def squareAct(x):
+	return x**2
+
+# absolute value activation function
+def absAct(x):
+	return abs(x)
+
+
+

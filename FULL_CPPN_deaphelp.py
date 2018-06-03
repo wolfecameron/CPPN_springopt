@@ -35,6 +35,17 @@ def conMutate(individual, globalInnovation):
 
 	return  individual,
 
+''' 
+method for applying an activation mutation in an individual 
+@param individual the individual that is being mutated
+@return the individual in the form of a tuple
+'''
+def actMutate(individual):
+	# just use mutation function built into the genotype class
+	individual.activationMutate()
+
+	return individual,
+
 
 '''
 method for applying node mutation to an individual

@@ -11,12 +11,12 @@ from deap import tools
 from deap import algorithms
 from deap import creator
 from FULL_CPPN_struct import Genotype
-from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg, getOutputsForHeatMap
+from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg, getOutputsForHeatMap, actMutate
 from FULL_CPPN_innovation import GlobalInnovation
 import numpy as np
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
 from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
-from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions, showHeatMap
+from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions, showHeatMap, visGeneralData
 from FULL_CPPN_evaluation import evaluate_xor, evaluate_classification
 from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
 from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, graphImage
@@ -52,21 +52,22 @@ toolbox.register("mate", xover_avg)
 toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
 toolbox.register("nodeMutate", nodeMutate)
+toolbox.register("activationMutate", actMutate)
 toolbox.register("map", map)
 
 # contains all constants needed to create data set
 # creates data set that is used globally
-SIZE = 150
-INNER_RAD = 1.7
+SIZE = 100
+INNER_RAD = 1.9
 MAX_VALUE = 2.0
-DATA_SET = genCircularData(SIZE, INNER_RAD, MAX_VALUE)
+DATA_SET = genXORData(SIZE, MAX_VALUE)
 
 '''
 the main function for the DEAP evolutionary algorithm
 the main EA loop is contained inside of this function
 NOTE: pop size is set where the population function is registered
 '''
-def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, theta2, theta3, numIn, numOut):
+def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, theta1, theta2, theta3, numIn, numOut):
 	pop = toolbox.population()
 	# use global innovation object to track the creation of new innovation numbers during evolution
 	gb = GlobalInnovation(numIn, numOut)
@@ -81,7 +82,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 	# the following is used for modifying the speciation threshold
 	GENERATION_TO_MODIFY_THRESH = 30 # this is the first generation that the threshold can begin being adjusted
 	DESIRED_NUM_SPECIES = 5
-	THRESH_MOD = .1
+	THRESH_MOD = .05
 	LAST_NUM_SPECIES = -1
 
 
@@ -105,7 +106,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 			# increase threshold if there are too many species and the number is still increasing
 			if(numSpecies > DESIRED_NUM_SPECIES):
 				if(LAST_NUM_SPECIES == -1 or numSpecies > LAST_NUM_SPECIES):
-					thresh += THRESH_MOD
+					thresh += THRESH_MOD*2
 			# decrease theshold if there are too many species and the number of species is not increasing
 			elif(numSpecies < DESIRED_NUM_SPECIES):
 				if(LAST_NUM_SPECIES == -1 or numSpecies <= LAST_NUM_SPECIES):
@@ -152,7 +153,6 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 
 		tournamentSelectSpecies = []
 
-		# speciate the population after finding corresponding fitnesses
 		print("Num Species: " + str(len(species)))
 		# go through each species and select the best individuals from each species
 		for specInd in range(len(species)):
@@ -212,6 +212,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 					pop[child2Ind] = xTup[1]
 					del pop[child1Ind].fit_obj.values
 					del pop[child2Ind].fit_obj.values
+
 				elif(child1.species == sys.maxsize and child2.species == sys.maxsize and r.random() <= interspecies_probability):
 					xTup = toolbox.mate(child1, child2)
 					pop[child1Ind] = xTup[0]
@@ -219,6 +220,11 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 					del pop[child1Ind].fit_obj.values
 					del pop[child2Ind].fit_obj.values
 			
+			# apply activation mutation
+			for ind in pop:
+				if(ind.species == sys.maxsize and r.random() <= actMutpb):
+					toolbox.activationMutate(ind)
+					del ind.fit_obj.values
 
 		# must clear the dictionary of innovation numbers for the coming generation
 		# only check to see if same innovation occurs twice in a single generation
@@ -232,11 +238,12 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
 
-	NGEN = 400
-	WEIGHT_MUTPB = .35
-	NODE_MUTPB = .02
-	CON_MUTPB = .1
-	CXPB = .15
+	NGEN = 500
+	WEIGHT_MUTPB = .3
+	NODE_MUTPB = .03
+	CON_MUTPB = .2
+	CXPB = .1
+	ACTPB = .05
 	THRESHOLD = 3.0
 	ALPHA = 1.0
 	THETA1 = 1.0
@@ -246,8 +253,8 @@ if __name__ == '__main__':
 	NUM_OUT = 1
 	# main parameters: nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, theta2, theta3, numIn, numOut
 	# run main EA loop
-	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-	totalPercentCorrect = 0.0
+	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
+	correctness = []
 	bestInd = None
 	bestFitness = -1
 	for org in finalPop:
@@ -255,8 +262,11 @@ if __name__ == '__main__':
 		# track the best individual in the population
 		if(correct > bestFitness):
 			bestInd = org.getCopy()
-		totalPercentCorrect += float(correct)/SIZE
-	print("Average Proportion Correct: " + str(totalPercentCorrect/POP_SIZE))
+		correctness.append(float(correct)/SIZE)
+	# show bar graph with the frequency of percent correctness
+	visGeneralData(correctness)
 	# display a heat map of the optimal solution's outputs to the user
-	outputs_np = getOutputsForHeatMap(bestInd, MAX_VALUE, .1)
-	showHeatMap(outputs_np)
+	for org in finalPop:
+		outputs_np = getOutputsForHeatMap(org, MAX_VALUE, .1)
+		showHeatMap(outputs_np)
+	print("Average Proportion Correct: " + str(totalPercentCorrect/POP_SIZE))

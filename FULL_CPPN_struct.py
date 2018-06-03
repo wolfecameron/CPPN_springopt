@@ -1,3 +1,8 @@
+'''
+This class implements the actual structure of the CPPN, or the genotype
+All mutation, crossover, and activation features are implemented in the structure
+'''
+
 from FULL_CPPN_node import Node
 from FULL_CPPN_con import Connection
 import sys
@@ -5,10 +10,6 @@ import random as r
 import numpy as np
 import copy
 
-'''
-This class implements the actual structure of the CPPN, or the genotype
-All mutation, crossover, and activation features are implemented in the structure
-'''
 
 # genotype class implements the CPPN structure
 class Genotype():
@@ -37,7 +38,7 @@ class Genotype():
 
 		# create input nodes
 		for i in range(self.numIn):
-			self.nodes.append(Node(i,0,0,r.choice([0,1,2,3,4,5])))
+			self.nodes.append(Node(i,0,0,r.choice([0,1,2,3,4,5,6,7,8])))
 
 		# create output nodes, output nodes always have step function
 		for i in range(self.numOut):
@@ -157,7 +158,7 @@ class Genotype():
 
 		# layer of new node halfway between two parent nodes
 		newLayer = oldIn.getNodeLayer() + ((oldOut.getNodeLayer() - oldIn.getNodeLayer()) / 2)
-		self.nodes.append(Node(self.size(), 0, newLayer, r.choice([0,1,2,3,4,5])))#[0,1,2,3,4,5])))
+		self.nodes.append(Node(self.size(), 0, newLayer, r.choice([0,1,2,3,4,5,6,7,8])))
 		self.gSize += 1
 
 		# check current innovationMap to determine innovation numbers of two new connections
@@ -226,7 +227,7 @@ class Genotype():
 				foundPossible = True
 			else:
 				index = r.randint(0,len(self.nodes) - 1)
-		self.nodes[index].setActKey(r.choice([0,1,2,3,4,5]))
+		self.nodes[index].setActKey(r.choice([0,1,2,3,4,5,6,7,8]))
 
 	'''
 	connection mutate method for the CPPN structure

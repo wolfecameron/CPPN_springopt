@@ -9,7 +9,7 @@ from deap import tools
 from deap import algorithms
 from deap import creator
 from FULL_CPPN_struct import Genotype
-from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg
+from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg, actMutate
 from FULL_CPPN_innovation import GlobalInnovation
 import numpy as np
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
@@ -50,6 +50,7 @@ toolbox.register("mate", xover_avg)
 toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
 toolbox.register("nodeMutate", nodeMutate)
+toolbox.register("activationMutate", actMutate)
 toolbox.register("map", map)
 
 
@@ -58,7 +59,7 @@ the main function for the DEAP evolutionary algorithm
 the main EA loop is contained inside of this function
 NOTE: pop size is set where the population function is registered
 '''
-def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, theta2, theta3, numIn, numOut):
+def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, theta1, theta2, theta3, numIn, numOut):
 	pop = toolbox.population()
 	# use global innovation object to track the creation of new innovation numbers during evolution
 	gb = GlobalInnovation(numIn, numOut)
@@ -211,6 +212,11 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 					del pop[child1Ind].fit_obj.values
 					del pop[child2Ind].fit_obj.values
 			
+			# apply activation mutation
+			for ind in pop:
+				if(ind.species == sys.maxsize and r.random() <= actMutpb):
+					toolbox.activationMutate(ind)
+					del ind.fit_obj.values
 
 		# must clear the dictionary of innovation numbers for the coming generation
 		# only check to see if same innovation occurs twice in a single generation
@@ -229,6 +235,7 @@ if __name__ == '__main__':
 	NODE_MUTPB = .02
 	CON_MUTPB = .1
 	CXPB = .15
+	ACTPB = .05
 	THRESHOLD = 3.0
 	ALPHA = 1.0
 	THETA1 = 1.0
@@ -236,9 +243,9 @@ if __name__ == '__main__':
 	THETA3 = 0.4
 	NUM_IN = 2
 	NUM_OUT = 1
-	# main parameters: nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, theta2, theta3, numIn, numOut
+	# main parameters: nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, theta1, theta2, theta3, numIn, numOut
 	# run main EA loop
-	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
+	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
 	# print out results of the evolution
 	resultTup = findNumGoodSolutions(finalPop)
 	print("Number of Successful XORs: " + str(resultTup[0]))

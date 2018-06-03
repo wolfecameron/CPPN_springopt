@@ -46,8 +46,8 @@ def evaluate_classification(individual, speciesLength, dataSet):
 	for d in dataSet:
 		# find difference in actual and desired output, trial is succesful if difference less than .5
 		output = individual.getOutput([d[0], d[1]])[0]
-		diff = np.fabs(d[2] - output)
-		if(diff <= .5):
+		diff = abs(d[2] - output)
+		if(diff <= .3):
 			numSuccessfulTrials += 1
 
 	return (numSuccessfulTrials/speciesLength),
