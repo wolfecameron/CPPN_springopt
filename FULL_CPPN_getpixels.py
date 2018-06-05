@@ -13,6 +13,7 @@ from matplotlib import colors
 
 
 '''
+THIS IS THE MAIN METHOD THAT SHOULD BE USED FOR GRABBING PIXELS IN OTHER FILES
 method for getting numpy array of binary pixels that is used
 in fitness evaluation for CPPN
 @param filepath path to image file that CPPN is being compared to 
@@ -103,6 +104,7 @@ def graphImage(binPixels, numX, numY):
 	fig,ax = plt.subplots()
 	im = ax.imshow(-binPixels.reshape(numX, numY), cmap='gray', interpolation='none', norm=colors.Normalize(vmin=-1, vmax=0))
 	fig.show()
+	# must include an input or figures will open continuously an cause stack overflow
 	input()
 
 '''
@@ -133,5 +135,6 @@ def getNormalizedInputs(numX, numY):
 if __name__ == '__main__':
 	X = 50
 	Y = 50
-	file = '/home/wolfecameron/Desktop/CPPN_to/Images/spring9.png'
-	getNormalizedInputs(X, Y)
+	file = '/home/wolfecameron/Desktop/CPPN_springopt/fitting_images/heart_ex.png'
+	bin_pix = getBinaryPixels(file, X, Y)
+	graphImage(bin_pix, X, Y)

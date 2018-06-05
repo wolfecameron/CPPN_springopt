@@ -60,7 +60,7 @@ toolbox.register("map", map)
 SIZE = 100
 INNER_RAD = 1.9
 MAX_VALUE = 2.0
-DATA_SET = genXORData(SIZE, MAX_VALUE)
+DATA_SET = genCircularData(SIZE, INNER_RAD, MAX_VALUE)
 
 '''
 the main function for the DEAP evolutionary algorithm
@@ -241,7 +241,7 @@ if __name__ == '__main__':
 	NGEN = 500
 	WEIGHT_MUTPB = .3
 	NODE_MUTPB = .03
-	CON_MUTPB = .2
+	CON_MUTPB = .25
 	CXPB = .1
 	ACTPB = .05
 	THRESHOLD = 3.0

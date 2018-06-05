@@ -8,7 +8,7 @@ from deap import tools
 from deap import algorithms
 from deap import creator
 from FULL_CPPN_struct import Genotype
-from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg
+from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg, actMutate
 from FULL_CPPN_innovation import GlobalInnovation
 import numpy as np
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
@@ -19,6 +19,32 @@ from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
 from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, graphImage
 import random as r
 import sys
+
+
+# the following variables are used to track the improvement of species over generations
+# if a species' fitness becomes stagnant - it is penalized
+MIN_NUM_STAGNANT_GENERATIONS = 35
+STAGNATION_THRESHOLD = 1.05
+LAST_FITNESS = []
+CURRENT_STAG_GENS = []
+
+# the following is used for modifying the speciation threshold
+GENERATION_TO_MODIFY_THRESH = 30 # this is the first generation that the threshold can begin being adjusted
+DESIRED_NUM_SPECIES = 5
+THRESH_MOD = .1
+LAST_NUM_SPECIES = -1
+
+# the following is the minimum proportion of material a solution must use 
+# to not be penalized
+MATERIAL_PENALIZATION_THRESHOLD = .1
+
+# sets global parameters for 2D structure being created by CPPN, generates inputs
+NUM_X = 50
+NUM_Y = 50
+NORM_IN = getNormalizedInputs(NUM_X, NUM_Y)
+FILE_PATH = '/home/wolfecameron/Desktop/CPPN_springopt/fitting_images/heart_ex.png'
+PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
+
 
 
 ''' ----- REGISTER ALL FUNCTIONS AND CLASSES WITH DEAP ----- '''
@@ -37,7 +63,7 @@ NUM_OUT = 1
 toolbox.register("individual", creator.Individual, NUM_IN, NUM_OUT)
 
 # register function to create population in the toolbox
-POP_SIZE = 150
+POP_SIZE = 100
 toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = POP_SIZE)
 
 # register all functions needed for evolution in the toolbox
@@ -49,20 +75,8 @@ toolbox.register("mate", xover_avg)
 toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
 toolbox.register("nodeMutate", nodeMutate)
+toolbox.register("activationMutate", actMutate)
 toolbox.register("map", map)
-
-# generate the classification data set that will be used for evolution
-DATA_SIZE = 100
-MAX_VALUE = 2
-DATA_SET = genXORData(DATA_SIZE, MAX_VALUE)
-
-# sets global parameters for 2D structure being created by CPPN, generates inputs
-NUM_X = 50
-NUM_Y = 50
-NORM_IN = getNormalizedInputs(NUM_X, NUM_Y)
-FILE_PATH = '/home/wolfecameron/Desktop/CPPN_to/Images/spring9.png'
-PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
-
 
 
 '''
@@ -70,24 +84,15 @@ the main function for the DEAP evolutionary algorithm
 the main EA loop is contained inside of this function
 NOTE: pop size is set where the population function is registered
 '''
-def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, theta2, theta3, numIn, numOut):
+def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, theta1, theta2, theta3, numIn, numOut):
 	pop = toolbox.population()
 	# use global innovation object to track the creation of new innovation numbers during evolution
 	gb = GlobalInnovation(numIn, numOut)
-	
-	# the following variables are used to track the improvement of species over generations
-	# if a species' fitness becomes stagnant - it is penalized
-	MIN_NUM_STAGNANT_GENERATIONS = 35
-	STAGNATION_THRESHOLD = 1.05
-	LAST_FITNESS = []
+
+
+	# used to check whether a species fitness becomes stagnant
+	LAST_FITNESS = []	
 	CURRENT_STAG_GENS = []
-
-	# the following is used for modifying the speciation threshold
-	GENERATION_TO_MODIFY_THRESH = 30 # this is the first generation that the threshold can begin being adjusted
-	DESIRED_NUM_SPECIES = 5
-	THRESH_MOD = .1
-	LAST_NUM_SPECIES = -1
-
 
 	for g in range(NGEN):
 		print("RUNNING GENERATION " + str(g))
@@ -104,16 +109,18 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 			species = speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3)
 
 		# determine if speciation threshold needs to be modified and apply modification
+		# decrease threshold slowly to increase species, but increase quickly to keep to many
+		# species from forming - thus the terms being different sizes
 		if(g >= GENERATION_TO_MODIFY_THRESH):
 			numSpecies = len(species)
 			# increase threshold if there are too many species and the number is still increasing
 			if(numSpecies > DESIRED_NUM_SPECIES):
 				if(LAST_NUM_SPECIES == -1 or numSpecies > LAST_NUM_SPECIES):
-					thresh += THRESH_MOD
+					thresh += THRESH_MOD*2
 			# decrease theshold if there are too many species and the number of species is not increasing
 			elif(numSpecies < DESIRED_NUM_SPECIES):
 				if(LAST_NUM_SPECIES == -1 or numSpecies <= LAST_NUM_SPECIES):
-					thresh -= THRESH_MOD
+					thresh -= (THRESH_MOD/2)
 
 
 		# find all fitness values for individuals in population, update fitness tracking for species
@@ -122,7 +129,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 			for ind in species[specInd]:
 				# actual fitness value must be divided by the number of individuals in a given species
 				# this keeps any given species from taking over a population - speciation fosters diversity
-				fit = toolbox.evaluate(ind, PIXELS, NORM_IN, len(species[specInd]))
+				fit = toolbox.evaluate(ind, PIXELS, NORM_IN, len(species[specInd]), MATERIAL_PENALIZATION_THRESHOLD)
 				avgSpecFit += fit[0]
 				ind.fit_obj.values = fit
 				ind.fitness = fit[0]
@@ -229,6 +236,11 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 					del pop[child1Ind].fit_obj.values
 					del pop[child2Ind].fit_obj.values
 			
+			# apply activation mutation
+			for ind in pop:
+				if(ind.species == sys.maxsize and r.random() <= actMutpb):
+					toolbox.activationMutate(ind)
+					del ind.fit_obj.values
 
 		# must clear the dictionary of innovation numbers for the coming generation
 		# only check to see if same innovation occurs twice in a single generation
@@ -242,11 +254,13 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, th
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
 
-	NGEN = 1000
-	WEIGHT_MUTPB = .35
+	# the following are all parameter settings for main function
+	NGEN = 600
+	WEIGHT_MUTPB = .3
 	NODE_MUTPB = .05
-	CON_MUTPB = .1
+	CON_MUTPB = .15
 	CXPB = .15
+	ACTPB = .05
 	THRESHOLD = 3.0
 	ALPHA = 1.0
 	THETA1 = 1.0
@@ -254,13 +268,13 @@ if __name__ == '__main__':
 	THETA3 = 0.4
 	NUM_IN = 2
 	NUM_OUT = 1
+
 	# main parameters: nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, theta2, theta3, numIn, numOut
 	# run main EA loop
-	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-	# averageSuccessful = 0.0
-	# generate the classification data set that will be used for evolution
-	DATA_SIZE = 100
-	MAX_VALUE = 2
+	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
+	
+	
+	# graph all individuals within the final generation
 	n = 0
 	for org in finalPop:
 		outputs = []
@@ -269,7 +283,7 @@ if __name__ == '__main__':
 			outputs.append(org.getOutput([ins[0], ins[1]])[0])
 		outputs_np = np.array(outputs, copy = True)
 		graphImage(outputs_np, NUM_X, NUM_Y)
-		input("SHOWING INDIVIDUAL #" + str(n))
+		print("SHOWING INDIVIDUAL #" + str(n))
 		n += 1
 
 

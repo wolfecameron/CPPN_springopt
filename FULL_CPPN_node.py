@@ -17,7 +17,7 @@ class Node:
 	pre: 0 < actKey <= 5
 	'''
 	def __init__(self, nodeNumber, value, layer, actKey):
-		if(actKey < 0 or actKey > 5):
+		if(actKey < 0 or actKey > 8):
 			print("Error: actKey is not within range.")
 		else:
 			self.nodeNum = nodeNumber

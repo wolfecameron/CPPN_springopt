@@ -58,19 +58,33 @@ fitness evaluation for evolving a CPPN based on a picture
 @param pixels the binary values for the pixels that were taken from the picture in a numpy array
 @param normIn the list of normalized inputs of the (x,y) locations in the picture
 @param speciesLength the size of a species for the given individual
+@param material_penalization_threshold any solution using less than this proportion of material
+will be penalized
 @return fitness as a single value in a tuple
 '''
-def evaluate_pic(individual, pixels, normIn, speciesLength):
+def evaluate_pic(individual, pixels, normIn, speciesLength, material_penalization_threshold):
 	outputs = []
 	# get all outputs for every pixel in space of picture and put all into a numpy array
 	for ins in normIn:
 		outputs.append(individual.getOutput([ins[0], ins[1]])[0])
+
+	# convert outputs to a numpy array
 	outputs_np = np.array(outputs, copy = True)
+
+	# decide if fitness should be penalized for using too little material
+	total_px_used = float(np.sum(outputs_np))
+	penalization = 1.0
+	proportion_mat_used = total_px_used / (len(pixels))
+	if(proportion_mat_used <= material_penalization_threshold):
+		# penalization starts at dividing by 2 and becomes larger as less material used
+		# the + .001 is included to avoid dividing by 0
+		penalization = 2.0 * (material_penalization_threshold / (proportion_mat_used + .001))
+	
 	# find difference between CPPN output and target by subtracting and 
 	# squaring the two arrays, then finding the sum of the resultant array
 	totalDiff = np.sum(np.square(np.subtract(pixels, outputs_np)))
 
-	# incoorperate species sharing into the returned fitness value
-	return (totalDiff/speciesLength,)
+	# account for species sharing and material penalization into the returned fitness
+	return (totalDiff/(speciesLength*penalization),)
 
 
