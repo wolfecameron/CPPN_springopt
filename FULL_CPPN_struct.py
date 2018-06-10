@@ -13,6 +13,9 @@ import matplotlib.pyplot as plt
 
 from FULL_CPPN_node import Node
 from FULL_CPPN_con import Connection
+from FULL_CPPN_constants import NODE_TO_COLOR
+
+
 
 
 # genotype class implements the CPPN structure
@@ -473,7 +476,7 @@ class Genotype():
 		python networkx module
 		"""
 
-		graph = nx.Graph()
+		graph = nx.DiGraph()
 
 		# add each node into the graph - node number used to map the nodes
 		# in CPPN to the corresponding nodes in the graph
@@ -487,7 +490,24 @@ class Genotype():
 
 		# display graph to user
 		plt.subplot(111)
-		nx.draw(graph, with_labels=True, font_weight='bold')
+		pos = nx.spring_layout(graph)
+		# add all nodes into graph with colors
+		for node in self.nodes:
+			color = NODE_TO_COLOR[node.getActKey()]
+			nx.draw_networkx_nodes(graph, pos, 
+									nodelist=[node.getNodeNum()],
+									node_color=color,
+									node_size=400, alpha=0.8)
+		# add all connections into graph with colors
+		for con in self.connections:
+			 color = 'b' if con.getWeight() < 0 else 'r'
+			 edge_tuple = (con.getNodeIn().getNodeNum(), 
+			 				con.getNodeOut().getNodeNum())
+			 nx.draw_networkx_edges(graph, pos,
+			 						edgelist = [edge_tuple],
+			 						width=2, alpha=0.5, 
+			 						edge_color=color, arrows=True)
+		
 		plt.show()
 
 
