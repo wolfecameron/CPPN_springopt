@@ -3,12 +3,16 @@ This class implements the actual structure of the CPPN, or the genotype
 All mutation, crossover, and activation features are implemented in the structure
 '''
 
-from FULL_CPPN_node import Node
-from FULL_CPPN_con import Connection
 import sys
+import copy
+
 import random as r
 import numpy as np
-import copy
+import networkx as nx
+import matplotlib.pyplot as plt
+
+from FULL_CPPN_node import Node
+from FULL_CPPN_con import Connection
 
 
 # genotype class implements the CPPN structure
@@ -464,6 +468,29 @@ class Genotype():
 		return (minInnov, maxInnov)
 
 
+	def graph_genotype(self):
+		"""Creates a graph of the network's genotypes using the
+		python networkx module
+		"""
+
+		graph = nx.Graph()
+
+		# add each node into the graph - node number used to map the nodes
+		# in CPPN to the corresponding nodes in the graph
+		for node in self.nodes:
+			graph.add_node(node.getNodeNum())
+
+		# create all connections in graph
+		for con in self.connections:
+			graph.add_edge(con.getNodeIn().getNodeNum(), 
+							con.getNodeOut().getNodeNum())
+
+		# display graph to user
+		plt.subplot(111)
+		nx.draw(graph, with_labels=True, font_weight='bold')
+		plt.show()
+
+
 	'''
 	toString method for Genotype class
 	@return string representation of a given genotype
@@ -504,3 +531,8 @@ class Genotype():
 	'''
 	def getCopy(self):
 		return copy.deepcopy(self)
+
+if __name__ == "__main__":
+	"""Main function used for quick testing"""
+	g = Genotype(2, 1)
+	g.graph_genotype()
