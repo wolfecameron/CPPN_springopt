@@ -42,7 +42,7 @@ MATERIAL_PENALIZATION_THRESHOLD = .1
 NUM_X = 50
 NUM_Y = 50
 NORM_IN = getNormalizedInputs(NUM_X, NUM_Y)
-FILE_PATH = '/home/wolfecameron/Desktop/CPPN_springopt/fitting_images/heart_ex.png'
+FILE_PATH = '/home/wolfecameron/Desktop/Projects/CPPN_to/Images/spring6.png'
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 
 
@@ -255,11 +255,11 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 if __name__ == '__main__':
 
 	# the following are all parameter settings for main function
-	NGEN = 600
+	NGEN = 1000
 	WEIGHT_MUTPB = .3
-	NODE_MUTPB = .05
-	CON_MUTPB = .15
-	CXPB = .15
+	NODE_MUTPB = .02
+	CON_MUTPB = .1
+	CXPB = .1
 	ACTPB = .05
 	THRESHOLD = 3.0
 	ALPHA = 1.0

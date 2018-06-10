@@ -63,6 +63,11 @@ will be penalized
 @return fitness as a single value in a tuple
 '''
 def evaluate_pic(individual, pixels, normIn, speciesLength, material_penalization_threshold):
+	# penalizes CPPN extra for not putting a material in a place 
+	# that has material in original picture, this is needed because
+	# there are significantly fewer locations with pixels than without generally	
+	NO_MATERIAL_PENALIZATION = 3	
+
 	outputs = []
 	# get all outputs for every pixel in space of picture and put all into a numpy array
 	for ins in normIn:
@@ -82,9 +87,14 @@ def evaluate_pic(individual, pixels, normIn, speciesLength, material_penalizatio
 	
 	# find difference between CPPN output and target by subtracting and 
 	# squaring the two arrays, then finding the sum of the resultant array
-	totalDiff = np.sum(np.square(np.subtract(pixels, outputs_np)))
+	# subtract the difference from 1 because we are maximizing fitness
+	ones_arr = np.ones((1, len(pixels)))
+	diff = np.subtract(pixels, outputs_np)
+	diff[diff>=.5] *= NO_MATERIAL_PENALIZATION
+	diff = np.absolute(diff)
+	total_fit = np.sum(np.subtract(ones_arr, diff))
 
 	# account for species sharing and material penalization into the returned fitness
-	return (totalDiff/(speciesLength*penalization),)
+	return (total_fit/(speciesLength*penalization),)
 
 
