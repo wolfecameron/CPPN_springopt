@@ -9,6 +9,7 @@ import copy
 import random as r
 import numpy as np
 import networkx as nx
+import pickle
 import matplotlib.pyplot as plt
 
 from FULL_CPPN_node import Node
@@ -30,7 +31,8 @@ class Genotype():
 	@param numIn the number of inputs into the network (excluding bias)
 	@param numOut the number of outputs out of the network
 	'''
-	def __init__(self, numIn = DEF_NUMIN, numOut = DEF_NUMOUT):
+	def __init__(self, numIn=DEF_NUMIN, numOut=DEF_NUMOUT, filename=None):
+
 		# add one to numIn to account for bias
 		self.numIn = numIn + 1 
 		self.numOut = numOut
@@ -56,7 +58,7 @@ class Genotype():
 
 		# initialize weights between -1/(numConnections) -> 1/(numConnections)
 		weightRange = 1/float(self.numIn)
-		
+			
 		# fully connect all inputs to outputs, must handle innovation numbers
 		for x in range(self.numIn):
 			for y in range(self.numOut):
@@ -552,7 +554,29 @@ class Genotype():
 	def getCopy(self):
 		return copy.deepcopy(self)
 
+
+	def save(self, filename):
+		"""This method utilizes the pickle module to 
+		serialize a Genotype class instance so that it
+		can be loaded in later for observation
+
+		Parameters:
+		filename -- the filename for the bytes to be written to
+		"""
+
+		# open file as a binary stream and write all data
+		new_file = open(filename, "wb")
+		pickle.dump(self, new_file)
+		new_file.close()
+
+
 if __name__ == "__main__":
 	"""Main function used for quick testing"""
+
 	g = Genotype(2, 1)
+	g.nodeMutate({}, 1)
+	g.nodeMutate({}, 1)
+	g.save("hello_world.txt")
+	new_g = pickle.load(open("hello_world.txt", "rb"))
 	g.graph_genotype()
+	new_g.graph_genotype()
