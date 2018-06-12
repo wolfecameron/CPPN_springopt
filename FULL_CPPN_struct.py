@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 from FULL_CPPN_node import Node
 from FULL_CPPN_con import Connection
-from FULL_CPPN_constants import NODE_TO_COLOR
+from FULL_CPPN_constants import NODE_TO_COLOR, CLOSENESS_THRESHOLD, PATCH_LIST
 
 
 
@@ -488,11 +488,45 @@ class Genotype():
 		# create all connections in graph
 		for con in self.connections:
 			graph.add_edge(con.getNodeIn().getNodeNum(), 
-							con.getNodeOut().getNodeNum())
+							con.getNodeOut().getNodeNum(),
+							innov_num=str(con.getInnovationNumber()))
+		
+		# create dictionary that holds positions of input/output nodes
+		pos = nx.kamada_kawai_layout(graph, scale=self.numIn + 1)
+		
+		# adjust position of input nodes
+		y = -(self.numIn + 1)/2
+		for i in range(self.numIn):
+			pos[i] = np.array([0,y])
+			y += 1
 
+		# adjust position of output nodes
+		y = -(self.numIn + 1)/2
+		for i in range(self.numIn, self.numIn + self.numOut):
+			pos[i] = np.array([self.numIn + 1, y])
+			y += 1
+
+		# ajust x position of hidden nodes
+		for i in range(self.numIn + 1, len(self.nodes)):
+			diff_x = self.numIn + 2 # the distance between inputs and outputs on graph
+			x_loc = (self.nodes[i].getNodeLayer()/sys.maxsize)*diff_x
+			pos[i][0] = x_loc
+
+		# make sure two nodes are not too close to each other
+		for i_left in range(len(pos.keys())):
+			for i_right in range(i_left + 1, len(pos.keys())):
+				left_pos = pos[i_left]
+				right_pos = pos[i_right]
+				if(left_pos[0] == right_pos[0] 
+						and abs(left_pos[1] - right_pos[1]) <= CLOSENESS_THRESHOLD):
+					upper_index = i_left if(left_pos[1] > right_pos[1]) else i_right
+					pos[upper_index][1] += CLOSENESS_THRESHOLD
+					
+
+
+		#pos = nx.spectral_layout(graph)
 		# display graph to user
 		plt.subplot(111)
-		pos = nx.spring_layout(graph)
 		# add all nodes into graph with colors
 		for node in self.nodes:
 			color = NODE_TO_COLOR[node.getActKey()]
@@ -507,9 +541,17 @@ class Genotype():
 			 				con.getNodeOut().getNodeNum())
 			 nx.draw_networkx_edges(graph, pos,
 			 						edgelist = [edge_tuple],
-			 						width=2, alpha=0.5, 
-			 						edge_color=color, arrows=True)
+			 						width=3, alpha=0.5, 
+			 						edge_color=color, arrows=True, 
+			 						label=str(con.getInnovationNumber()))
 		
+		# add innovation number labels for connections
+		innov_labels = nx.get_edge_attributes(graph, 'innov_num')
+		nx.draw_networkx_edge_labels(graph, pos, labels=innov_labels)
+
+		# create graph with title/legend and display
+		plt.title("CPPN Genotype Visualization")
+		plt.legend(handles=PATCH_LIST, loc='upper right')
 		plt.show()
 
 
@@ -574,6 +616,12 @@ if __name__ == "__main__":
 	"""Main function used for quick testing"""
 
 	g = Genotype(2, 1)
+	g.nodeMutate({}, 1)
+	g.nodeMutate({}, 1)
+	g.nodeMutate({}, 1)
+	g.nodeMutate({}, 1)
+	g.nodeMutate({}, 1)
+	g.nodeMutate({}, 1)
 	g.nodeMutate({}, 1)
 	g.nodeMutate({}, 1)
 	g.save("hello_world.txt")
