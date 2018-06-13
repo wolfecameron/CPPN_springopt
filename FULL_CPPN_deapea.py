@@ -42,7 +42,7 @@ MATERIAL_PENALIZATION_THRESHOLD = .1
 NUM_X = 50
 NUM_Y = 50
 NORM_IN = getNormalizedInputs(NUM_X, NUM_Y)
-FILE_PATH = '/home/wolfecameron/Desktop/Projects/CPPN_to/Images/spring6.png'
+FILE_PATH = '/home/wolfecameron/Desktop/Projects/CPPN_to/Images/spring7.png'
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 
 
