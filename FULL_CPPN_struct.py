@@ -473,7 +473,7 @@ class Genotype():
 		return (minInnov, maxInnov)
 
 
-	def graph_genotype(self, fig_num):
+	def graph_genotype(self, fig_num=100):
 		"""Creates a graph of the network's genotypes using the
 		python networkx module. Each connection is labeled with 
 		its innovation number and weight. Each node is colored 
