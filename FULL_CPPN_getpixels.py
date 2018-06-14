@@ -93,19 +93,18 @@ creates a graph of an image represented by a list of binary pixels
 pre: length of binPixels and numX*numY must match
 pre: binPixel IS A NUMPY ARRAY
 '''
-def graphImage(binPixels, numX, numY):
+def graphImage(binPixels, numX, numY, fig_num):
 	# check precondition
 	if(not len(binPixels) == numX*numY):
 		print("Length of pixel list and given size do not match!")
 		return 0
 
 	# create 2D picture representation of pixels with matplotlib
-	plt.ion()
-	fig,ax = plt.subplots()
-	im = ax.imshow(-binPixels.reshape(numX, numY), cmap='gray', interpolation='none', norm=colors.Normalize(vmin=-1, vmax=0))
-	fig.show()
+	#plt.ion()
+	plt.figure(fig_num)
+	im = plt.imshow(-binPixels.reshape(numX, numY), cmap='gray', interpolation='none', norm=colors.Normalize(vmin=-1, vmax=0))
 	# must include an input or figures will open continuously an cause stack overflow
-	input()
+	#input()
 
 '''
 This function generates the inputs for the CPPN that are used in 
@@ -137,4 +136,6 @@ if __name__ == '__main__':
 	Y = 50
 	file = '/home/wolfecameron/Desktop/CPPN_springopt/fitting_images/heart_ex.png'
 	bin_pix = getBinaryPixels(file, X, Y)
-	graphImage(bin_pix, X, Y)
+	graphImage(bin_pix, X, Y, 100)
+	plt.show()
+	input()

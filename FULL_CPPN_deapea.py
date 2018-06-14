@@ -42,7 +42,7 @@ MATERIAL_PENALIZATION_THRESHOLD = .1
 NUM_X = 50
 NUM_Y = 50
 NORM_IN = getNormalizedInputs(NUM_X, NUM_Y)
-FILE_PATH = '/home/wolfecameron/Desktop/Projects/CPPN_to/Images/spring7.png'
+FILE_PATH = '/home/wolfecameron/Desktop/CPPN_to/Images/spring7.png'
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 
 
@@ -255,7 +255,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 if __name__ == '__main__':
 
 	# the following are all parameter settings for main function
-	NGEN = 1000
+	NGEN = 1
 	WEIGHT_MUTPB = .3
 	NODE_MUTPB = .02
 	CON_MUTPB = .1
@@ -282,8 +282,10 @@ if __name__ == '__main__':
 		for ins in NORM_IN:
 			outputs.append(org.getOutput([ins[0], ins[1]])[0])
 		outputs_np = np.array(outputs, copy = True)
-		graphImage(outputs_np, NUM_X, NUM_Y)
-		print("SHOWING INDIVIDUAL #" + str(n))
+		# 100 and 200 represent the figure numbers for each of the separate graphs
+		graphImage(outputs_np, NUM_X, NUM_Y, 100)
+		org.graph_genotype(200)
+		input("SHOWING individual #{0}".format(str(n)))
 		n += 1
 
 

@@ -473,9 +473,11 @@ class Genotype():
 		return (minInnov, maxInnov)
 
 
-	def graph_genotype(self):
+	def graph_genotype(self, fig_num):
 		"""Creates a graph of the network's genotypes using the
-		python networkx module
+		python networkx module. Each connection is labeled with 
+		its innovation number and weight. Each node is colored 
+		based on its activation function.
 		"""
 
 		graph = nx.DiGraph()
@@ -489,7 +491,7 @@ class Genotype():
 		for con in self.connections:
 			graph.add_edge(con.getNodeIn().getNodeNum(), 
 							con.getNodeOut().getNodeNum(),
-							innov_num=str(con.getInnovationNumber()))
+							data=str(con.getInnovationNumber()) + ", " + str(con.getWeight())[:6])
 		
 		# create dictionary that holds positions of input/output nodes
 		pos = nx.kamada_kawai_layout(graph, scale=self.numIn + 1)
@@ -497,13 +499,15 @@ class Genotype():
 		# adjust position of input nodes
 		y = -(self.numIn + 1)/2
 		for i in range(self.numIn):
+			# the inputs should be placed further left than any other node
 			pos[i] = np.array([0,y])
 			y += 1
 
 		# adjust position of output nodes
 		y = -(self.numIn + 1)/2
 		for i in range(self.numIn, self.numIn + self.numOut):
-			pos[i] = np.array([self.numIn + 1, y])
+			# the output should be places further right than any other node
+			pos[i] = np.array([self.numIn + 2, y])
 			y += 1
 
 		# ajust x position of hidden nodes
@@ -522,11 +526,9 @@ class Genotype():
 					upper_index = i_left if(left_pos[1] > right_pos[1]) else i_right
 					pos[upper_index][1] += CLOSENESS_THRESHOLD
 					
-
-
-		#pos = nx.spectral_layout(graph)
 		# display graph to user
-		plt.subplot(111)
+		plt.figure(fig_num)
+		
 		# add all nodes into graph with colors
 		for node in self.nodes:
 			color = NODE_TO_COLOR[node.getActKey()]
@@ -542,12 +544,11 @@ class Genotype():
 			 nx.draw_networkx_edges(graph, pos,
 			 						edgelist = [edge_tuple],
 			 						width=3, alpha=0.5, 
-			 						edge_color=color, arrows=True, 
-			 						label=str(con.getInnovationNumber()))
+			 						edge_color=color, arrows=True)
 		
 		# add innovation number labels for connections
-		innov_labels = nx.get_edge_attributes(graph, 'innov_num')
-		nx.draw_networkx_edge_labels(graph, pos, labels=innov_labels)
+		labels = nx.get_edge_attributes(graph, 'data')
+		nx.draw_networkx_edge_labels(graph, pos, labels=labels)
 
 		# create graph with title/legend and display
 		plt.title("CPPN Genotype Visualization")
