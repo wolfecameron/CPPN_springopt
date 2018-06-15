@@ -472,12 +472,11 @@ class Genotype():
 		
 		return (minInnov, maxInnov)
 
-
-	def graph_genotype(self, fig_num=100):
-		"""Creates a graph of the network's genotypes using the
-		python networkx module. Each connection is labeled with 
-		its innovation number and weight. Each node is colored 
-		based on its activation function.
+	def gen_networkx_graph(self):
+		"""Takes current CPPN instance and uses all node/connection info
+		to generate a networkx representation of the graph. This networkx
+		graph object can then be used to graph the CPPN genotype more
+		easily in matplotlib
 		"""
 
 		graph = nx.DiGraph()
@@ -492,7 +491,18 @@ class Genotype():
 			graph.add_edge(con.getNodeIn().getNodeNum(), 
 							con.getNodeOut().getNodeNum(),
 							data=str(con.getInnovationNumber()) + ", " + str(con.getWeight())[:6])
-		
+
+		return graph
+
+	def gen_positions_for_networkx(self, graph):
+		"""Uses the networkx implementation of the CPPN genotype to 
+		generate all positions that are needed for the nodes within 
+		the graph representation of the CPPNs genotype.
+
+		Parameters:
+		graph -- the networkx graph object being used to graph CPPN genotype
+		"""
+
 		# create dictionary that holds positions of input/output nodes
 		pos = nx.kamada_kawai_layout(graph, scale=self.numIn + 1)
 		
@@ -525,8 +535,24 @@ class Genotype():
 						and abs(left_pos[1] - right_pos[1]) <= CLOSENESS_THRESHOLD):
 					upper_index = i_left if(left_pos[1] > right_pos[1]) else i_right
 					pos[upper_index][1] += CLOSENESS_THRESHOLD
+
+		return pos
 					
-		# display graph to user
+
+
+	def graph_genotype(self, fig_num=100):
+		"""Creates a graph of the network's genotypes using the
+		python networkx module. Each connection is labeled with 
+		its innovation number and weight. Each node is colored 
+		based on its activation function.
+		"""
+
+		graph = self.gen_networkx_graph()
+		
+		# create dictionary that holds positions of input/output nodes
+		pos = self.gen_positions_for_networkx(graph)
+
+		# create matplotlib figure used for graph
 		plt.figure(fig_num)
 		
 		# add all nodes into graph with colors
@@ -554,6 +580,7 @@ class Genotype():
 		plt.title("CPPN Genotype Visualization")
 		plt.legend(handles=PATCH_LIST, loc='upper right')
 		plt.show()
+
 
 
 	'''
@@ -622,10 +649,4 @@ if __name__ == "__main__":
 	g.nodeMutate({}, 1)
 	g.nodeMutate({}, 1)
 	g.nodeMutate({}, 1)
-	g.nodeMutate({}, 1)
-	g.nodeMutate({}, 1)
-	g.nodeMutate({}, 1)
-	g.save("hello_world.txt")
-	new_g = pickle.load(open("hello_world.txt", "rb"))
 	g.graph_genotype()
-	new_g.graph_genotype()

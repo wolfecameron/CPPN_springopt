@@ -8,6 +8,8 @@ weights for given connections.
 
 import tkinter as tk
 import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.figure import Figure
@@ -15,6 +17,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 
 from FULL_CPPN_getpixels import getNormalizedInputs
 from FULL_CPPN_struct import Genotype
+from FULL_CPPN_constants import NODE_TO_COLOR, CLOSENESS_THRESHOLD, PATCH_LIST
 
 
 def init_playground(genotype, num_x, num_y):
@@ -25,7 +28,7 @@ def init_playground(genotype, num_x, num_y):
 
 	# initiate figure and subplot needed for graphing
 	f = Figure(figsize=(5,5), dpi=100)
-	subp = f.add_subplot(111)
+	subp = f.add_subplot(211)
 
 	# initiate GUI
 	master = tk.Tk()
@@ -33,7 +36,7 @@ def init_playground(genotype, num_x, num_y):
 
 	# create graphs of genotype and phenotype
 	
-	#genotype.graph_genotype()
+	graph_genotype_GUI(genotype, f)
 	# get outputs for current genotype
 	norm_in = getNormalizedInputs(num_x, num_y)
 	outputs = []
@@ -83,6 +86,51 @@ def update_CPPN(E1, E2):
 	for con in genotype.connections:
 		if(con.getInnovationNumber() == int(innov_num)):
 			con.setWeight(float(new_weight))
+
+def graph_genotype_GUI(genotype, f):
+	"""Function used to graph genotype of CPPN, function is same as
+	the one inside of the CPPN structure function but can be added to
+	a subplot of Figure f to be included in the GUI display for the
+	playground
+
+	Parameters:
+	genotype -- genotype of CPPN being graphed
+	f -- Figure instance into which the graph is being placed
+	"""
+
+	# create the networkx graph and associated node position for genotype
+	graph = genotype.gen_networkx_graph()
+	pos = genotype.gen_positions_for_networkx(graph)
+
+	# create matplotlib figure used for graph
+	subp = f.add_subplot(212)
+	
+	# add all nodes into graph with colors
+	for node in genotype.nodes:
+		color = NODE_TO_COLOR[node.getActKey()]
+		nx.draw_networkx_nodes(graph, pos,
+								ax=subp, 
+								nodelist=[node.getNodeNum()],
+								node_color=color,
+								node_size=400, alpha=0.8)
+	# add all connections into graph with colors
+	for con in genotype.connections:
+		 color = 'b' if con.getWeight() < 0 else 'r'
+		 edge_tuple = (con.getNodeIn().getNodeNum(), 
+		 				con.getNodeOut().getNodeNum())
+		 nx.draw_networkx_edges(graph, pos,
+		 						ax=subp,
+		 						edgelist = [edge_tuple],
+		 						width=3, alpha=0.5, 
+		 						edge_color=color, arrows=True)
+		
+	# add innovation number labels for connections
+	labels = nx.get_edge_attributes(graph, 'data')
+	nx.draw_networkx_edge_labels(graph, pos, ax=subp, labels=labels)
+
+	# create graph with title/legend and display
+	#plt.title("CPPN Genotype Visualization")
+	subp.legend(handles=PATCH_LIST, loc='upper right')
 
 
 if __name__ == '__main__':
