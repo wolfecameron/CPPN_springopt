@@ -27,7 +27,7 @@ def init_playground(genotype, num_x, num_y):
 	"""
 
 	# initiate figure and subplot needed for graphing
-	f = Figure(figsize=(5,5), dpi=100)
+	f = Figure(figsize=(10, 10), dpi=100)
 	subp = f.add_subplot(211)
 
 	# initiate GUI
@@ -87,6 +87,7 @@ def update_CPPN(E1, E2):
 		if(con.getInnovationNumber() == int(innov_num)):
 			con.setWeight(float(new_weight))
 
+
 def graph_genotype_GUI(genotype, f):
 	"""Function used to graph genotype of CPPN, function is same as
 	the one inside of the CPPN structure function but can be added to
@@ -129,7 +130,7 @@ def graph_genotype_GUI(genotype, f):
 	nx.draw_networkx_edge_labels(graph, pos, ax=subp, labels=labels)
 
 	# create graph with title/legend and display
-	#plt.title("CPPN Genotype Visualization")
+	plt.title("CPPN Genotype Visualization")
 	subp.legend(handles=PATCH_LIST, loc='upper right')
 
 
