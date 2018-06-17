@@ -14,10 +14,14 @@ import matplotlib
 matplotlib.use("TkAgg")
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+import time
 
 from FULL_CPPN_getpixels import getNormalizedInputs
 from FULL_CPPN_struct import Genotype
 from FULL_CPPN_constants import NODE_TO_COLOR, CLOSENESS_THRESHOLD, PATCH_LIST
+
+# sets the time between updates when sweeping through weights in seconds
+TIME_DELAY = 2
 
 
 def init_playground(genotype, num_x, num_y):
@@ -60,31 +64,89 @@ def init_playground(genotype, num_x, num_y):
 	weight_e.pack()
 
 	# create buttons for exit and entry
-	tk.Button(master, text="Submit", command=(lambda: update_CPPN(genotype, innov_e, weight_e, subp_1, subp_2, norm_in, num_x, num_y, canvas, f))).pack()
+	tk.Button(master, text="Set Weight", command=(lambda: update_CPPN(genotype, innov_e, weight_e, subp_1, subp_2, norm_in, num_x, num_y, canvas))).pack()
+	tk.Button(master, text="Sweep Weights", command=(lambda: sweep_CPPN(genotype, innov_e, subp_1, subp_2, norm_in, num_y, num_y, canvas))).pack()
 	tk.Button(master, text="Exit", command=master.quit).pack(pady=(20,10))
+
 
 	# initiate main loop for GUI
 	tk.mainloop()
 
 
+def sweep_CPPN(genotype, E1, subp_1, subp_2, norm_in, num_x, num_y, canvas):
+	"""Sweeps over a range of weights for a certain connection to show the phenotype of 
+	the CPPN with several different values for that weight
+	"""
 
-def update_CPPN(genotype, E1, E2, subp_1, subp_2, norm_in, num_x, num_y, canvas, f):
+	# get value from widget field
+	innov_num = E1.get()
+
+	# find index of desired connection
+	index = -1
+	for con_ind in range(len(genotype.connections)):
+		if(genotype.connections[con_ind].getInnovationNumber() == innov_num):
+			index = con_ind
+	old_weight = genotype.connections[con_ind].getWeight()
+
+	sweep_weight = 10
+	while(sweep_weight > -10):
+		genotype.connections[con_ind].setWeight(sweep_weight)
+		# clear both subplots so new graphs can be placed into the GUI
+		subp_1.clear()
+		subp_2.clear()
+
+		# create graphs again and put graphs onto them
+		outputs = []
+		for ins in norm_in:
+			outputs.append(genotype.getOutput(ins)[0])
+		outputs_np = np.array(outputs, copy=True)
+		subp_1.imshow(np.reshape(outputs_np, (num_x, num_y)), cmap='Greys')
+
+		graph_genotype_GUI(genotype, subp_2)
+
+		canvas.show()
+		canvas.get_tk_widget().pack()
+		sweep_weight -= .5
+		time.sleep(TIME_DELAY)
+
+	# reset the graphs to their old state with the original weight
+	genotype.connections[con_ind].setWeight(old_weight)
+	# clear both subplots so new graphs can be placed into the GUI
+	subp_1.clear()
+	subp_2.clear()
+
+	# create graphs again and put graphs onto them
+	outputs = []
+	for ins in norm_in:
+		outputs.append(genotype.getOutput(ins)[0])
+	outputs_np = np.array(outputs, copy=True)
+	subp_1.imshow(np.reshape(outputs_np, (num_x, num_y)), cmap='Greys')
+
+	graph_genotype_GUI(genotype, subp_2)
+
+	canvas.show()
+	canvas.get_tk_widget().pack()
+
+
+
+def update_CPPN(genotype, E1, E2, subp_1, subp_2, norm_in, num_x, num_y, canvas):
 	"""Function for taking values from the user 
 	and using them to update weight values in the 
 	CPPN - user chooses new weight for a certain
 	connection/innov num
 	"""
 
-	# get values from fields
-	innov_num = E1.get()
-	new_weight = E2.get()
+	# get values from fields, should all be comma separated
+	innov_nums = E1.get().split(",")
+	new_weights = E2.get().split(",")
 
-
-	# search through connections to find the correct
-	# weight to change
-	for con in genotype.connections:
-		if(con.getInnovationNumber() == int(innov_num)):
-			con.setWeight(float(new_weight))
+	# get all values from the above lists
+	for innov_num, new_weight in zip(innov_nums, new_weights):
+		# search through connections to find the correct
+		# weight to change
+		for con in genotype.connections:
+			if(con.getInnovationNumber() == int(innov_num)):
+				con.setWeight(float(new_weight))
 
 	# clear both subplots so new graphs can be placed into the GUI
 	subp_1.clear()
