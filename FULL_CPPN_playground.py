@@ -7,6 +7,7 @@ weights for given connections.
 """
 
 import tkinter as tk
+from tkinter import simpledialog
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -22,25 +23,64 @@ from FULL_CPPN_constants import NODE_TO_COLOR, CLOSENESS_THRESHOLD, PATCH_LIST
 
 # sets the time between updates when sweeping through weights in seconds
 TIME_DELAY = 2
+num_x = 50
+num_y = 50
 
 
-def init_playground(genotype, num_x, num_y):
-	"""Main function for the playground
-	that contains the main GUI animation 
-	loop and all Tk config
+class Playground(tk.Tk):
+	"""Main class that contains all handlers for
+	the Tkinter GUI
 	"""
 
-	# initiate figure and subplot needed for graphing
-	f = Figure(figsize=(10, 10), dpi=100)
-	subp_1 = f.add_subplot(211)
-	subp_2 = f.add_subplot(212)
+	def __init__(self, genotype):
+		"""Contructer for main GUI container/handler"""
 
-	# initiate GUI
-	master = tk.Tk()
-	master.title("CPPN Playground")
+		# instantiate the root
+		tk.Tk.__init__(self)
+		self.title("CPPN playground")
 
+		# create container to hold all grames in the GUI
+		container = tk.Frame(self)
+		container.pack(side="top", fill="both", expand=True)
+		container.grid_rowconfigure(0, weight=1)
+		container.grid_columnconfigure(0, weight=1)
+
+		# initiate GUI
+
+		# add menu bar for the separate Tk frame
+		menubar = tk.Menu(self)
+		filemenu = tk.Menu(menubar)
+		filemenu.add_command(label="Main Page", command=lambda: self.raise_frame("MainPage"))
+		filemenu.add_command(label="Slider Page", command=lambda: self.raise_frame("SliderPage"))
+		filemenu.add_command(label="Save", command=lambda: save_gen_GUI(genotype))
+		menubar.add_cascade(label="Options", menu=filemenu)
+		self.config(menu=menubar)
+
+		# add frames to the main GUI
+		self.frames = {}
+
+		# create main frame
+		frame1 = MainPage(container=container, master=self, genotype=genotype)
+		self.frames["MainPage"] = frame1
+		frame1.grid(row=0, column=0, stick="nsew")
+
+		frame2 = SliderPage(container=container, master=self, genotype=genotype)
+		self.frames["SliderPage"] = frame2
+		frame2.grid(row=0, column=0, sticky="nsew")
+
+		# raise main page to the front initially
+		self.raise_frame("SliderPage")
+
+
+	def raise_frame(self, page_name):
+		"""Raise a certain frame to the front of the GUI
+		based on its page_name
+		"""
+		frame = self.frames[page_name]
+		frame.tkraise()
+
+	'''
 	# create graphs of genotype and phenotype
-	
 	graph_genotype_GUI(genotype, subp_2)
 	# get outputs for current genotype
 	norm_in = getNormalizedInputs(num_x, num_y)
@@ -69,8 +109,81 @@ def init_playground(genotype, num_x, num_y):
 	tk.Button(master, text="Exit", command=master.quit).pack(pady=(20,10))
 
 
-	# initiate main loop for GUI
-	tk.mainloop()
+	# make the second frame 
+	slider_frame = 
+	'''
+
+class MainPage(tk.Frame):
+
+	def __init__(self, container, master, genotype):
+		"""Constructor for the main GUI frame"""
+
+		# instantiate the frame
+		tk.Frame.__init__(self, container)
+		
+		# connect frame to the controller
+		self.controller = master
+
+		f = Figure(figsize=(10, 10), dpi=100)
+		subp_1 = f.add_subplot(211)
+		subp_2 = f.add_subplot(212)
+
+		# create graphs of genotype and phenotype
+		graph_genotype_GUI(genotype, subp_2)
+		# get outputs for current genotype
+		norm_in = getNormalizedInputs(num_x, num_y)
+		outputs = []
+		for ins in norm_in:
+			outputs.append(genotype.getOutput(ins)[0])
+		outputs_np = np.array(outputs, copy=True)
+		subp_1.imshow(np.reshape(outputs_np, (num_x, num_y)), cmap='Greys')
+
+		# create canvas for GUI
+		canvas = FigureCanvasTkAgg(f, self)
+		canvas.show()
+		canvas.get_tk_widget().pack()
+
+		# create labels for text entry and text entry
+		tk.Label(self, text="Innovation Number").pack(pady=(10,0))
+		tk.Label(self, text="New Weight").pack()
+		innov_e = tk.Entry(self)
+		weight_e = tk.Entry(self)
+		innov_e.pack(pady=(10,0))
+		weight_e.pack()
+
+		# create buttons for exit and entry
+		tk.Button(self, text="Set Weight", command=(lambda: update_CPPN(genotype, innov_e, weight_e, subp_1, subp_2, norm_in, num_x, num_y, canvas))).pack()
+		tk.Button(self, text="Sweep Weights", command=(lambda: sweep_CPPN(genotype, innov_e, subp_1, subp_2, norm_in, num_y, num_y, canvas))).pack()
+		tk.Button(self, text="Exit", command=self.quit).pack(pady=(20,10))
+
+
+class SliderPage(tk.Frame):
+	"""Class containing frame for GUI widget that allows 
+	users to move sliders to change weights within the CPPN
+	"""
+
+	def __init__(self, container, master, genotype):
+		"""Constructor for slider frame"""
+		tk.Frame.__init__(self, container)
+
+		# connect frame to the root
+		self.controller = master
+
+		label_slide = tk.Label(self, text="THIS IS THE SLIDER PAGE")
+		label_slide.pack()
+
+
+
+def save_gen_GUI(genotype):
+	"""Method for saving the current state of a genotype 
+	to a file that can be accessed later using pickle.
+	"""
+
+	filename = simpledialog.askstring("Get filepath.", "Where do you want the file to be saved?")
+	# make sure user did not cancel request for filepath
+	if(filename != None):
+		genotype.save(filename)
+
 
 
 def sweep_CPPN(genotype, E1, subp_1, subp_2, norm_in, num_x, num_y, canvas):
@@ -212,4 +325,6 @@ def graph_genotype_GUI(genotype, subp):
 
 
 if __name__ == '__main__':
-	init_playground(Genotype(2, 1), 50, 50)
+	genotype = Genotype(2,1)
+	app = Playground(genotype)
+	app.mainloop()
