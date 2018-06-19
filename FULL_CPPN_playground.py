@@ -50,8 +50,8 @@ class Playground(tk.Tk):
 		# add menu bar for the separate Tk frame
 		menubar = tk.Menu(self)
 		filemenu = tk.Menu(menubar)
-		filemenu.add_command(label="Main Page", command=lambda: self.raise_frame("MainPage"))
-		filemenu.add_command(label="Slider Page", command=lambda: self.raise_frame("SliderPage"))
+		filemenu.add_command(label="Main Page", command=lambda: self.raise_frame("MainPage", container))
+		filemenu.add_command(label="Slider Page", command=lambda: self.raise_frame("SliderPage", container))
 		filemenu.add_command(label="Save", command=lambda: save_gen_GUI(genotype))
 		menubar.add_cascade(label="Options", menu=filemenu)
 		self.config(menu=menubar)
@@ -64,18 +64,22 @@ class Playground(tk.Tk):
 		self.frames["MainPage"] = frame1
 		frame1.grid(row=0, column=0, stick="nsew")
 
-		frame2 = SliderPage(container=container, master=self, genotype=genotype)
-		self.frames["SliderPage"] = frame2
-		frame2.grid(row=0, column=0, sticky="nsew")
-
 		# raise main page to the front initially
-		self.raise_frame("SliderPage")
+		self.raise_frame("MainPage", container)
 
 
-	def raise_frame(self, page_name):
+	def raise_frame(self, page_name, container):
 		"""Raise a certain frame to the front of the GUI
 		based on its page_name
 		"""
+
+		# find innovation numbers if slider page is being started
+		# must initialize the slider page each time because properties are different
+		if(page_name == "SliderPage"):
+			frame2 = SliderPage(container=container, master=self, genotype=genotype)
+			self.frames["SliderPage"] = frame2
+			frame2.grid(row=0, column=0, sticky="nsew")
+			frame2.add_sliders()
 		frame = self.frames[page_name]
 		frame.tkraise()
 
@@ -166,11 +170,27 @@ class SliderPage(tk.Frame):
 		"""Constructor for slider frame"""
 		tk.Frame.__init__(self, container)
 
+		# initialize dictionary of sliders
+		self.scale_dict = {}
+
 		# connect frame to the root
 		self.controller = master
 
-		label_slide = tk.Label(self, text="THIS IS THE SLIDER PAGE")
-		label_slide.pack()
+	def add_sliders(self):
+		"""Adds all needed slider items to the slider
+		page of the GUI"""
+
+		self.scale_dict = {}
+		innov_str = simpledialog.askstring("Get Innovations.", 
+			"What innovation numbers do you want sliders for (separate with commas)?")
+		innov_nums = innov_str.split(",")
+		for innov in innov_nums:
+			self.scale_dict[innov] = tk.Scale(self, from_=-20, 
+				to=20, orient=tk.HORIZONTAL)
+			tk.Label(self, text="Slider for #{0}".format(innov)).pack()
+			self.scale_dict[innov].pack(pady=10)
+
+		tk.Button(self, text="Exit", command=self.quit).pack(pady=(20,10))
 
 
 
