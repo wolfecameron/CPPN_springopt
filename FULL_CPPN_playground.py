@@ -83,41 +83,10 @@ class Playground(tk.Tk):
 		frame = self.frames[page_name]
 		frame.tkraise()
 
-	'''
-	# create graphs of genotype and phenotype
-	graph_genotype_GUI(genotype, subp_2)
-	# get outputs for current genotype
-	norm_in = getNormalizedInputs(num_x, num_y)
-	outputs = []
-	for ins in norm_in:
-		outputs.append(genotype.getOutput(ins)[0])
-	outputs_np = np.array(outputs, copy=True)
-	subp_1.imshow(np.reshape(outputs_np, (num_x, num_y)), cmap='Greys')
 
-	# create canvas for GUI
-	canvas = FigureCanvasTkAgg(f, master)
-	canvas.show()
-	canvas.get_tk_widget().pack()
-
-	# create labels for text entry and text entry
-	tk.Label(master, text="Innovation Number").pack(pady=(10,0))
-	tk.Label(master, text="New Weight").pack()
-	innov_e = tk.Entry(master)
-	weight_e = tk.Entry(master)
-	innov_e.pack(pady=(10,0))
-	weight_e.pack()
-
-	# create buttons for exit and entry
-	tk.Button(master, text="Set Weight", command=(lambda: update_CPPN(genotype, innov_e, weight_e, subp_1, subp_2, norm_in, num_x, num_y, canvas))).pack()
-	tk.Button(master, text="Sweep Weights", command=(lambda: sweep_CPPN(genotype, innov_e, subp_1, subp_2, norm_in, num_y, num_y, canvas))).pack()
-	tk.Button(master, text="Exit", command=master.quit).pack(pady=(20,10))
-
-
-	# make the second frame 
-	slider_frame = 
-	'''
 
 class MainPage(tk.Frame):
+	"""class defining the main page handler/container of the CPPN playground GUI"""
 
 	def __init__(self, container, master, genotype):
 		"""Constructor for the main GUI frame"""
@@ -155,9 +124,9 @@ class MainPage(tk.Frame):
 		innov_e.pack(pady=(10,0))
 		weight_e.pack()
 
-		# create buttons for exit and entry
-		tk.Button(self, text="Set Weight", command=(lambda: update_CPPN(genotype, innov_e, weight_e, subp_1, subp_2, norm_in, num_x, num_y, canvas))).pack()
-		tk.Button(self, text="Sweep Weights", command=(lambda: sweep_CPPN(genotype, innov_e, subp_1, subp_2, norm_in, num_y, num_y, canvas))).pack()
+		# create buttons for exit and entry b      genotype, E1, subp_1, subp_2, norm_in, canvas
+		tk.Button(self, text="Apply", command=(lambda: update_CPPN(genotype, innov_e, weight_e, subp_1, subp_2, norm_in, num_x, num_y, canvas))).pack()
+		tk.Button(self, text="Sweep Weight", command=(lambda: sweep_CPPN(genotype, innov_e, subp_1, subp_2, norm_in, canvas))).pack()
 		tk.Button(self, text="Exit", command=self.quit).pack(pady=(20,10))
 
 
@@ -169,6 +138,28 @@ class SliderPage(tk.Frame):
 	def __init__(self, container, master, genotype):
 		"""Constructor for slider frame"""
 		tk.Frame.__init__(self, container)
+
+		# must make subplots and canvas instance variables so that the making sliders 
+		# method can access them
+		# create CPPN graphs to pack onto the GUI
+		f = Figure(figsize=(10, 10), dpi=100)
+		self.subp_1 = f.add_subplot(211)
+		self.subp_2 = f.add_subplot(212)
+
+		# create graphs of genotype and phenotype
+		graph_genotype_GUI(genotype, self.subp_2)
+		# get outputs for current genotype
+		norm_in = getNormalizedInputs(num_x, num_y)
+		outputs = []
+		for ins in norm_in:
+			outputs.append(genotype.getOutput(ins)[0])
+		outputs_np = np.array(outputs, copy=True)
+		self.subp_1.imshow(np.reshape(outputs_np, (num_x, num_y)), cmap='Greys')
+
+		# create canvas for GUI
+		self.canvas = FigureCanvasTkAgg(f, self)
+		self.canvas.show()
+		self.canvas.get_tk_widget().pack()
 
 		# initialize dictionary of sliders
 		self.scale_dict = {}
@@ -189,9 +180,44 @@ class SliderPage(tk.Frame):
 				to=20, orient=tk.HORIZONTAL)
 			tk.Label(self, text="Slider for #{0}".format(innov)).pack()
 			self.scale_dict[innov].pack(pady=10)
+		tk.Button(self, text="Apply", command=lambda: self.slider_update_CPPN()).pack()
+
 
 		tk.Button(self, text="Exit", command=self.quit).pack(pady=(20,10))
 
+	def slider_update_CPPN(self):
+		"""Pulls weight values from all sliders and updates
+		the corresponding weights within the CPPN genotype, 
+		then regraphs the plot of the CPPN genotype and 
+		phenotype
+		"""
+
+		# get needed CPPN inputs
+		norm_in = getNormalizedInputs(num_x, num_y)
+
+		keys = list(self.scale_dict.keys())
+		# for each connection with a slider, update weight to its current value
+		for innov_num in keys:
+			innov_num_int = int(innov_num)
+			for con in genotype.connections:
+				if(con.getInnovationNumber() == innov_num_int):
+					con.setWeight(self.scale_dict[innov_num].get())
+
+		# replot the CPPN with new weights
+		# both subplots must be cleared to replace them with new ones
+		self.subp_1.clear()
+		self.subp_2.clear()
+
+		outputs = []
+		for ins in norm_in:
+			outputs.append(genotype.getOutput(ins)[0])
+		outputs_np = np.array(outputs, copy=True)
+		self.subp_1.imshow(np.reshape(outputs_np, (num_x, num_y)), cmap='Greys')
+
+		graph_genotype_GUI(genotype, self.subp_2)
+
+		self.canvas.show()
+		self.canvas.get_tk_widget().pack()
 
 
 def save_gen_GUI(genotype):
@@ -206,7 +232,7 @@ def save_gen_GUI(genotype):
 
 
 
-def sweep_CPPN(genotype, E1, subp_1, subp_2, norm_in, num_x, num_y, canvas):
+def sweep_CPPN(genotype, E1, subp_1, subp_2, norm_in, canvas):
 	"""Sweeps over a range of weights for a certain connection to show the phenotype of 
 	the CPPN with several different values for that weight
 	"""
