@@ -6,7 +6,6 @@ All mutation, crossover, and activation features are implemented in the structur
 import sys
 import copy
 
-import random as r
 import numpy as np
 import networkx as nx
 import pickle
@@ -47,7 +46,7 @@ class Genotype():
 
 		# create input nodes
 		for i in range(self.numIn):
-			self.nodes.append(Node(i,0,0,r.choice([0,1,2,3,4,5,6,7,8])))
+			self.nodes.append(Node(i,0,0,np.random.choice([0,1,2,3,4,5,6,7,8])))
 
 		# create output nodes, output nodes always have step function
 		for i in range(self.numOut):
@@ -153,7 +152,7 @@ class Genotype():
 	'''
 	def nodeMutate(self, innovationMap, globalInnovation):
 		# pick a random location in the connections, find connection to split
-		conInd = r.randint(0,len(self.connections) - 1)	
+		conInd = np.random.randint(0,len(self.connections) - 1)	
 		ogIndex = conInd - 1 # use to prevent infinite loop in case all connections deactivated
 		while((not self.connections[conInd % len(self.connections)].getStatus()) and not(conInd == ogIndex)):
 			conInd += 1
@@ -167,7 +166,7 @@ class Genotype():
 
 		# layer of new node halfway between two parent nodes
 		newLayer = oldIn.getNodeLayer() + ((oldOut.getNodeLayer() - oldIn.getNodeLayer()) / 2)
-		self.nodes.append(Node(self.size(), 0, newLayer, r.choice([0,1,2,3,4,5,6,7,8])))
+		self.nodes.append(Node(self.size(), 0, newLayer, np.random.choice([0,1,2,3,4,5,6,7,8])))
 		self.gSize += 1
 
 		# check current innovationMap to determine innovation numbers of two new connections
@@ -214,12 +213,12 @@ class Genotype():
 		typeOfChange_pb = .9
 		for c in self.connections:
 			# 90% chance to perturb weight, 10% chance to pick completely new one
-			if(r.random() <= typeOfChange_pb):
+			if(np.random.uniform() <= typeOfChange_pb):
 				# mutate weights based on a normal distribution around old weight
 				c.setWeight(np.random.normal(c.weight, variance))
 			else:
 				# set weight equal to something new
-				c.setWeight(r.uniform(-1,1))
+				c.setWeight(np.random.uniform(-1,1))
 
 	'''
 	activation mutatation function for CPPN structure
@@ -228,15 +227,15 @@ class Genotype():
 	'''
 	def activationMutate(self):
 		foundPossible = False
-		index = r.randint(0,len(self.nodes) - 1)
+		index = np.random.randint(0,len(self.nodes) - 1)
 		foundPossible = False
 		while(not foundPossible):
 			# act function of output nodes should never be changed
 			if(not self.nodes[index].getNodeLayer() == sys.maxsize):
 				foundPossible = True
 			else:
-				index = r.randint(0,len(self.nodes) - 1)
-		self.nodes[index].setActKey(r.choice([0,1,2,3,4,5,6,7,8]))
+				index = np.random.randint(0,len(self.nodes) - 1)
+		self.nodes[index].setActKey(np.random.choice([0,1,2,3,4,5,6,7,8]))
 
 	'''
 	connection mutate method for the CPPN structure
@@ -250,13 +249,13 @@ class Genotype():
 		foundGoodConnection = False
 		tryCount = 0
 		maxTries = 20
-		newWeight = r.uniform(-0.5,0.5)
+		newWeight = np.random.uniform(-0.5,0.5)
 		connect = None
 		# only allow network to attempt to form connections a certain number of times - prevents infinite loop
 		while(not foundGoodConnection and tryCount < maxTries):
 			# choose two random indexes for in and out nodes of connection such that in < out
-			inInd = r.randint(0,len(self.nodes) - 1) 
-			outInd = r.randint(0, len(self.nodes) - 1)
+			inInd = np.random.randint(0,len(self.nodes) - 1) 
+			outInd = np.random.randint(0, len(self.nodes) - 1)
 			# create possible connection and check if valid
 			connect = Connection(self.nodes[inInd], self.nodes[outInd], newWeight, globalInnovation)
 			# if a valid connection is found, add it into the network and increment the global innovation count
@@ -310,7 +309,7 @@ class Genotype():
 			for parInd in range(len(parent.connections)):
 				if(child.connections[childInd].getInnovationNumber() == parent.connections[parInd].getInnovationNumber()):
 					# swap genes if random number below pointcxpb
-					swap = r.random()
+					swap = np.random.uniform()
 					if(swap <= .25):
 						# TAKE WEIGHT HERE NOT THE CONNECTION
 						child.connections[childInd] = parent.connections[parInd].getCopy()
@@ -344,7 +343,7 @@ class Genotype():
 			for parInd in range(len(parent.connections)):
 				if(child.connections[childInd].getInnovationNumber() == parent.connections[parInd].getInnovationNumber()):
 					# swap genes if random number below pointcxpb
-					swap = r.random()
+					swap = np.random.uniform()
 					if(swap <= SWAP_PB):
 						# swap the connections between the two individuals
 						tmp = child.connections[childInd].getWeight()
@@ -379,7 +378,7 @@ class Genotype():
 			for parInd in range(len(parent.connections)):
 				if(child.connections[childInd].getInnovationNumber() == parent.connections[parInd].getInnovationNumber()):
 					# swap genes if random number below pointcxpb
-					swap = r.random()
+					swap = np.random.uniform()
 					if(swap <= SWAP_PB):
 						# find the average of two weights and set this equal to weight for the child
 						newWeight = (child.connections[childInd].getWeight() + parent.connections[parInd].getWeight())/2
@@ -490,7 +489,7 @@ class Genotype():
 		for con in self.connections:
 			graph.add_edge(con.getNodeIn().getNodeNum(), 
 							con.getNodeOut().getNodeNum(),
-							data=str(con.getInnovationNumber()) + ", " + str(con.getWeight())[:6])
+							i=str(con.getInnovationNumber()))
 
 		return graph
 
@@ -573,8 +572,10 @@ class Genotype():
 			 						edge_color=color, arrows=True)
 		
 		# add innovation number labels for connections
-		labels = nx.get_edge_attributes(graph, 'data')
-		nx.draw_networkx_edge_labels(graph, pos, labels=labels)
+		labels = nx.get_edge_attributes(graph, 'i')
+		for l in labels:
+			print(l)
+		nx.draw_networkx_edge_labels(graph, pos, edge_labels=labels, font_size=8, label_pos=.8)
 
 		# create graph with title/legend and display
 		plt.title("CPPN Genotype Visualization")

@@ -362,7 +362,7 @@ def graph_genotype_GUI(genotype, subp):
 		 						edge_color=color, arrows=True)
 		
 	# add innovation number labels for connections
-	labels = nx.get_edge_attributes(graph, 'data')
+	labels = nx.get_edge_attributes(graph, 'i')
 	nx.draw_networkx_edge_labels(graph, pos, ax=subp, labels=labels)
 
 	# create graph with title/legend and display

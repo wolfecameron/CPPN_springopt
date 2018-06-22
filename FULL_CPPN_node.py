@@ -1,9 +1,11 @@
-from FULL_CPPN_act import stepAct, sigAct, reluAct, sinAct, gaussAct, logAct, tanhAct, squareAct, absAct
-import copy
 '''
 * This file contains the node class used for the full CPPN implementation
 * Node is one of the two structural components of the CPPN 
 '''
+
+import copy
+
+from FULL_CPPN_act import stepAct, sigAct, reluAct, sinAct, gaussAct, logAct, tanhAct, squareAct, absAct
 
 # Node class, defined in this file to be used in CPPN implementation
 class Node: 	

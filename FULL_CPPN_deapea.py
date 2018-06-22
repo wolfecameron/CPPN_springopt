@@ -17,9 +17,12 @@ from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
 from FULL_CPPN_evaluation import evaluate_classification, evaluate_pic
 from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
 from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, graphImage
-import random as r
 import sys
 
+
+# set numpy seed number for all random numbers
+SEED = 0
+numpy.random.seed(SEED)
 
 # the following variables are used to track the improvement of species over generations
 # if a species' fitness becomes stagnant - it is penalized
@@ -196,20 +199,20 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		if(g < NGEN - 1):
 			# apply weight mutations
 			for ind in pop:
-				if(ind.species == sys.maxsize and r.random() <= weightMutpb):
+				if(ind.species == sys.maxsize and np.random.uniform() <= weightMutpb):
 					toolbox.weightMutate(ind)
 					# must invalidate individuals fitness if mutation applied
 					del ind.fit_obj.values
 			
 			# apply node mutations
 			for ind in pop:
-				if(ind.species == sys.maxsize and r.random() <= nodeMutpb):
+				if(ind.species == sys.maxsize and np.random.uniform <= nodeMutpb):
 					toolbox.nodeMutate(ind, gb)
 					del ind.fit_obj.values
 
 			# apply connection mutations
 			for ind in pop:
-				if(ind.species == sys.maxsize and r.random() <= conMutpb):
+				if(ind.species == sys.maxsize and np.random.uniform <= conMutpb):
 					toolbox.connectionMutate(ind, gb)
 					del ind.fit_obj.values
 			
@@ -222,14 +225,14 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 				dist = child1.getDistance(child2, theta1, theta2, theta3)
 
 				# crossover happens with different probability depending if individuals in question are in same species
-				if(child1.species == sys.maxsize and child2.species == sys.maxsize and dist < thresh and r.random() <= cxPb):
+				if(child1.species == sys.maxsize and child2.species == sys.maxsize and dist < thresh and np.random.uniform() <= cxPb):
 					# cross individuals over and put them into the population
 					xTup = toolbox.mate(child1, child2)
 					pop[child1Ind] = xTup[0]
 					pop[child2Ind] = xTup[1]
 					del pop[child1Ind].fit_obj.values
 					del pop[child2Ind].fit_obj.values
-				elif(child1.species == sys.maxsize and child2.species == sys.maxsize and r.random() <= interspecies_probability):
+				elif(child1.species == sys.maxsize and child2.species == sys.maxsize and np.random.uniform() <= interspecies_probability):
 					xTup = toolbox.mate(child1, child2)
 					pop[child1Ind] = xTup[0]
 					pop[child2Ind] = xTup[1]
@@ -238,7 +241,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			
 			# apply activation mutation
 			for ind in pop:
-				if(ind.species == sys.maxsize and r.random() <= actMutpb):
+				if(ind.species == sys.maxsize and np.random.uniform() <= actMutpb):
 					toolbox.activationMutate(ind)
 					del ind.fit_obj.values
 

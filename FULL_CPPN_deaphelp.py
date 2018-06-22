@@ -5,10 +5,12 @@ created using DEAP in the _deapea py file.
 These functions are used to register mutations functions within the 
 DEAP framework
 '''
-from FULL_CPPN_struct import Genotype
-import numpy as np
+
 import sys
-import random as r
+
+import numpy as np
+
+from FULL_CPPN_struct import Genotype
 
 '''
 function for applying weight mutation to an individual
@@ -100,7 +102,7 @@ correct number of individuals
 def makeFullPop(partialPop, popSize):
 	# start at a random location in the partial population and begin cloning individuals
 	ogSize = len(partialPop)
-	index = r.randint(0, len(partialPop) - 1)
+	index = np.random.randint(0, len(partialPop) - 1)
 	# continually add copies of individuals for the partial population
 	# until partial population is of the correct size
 	while(len(partialPop) < popSize):

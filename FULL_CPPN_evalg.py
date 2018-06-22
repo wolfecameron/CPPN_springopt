@@ -1,5 +1,4 @@
 import copy
-import random as r
 import numpy as np
 import sys
 '''
@@ -22,7 +21,7 @@ def tournamentSelect(population, tournSize, partialPop):
 		tournament = []
 		# select k random individuals out of population
 		for ind in range(tournSize):
-			tournament.append(population[r.randint(0, len(population) - 1)])
+			tournament.append(population[np.random.randint(0, len(population) - 1)])
 		# put best of individuals into new population
 		bestInd = None
 		for ind in tournament:
@@ -48,8 +47,8 @@ def binarySelect(population, partialPop):
 	# all individuals get a chance to compete twice
 	pop1 = copy.deepcopy(population)
 	pop2 = copy.deepcopy(population)
-	r.shuffle(pop1)
-	r.shuffle(pop2)
+	np.random.shuffle(pop1)
+	np.random.shuffle(pop2)
 	# ONLY CONTINUE ADDING ELEMENTS IF PARTIAL POP IS NOT OF SIZE EQUAL TO POPSIZE
 	#performs binary selection on first copy of population
 	while(len(partialPop) < len(population) and len(pop1) > 1):
@@ -81,7 +80,7 @@ def applyWeightMutation(population, mutpb):
 	# mutate individuals weight iff random sample < mutpb
 	for org in population:
 		# only apply mutation if not a representative for the species
-		if(org.species == sys.maxsize and r.random() <= mutpb):
+		if(org.species == sys.maxsize and np.random.uniform() <= mutpb):
 			org.weightMutate()
 
 '''
@@ -96,7 +95,7 @@ def applyConMutation(population, conPb, globalInnovation):
 		# only mutate if not a representative for the species
 		if(org.species == sys.maxsize):
 			# go through each individual and decide if connection should be added
-			if(r.random() <= conPb):
+			if(np.random.uniform() <= conPb):
 				# update innovation tracking variables each time connection added
 				globalInnovation = org.connectionMutate(globalInnovation)
 	
@@ -115,7 +114,7 @@ def applyNodeMutation(population, nodePb, globalInnovation):
 
 		if(org.species == sys.maxsize):
 			# go through each individual and decide if node should be added
-			if(r.random() <= nodePb):
+			if(np.random.uniform() <= nodePb):
 				# update innovation tracking variables when node is added, this allows you 
 				# to prevent the same mutation having different innov nums in same generation
 				innovTup = org.nodeMutate(innovationMap, globalInnovation)
@@ -135,10 +134,10 @@ def applyCrossover(population, cxpb):
 	newPop = []
 	# individuals are crossed over with those next to them
 	# shuffle population to create new possibilities for crossover
-	r.shuffle(population)
+	np.random.shuffle(population)
 	for orgInd in range(len(population) - 1):
 		if(population[orgInd].species == sys.maxsize):
-			if(r.random() <= cxpb):
+			if(np.random.uniform() <= cxpb):
 				newInd = population[orgInd].crossover(population[orgInd + 1])
 				newPop.append(newInd)
 			else:

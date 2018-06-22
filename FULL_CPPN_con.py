@@ -1,9 +1,10 @@
-import copy
 '''
 This file contains the implementation of the Connection class for CPPN
 The connection object is the other major portion of the CPPN genotype
 in addition to the node
 '''
+
+import copy
 
 class Connection():
 
