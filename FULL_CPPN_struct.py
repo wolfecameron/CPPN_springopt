@@ -40,6 +40,9 @@ class Genotype():
 		self.connections = []
 		self.fitness = 0
 
+		# use to track if connections list is sorted
+		self.cons_sorted = True
+
 		# sepcies instance variable used to track species in a population
 		# assigned in the speciation method based on distance to other members of a species 
 		self.species = sys.maxsize
@@ -88,17 +91,18 @@ class Genotype():
 	@param inputs inputs into the network
 	@return output of the network with given inputs
 	pre: len(inputs) == self.numIn - 1
+	pre: connections must be sorted in topological order!!!
 	'''
 	def getOutput(self, inputs):
 		if(not(len(inputs) == (self.numIn - 1))):
 			print("The length of the list of inputs does not match the number of desired inputs.")
 		else:
+			if(not self.cons_sorted):
+				self.sort_cons()
+				self.cons_sorted = True
 			# must clear all node values before running the network
 			self.clearAllValues()
-			
-			# sort connections list by the layer of the in node
-			sortedConnection = sorted(self.connections, key = lambda x: x.getNodeIn().getNodeLayer())
-			
+
 			# set values of input nodes
 			for nodeInd in range(self.numIn - 1):
 				self.nodes[nodeInd].setNodeValue(inputs[nodeInd])
@@ -107,14 +111,14 @@ class Genotype():
 			self.nodes[self.numIn - 1].setNodeValue(1)
 			
 			# activate network by going through sorted connection list and querying all connections
-			for c in range(len(sortedConnection)):
-				if(sortedConnection[c].getStatus()):
+			for c in range(len(self.connections)):
+				if(self.connections[c].getStatus()):
 					# do not activate the inputs, only hidden/output nodes
-					if sortedConnection[c].getNodeIn().getNodeLayer() > 0:		
+					if self.connections[c].getNodeIn().getNodeLayer() > 0:		
 						# FORMULA: nodeOut.val += activation(nodeIn.val)*weight
-						sortedConnection[c].getNodeOut().setNodeValue(sortedConnection[c].getNodeOut().getNodeValue() + (sortedConnection[c].getNodeIn().activate()*sortedConnection[c].getWeight()))
+						self.connections[c].getNodeOut().setNodeValue(self.connections[c].getNodeOut().getNodeValue() + (self.connections[c].getNodeIn().activate()*self.connections[c].getWeight()))
 					else:
-						sortedConnection[c].getNodeOut().setNodeValue(sortedConnection[c].getNodeOut().getNodeValue() + (sortedConnection[c].getNodeIn().getNodeValue()*sortedConnection[c].getWeight()))
+						self.connections[c].getNodeOut().setNodeValue(self.connections[c].getNodeOut().getNodeValue() + (self.connections[c].getNodeIn().getNodeValue()*self.connections[c].getWeight()))
 			
 			# put all output values in a single list and return
 			outputs = [] 
@@ -129,6 +133,14 @@ class Genotype():
 				outInd += 1
 			
 			return outputs
+
+	def sort_cons(self):
+		"""method to sort all of the connections in the CPPNs list
+		of connections -- make sure cons are only sorted when this needs to be done
+		"""
+
+		sorted_cons = sorted(self.connections, key=lambda x: x.getNodeIn().getNodeLayer())
+		self.connections = sorted_cons
 
 	'''
 	helper method for getOutput
@@ -190,6 +202,9 @@ class Genotype():
 		# add connections for new node, first one has original weight and second has weight of 1
 		self.connections.append(Connection(oldIn, self.nodes[self.size() - 1], 1, innovation1))
 		self.connections.append(Connection(self.nodes[self.size() - 1], oldOut, connect.getWeight(), innovation2))
+
+		# cons must be sorted now because some new cons were added
+		self.cons_sorted = False
 
 		#species number already set to default when fittest individuals retrieved from species
 		return (innovationMap, globalInnovation)
@@ -264,8 +279,21 @@ class Genotype():
 				self.connections.append(connect)
 				globalInnovation += 1
 			tryCount += 1
-		
+
+		# cons must be sorted now because a new connection was added
+		self.cons_sorted = False
+
 		return globalInnovation
+
+
+	def connection_status_mutate(self):
+		"""method for toggling the activation status of a connection within the 
+		CPPN
+		"""
+
+		# pick a random connection and switch its connection status to false
+		index = np.random.randint(0,len(self.connections))
+		self.connections[index].setStatus(not self.connections[index].getStatus())
 	
 
 	'''
@@ -314,6 +342,11 @@ class Genotype():
 						# TAKE WEIGHT HERE NOT THE CONNECTION
 						child.connections[childInd] = parent.connections[parInd].getCopy()
 		
+		# a different connection was added, cons must be sorted again
+		child.cons_sorted = False
+		self.cons_sorted = False
+		parent.cons_sorted = False
+
 		return child
 
 	'''
@@ -349,6 +382,11 @@ class Genotype():
 						tmp = child.connections[childInd].getWeight()
 						child.connections[childInd].setWeight(parent.connections[parInd].getWeight())
 						parent.connections[parInd].setWeight(tmp)
+
+		# a different connection was added, cons must be sorted again
+		child.cons_sorted = False
+		self.cons_sorted = False
+		parent.cons_sorted = False
 		
 		return (child, betterInd)
 
@@ -384,6 +422,11 @@ class Genotype():
 						newWeight = (child.connections[childInd].getWeight() + parent.connections[parInd].getWeight())/2
 						child.connections[childInd].setWeight(newWeight)
 		
+		# a different connection was added, cons must be sorted again
+		child.cons_sorted = False
+		self.cons_sorted = False
+		parent.cons_sorted = False
+
 		return (child, betterInd)
 
 
@@ -487,7 +530,8 @@ class Genotype():
 
 		# create all connections in graph
 		for con in self.connections:
-			graph.add_edge(con.getNodeIn().getNodeNum(), 
+			if(con.getStatus()):
+				graph.add_edge(con.getNodeIn().getNodeNum(), 
 							con.getNodeOut().getNodeNum(),
 							i=str(con.getInnovationNumber()))
 
@@ -563,10 +607,11 @@ class Genotype():
 									node_size=400, alpha=0.8)
 		# add all connections into graph with colors
 		for con in self.connections:
-			 color = 'b' if con.getWeight() < 0 else 'r'
-			 edge_tuple = (con.getNodeIn().getNodeNum(), 
+			if(con.getStatus()):
+				color = 'b' if con.getWeight() < 0 else 'r'
+				edge_tuple = (con.getNodeIn().getNodeNum(), 
 			 				con.getNodeOut().getNodeNum())
-			 nx.draw_networkx_edges(graph, pos,
+				nx.draw_networkx_edges(graph, pos,
 			 						edgelist = [edge_tuple],
 			 						width=3, alpha=0.5, 
 			 						edge_color=color, arrows=True)
@@ -645,9 +690,8 @@ if __name__ == "__main__":
 	"""Main function used for quick testing"""
 
 	g = Genotype(2, 1)
-	g.nodeMutate({}, 1)
-	g.nodeMutate({}, 1)
-	g.nodeMutate({}, 1)
-	g.nodeMutate({}, 1)
-	g.nodeMutate({}, 1)
+	g.connections[0].setStatus(False)
+	g.connections[2].setStatus(False)
 	g.graph_genotype()
+	x = g.getOutput([0,1])
+	print(x)

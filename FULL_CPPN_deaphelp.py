@@ -33,7 +33,13 @@ method for applying connection mutation to an individual
 def conMutate(individual, globalInnovation):
 	# update innovation tracking variables each time connection added
 	innovResult = globalInnovation.getNextInnov()
-	globalInnovation.current = individual.connectionMutate(innovResult)
+	
+	# set probability for adding new connection or deleting one
+	p_add_con = .85
+	if(np.random.uniform() <= p_add_con):
+		globalInnovation.current = individual.connectionMutate(innovResult)
+	else:
+		individual.connection_status_mutate()
 
 	return  individual,
 
