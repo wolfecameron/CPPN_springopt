@@ -269,7 +269,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
 	# the following are all parameter settings for main function
-	NGEN = 800
+	NGEN = 1
 	WEIGHT_MUTPB = .3
 	NODE_MUTPB = .02
 	CON_MUTPB = .1
@@ -287,7 +287,7 @@ if __name__ == '__main__':
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
 	
-	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/")
+	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result")
 
 	save_population(finalPop, SEED, file_name)
 	
