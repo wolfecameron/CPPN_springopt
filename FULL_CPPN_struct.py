@@ -41,7 +41,7 @@ class Genotype():
 		self.fitness = 0
 
 		# use to track if connections list is sorted
-		self.cons_sorted = True
+		self.cons_sorted = False
 
 		# sepcies instance variable used to track species in a population
 		# assigned in the speciation method based on distance to other members of a species 
