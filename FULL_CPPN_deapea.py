@@ -8,6 +8,7 @@ import sys
 import os
 
 from deap import base, tools, algorithms, creator
+import argparse
 import numpy as np
 import pickle
 
@@ -22,9 +23,16 @@ from FULL_CPPN_evaluation import evaluate_classification, evaluate_pic
 from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
 from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, graphImage
 
+# set up arguments to be parsed from the terminal
+parser = argparse.ArgumentParser()
+parser.add_argument("path", type=str, 
+	help="filepath to image that is being tested.")
+parser.add_argument("seed", type=int, 
+	help="Seed number for the current experiment.")
+args = parser.parse_args()
 
 # set numpy seed number for all random numbers
-SEED = 0
+SEED = args.seed
 np.random.seed(SEED)
 
 # the following variables are used to track the improvement of species over generations
@@ -48,7 +56,8 @@ MATERIAL_PENALIZATION_THRESHOLD = .1
 NUM_X = 50
 NUM_Y = 50
 NORM_IN = getNormalizedInputs(NUM_X, NUM_Y)
-FILE_PATH = '/home/wolfecameron/Desktop/CPPN_to/Images/spring7.png'
+# must get filename from parser to complete file path
+FILE_PATH = './fitting_images/' + args.path
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 
 

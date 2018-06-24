@@ -177,13 +177,13 @@ def get_file_name(dir_path):
 	n = 1
 	found_name = False
 	while(not found_name):
-		curr_str = name + n + ".txt"
+		curr_str = name + str(n) + ".txt"
 		if(curr_str in file_names):
 			n += 1
 		else:
 			found_name = True
 
-	return dir_path + "/" + name + n + ".txt"
+	return dir_path + "/" + name + str(n) + ".txt"
 
 
 def examine_population(population, norm_in):
