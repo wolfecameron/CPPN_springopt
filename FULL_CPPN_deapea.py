@@ -218,13 +218,13 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			
 			# apply node mutations
 			for ind in pop:
-				if(ind.species == sys.maxsize and np.random.uniform <= nodeMutpb):
+				if(ind.species == sys.maxsize and np.random.uniform() <= nodeMutpb):
 					toolbox.nodeMutate(ind, gb)
 					del ind.fit_obj.values
 
 			# apply connection mutations
 			for ind in pop:
-				if(ind.species == sys.maxsize and np.random.uniform <= conMutpb):
+				if(ind.species == sys.maxsize and np.random.uniform() <= conMutpb):
 					toolbox.connectionMutate(ind, gb)
 					del ind.fit_obj.values
 			
