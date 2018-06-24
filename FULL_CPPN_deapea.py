@@ -288,7 +288,7 @@ if __name__ == '__main__':
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
 	
-	file_name = get_file_name("~/")
+	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/")
 
 	save_population(finalPop, SEED, file_name)
 
