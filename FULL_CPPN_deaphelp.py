@@ -7,10 +7,13 @@ DEAP framework
 '''
 
 import sys
+import os
 
 import numpy as np
+import pickle
 
 from FULL_CPPN_struct import Genotype
+from FULL_CPPN_getpixels import graphImage
 
 '''
 function for applying weight mutation to an individual
@@ -145,6 +148,66 @@ def getOutputsForHeatMap(org, maxValue, step):
 	outputs_np = np.array(outputs, copy = True)
 	outputs_np = np.reshape(outputs_np, (int(maxValue*2/step), int(maxValue*2/step)))
 	return outputs_np
+
+
+def save_population(population, seed_num, filepath):
+	"""Fucntion for serializing an entire population of CPPN
+	genotypes using pickle. 
+
+	Parameters:
+	population -- the population being saved
+	seed_num -- the seed number used to evolve the population
+	filename -- the filepath to the file being saved
+	"""
+
+	new_file = open(filepath, "wb")
+	# save population in a tuple with the seed number
+	pop_tuple = (population, seed_num)
+	pickle.dump(pop_tuple, new_file)
+	new_file.close()
+
+def get_file_name(dir_path):
+	"""Returns a valid file name that can be used to save a 
+	population into a given directory (dir_path)
+	"""
+
+	file_names = os.listdir(dir_path)
+	# build file name and check if present
+	name = "CPPN_pop_result_"
+	n = 1
+	found_name = False
+	while(not found_name):
+		curr_str = name + n + ".txt"
+		if(curr_str in file_names):
+			n += 1
+		else:
+			found_name = True
+
+	return dir_path + "/" + name + n + ".txt"
+
+
+def examine_population(population, norm_in):
+	"""Method for graphing each individual in a population
+	for examination (Genotype and Phenotype)
+
+	Parameters:
+	population -- the population of CPPNs being examined
+	norm_in -- input values into CPPN to produce phenotype
+	"""
+
+	n = 0
+	for org in population:
+		outputs = []
+		# get all outputs for every pixel in space of picture and put all into a numpy array
+		for ins in norm_in:
+			outputs.append(org.getOutput([ins[0], ins[1]])[0])
+		outputs_np = np.array(outputs, copy = True)
+		# 100 and 200 represent the figure numbers for each of the separate graphs
+		graphImage(outputs_np, NUM_X, NUM_Y, 100)
+		org.graph_genotype(200)
+		input("SHOWING individual #{0}".format(str(n)))
+		n += 1
+
 
 
 

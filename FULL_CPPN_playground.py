@@ -352,10 +352,10 @@ def graph_genotype_GUI(genotype, subp):
 								node_size=400, alpha=0.8)
 	# add all connections into graph with colors
 	for con in genotype.connections:
-		 color = 'b' if con.getWeight() < 0 else 'r'
-		 edge_tuple = (con.getNodeIn().getNodeNum(), 
+		color = 'b' if con.getWeight() < 0 else 'r'
+		edge_tuple = (con.getNodeIn().getNodeNum(), 
 		 				con.getNodeOut().getNodeNum())
-		 nx.draw_networkx_edges(graph, pos,
+		nx.draw_networkx_edges(graph, pos,
 		 						ax=subp,
 		 						edgelist = [edge_tuple],
 		 						width=3, alpha=0.5, 

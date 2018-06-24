@@ -3,26 +3,29 @@ This file contains all code for implementing CPPN using DEAP
 CPPN implementation is recreated using creator in DEAP library
 implementation details are same as other full CPPN files
 '''
-from deap import base
-from deap import tools
-from deap import algorithms
-from deap import creator
-from FULL_CPPN_struct import Genotype
-from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg, actMutate
-from FULL_CPPN_innovation import GlobalInnovation
+
+import sys
+import os
+
+from deap import base, tools, algorithms, creator
 import numpy as np
+import pickle
+
+from FULL_CPPN_struct import Genotype
+from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg, actMutate, save_population
+from FULL_CPPN_deaphelp import examine_population, get_file_name
+from FULL_CPPN_innovation import GlobalInnovation
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
 from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
 from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
 from FULL_CPPN_evaluation import evaluate_classification, evaluate_pic
 from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
 from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, graphImage
-import sys
 
 
 # set numpy seed number for all random numbers
 SEED = 0
-numpy.random.seed(SEED)
+np.random.seed(SEED)
 
 # the following variables are used to track the improvement of species over generations
 # if a species' fitness becomes stagnant - it is penalized
@@ -276,19 +279,8 @@ if __name__ == '__main__':
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
 	
-	
-	# graph all individuals within the final generation
-	n = 0
-	for org in finalPop:
-		outputs = []
-		# get all outputs for every pixel in space of picture and put all into a numpy array
-		for ins in NORM_IN:
-			outputs.append(org.getOutput([ins[0], ins[1]])[0])
-		outputs_np = np.array(outputs, copy = True)
-		# 100 and 200 represent the figure numbers for each of the separate graphs
-		graphImage(outputs_np, NUM_X, NUM_Y, 100)
-		org.graph_genotype(200)
-		input("SHOWING individual #{0}".format(str(n)))
-		n += 1
+	file_name = get_file_name("./")
+
+	save_population(finalPop, SEED, file_name)
 
 
