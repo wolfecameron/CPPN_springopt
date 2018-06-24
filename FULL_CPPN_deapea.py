@@ -18,10 +18,10 @@ from FULL_CPPN_deaphelp import examine_population, get_file_name
 from FULL_CPPN_innovation import GlobalInnovation
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
 from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
-from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
+#from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
 from FULL_CPPN_evaluation import evaluate_classification, evaluate_pic
-from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
-from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, graphImage
+#from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
+from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs #, graphImage
 
 # set up arguments to be parsed from the terminal
 parser = argparse.ArgumentParser()
@@ -113,9 +113,9 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		print("RUNNING GENERATION " + str(g))
 
 		# use the following conditional to visualize certain properties of population near end of evolution
-		if(g == NGEN - 1):
-			visConnections(pop)
-			visHiddenNodes(pop)
+		#if(g == NGEN - 1):
+		#	visConnections(pop)
+		#	visHiddenNodes(pop)
 
 		# create a 2D array representing species from the population
 		if(g == 0):
