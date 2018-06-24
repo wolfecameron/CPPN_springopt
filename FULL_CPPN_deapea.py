@@ -269,7 +269,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
 	# the following are all parameter settings for main function
-	NGEN = 1
+	NGEN = 800
 	WEIGHT_MUTPB = .3
 	NODE_MUTPB = .02
 	CON_MUTPB = .1
