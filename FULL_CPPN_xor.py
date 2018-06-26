@@ -4,22 +4,20 @@ Has generally same main function as normal EA file but is
 configured specially for working xor example
 '''
 
-from deap import base
-from deap import tools
-from deap import algorithms
-from deap import creator
+import sys
+
+from deap import base, tools, algorithms, creator
+import numpy as np
+
 from FULL_CPPN_struct import Genotype
 from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg, actMutate
 from FULL_CPPN_innovation import GlobalInnovation
-import numpy as np
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
 from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
 from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
-from FULL_CPPN_evaluation import evaluate_xor
+from FULL_CPPN_evaluation import evaluate_xor, evaluate_xor_scoop
 from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
 from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, graphImage
-import sys
-
 
 ''' ----- REGISTER ALL FUNCTIONS AND CLASSES WITH DEAP ----- '''
 
@@ -42,7 +40,7 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = P
 
 # register all functions needed for evolution in the toolbox
 TOURN_SIZE = 3
-toolbox.register("evaluate", evaluate_xor)
+toolbox.register("evaluate", evaluate_xor_scoop)
 toolbox.register("select", binarySelect)
 toolbox.register("tournSelect", tools.selTournament, fit_attr = "fitness")
 toolbox.register("mate", xover_avg)

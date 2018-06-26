@@ -7,6 +7,9 @@ configure the evolution toward whatever experiment is being run
 '''
 import numpy as np
 
+from FULL_CPPN_scoop import get_all_outputs_scoop
+
+
 '''
 fitness evaluation used for DEAP CPPN XOR implementation
 @params individual the organism that is currently being evaluated
@@ -31,6 +34,29 @@ def evaluate_xor(individual, speciesLength):
 	fitness = fitness**2
 
 	return (fitness/speciesLength),
+
+def evaluate_xor_scoop(individual, speciesLength):
+	"""Same function as the one above but it uses 
+	scoop to obtain the entire output of the CPPN
+	in parallel
+	"""
+
+	inputs = [(individual, [0,0]), (individual, [1,0]), (individual, [0,1]), (individual, [1,1])]
+	expectedOutputs = [0,1,1,0]
+	actualOutputs = get_all_outputs_scoop(inputs)
+	print(actualOutputs)
+	input()
+	fitness = 0.0
+	# find niche count of first row and then delete first row
+	#nicheCount = np.sum(nicheCounts[row])
+	for i in range(len(expectedOutputs)):
+		# return the 1 - the difference so that fitness can be maximized
+		fitness += (1 - (expectedOutputs[i] - actualOutputs[i][0])**2)
+	# square the resulting fitness	
+	fitness = fitness**2
+
+	return (fitness/speciesLength),
+
 
 
 '''
