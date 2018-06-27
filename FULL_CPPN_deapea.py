@@ -11,6 +11,7 @@ from deap import base, tools, algorithms, creator
 import argparse
 import numpy as np
 import pickle
+from scoop import futures
 
 from FULL_CPPN_struct import Genotype
 from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg, actMutate, save_population
@@ -19,7 +20,7 @@ from FULL_CPPN_innovation import GlobalInnovation
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
 from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
 #from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
-from FULL_CPPN_evaluation import evaluate_classification, evaluate_pic
+from FULL_CPPN_evaluation import evaluate_classification, evaluate_pic, evaluate_pic_scoop
 #from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
 from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs #, graphImage
 
@@ -51,6 +52,7 @@ LAST_NUM_SPECIES = -1
 # the following is the minimum proportion of material a solution must use 
 # to not be penalized
 MATERIAL_PENALIZATION_THRESHOLD = .1
+MATERIAL_UNPRESENT_PENALIZATION = 4
 
 # sets global parameters for 2D structure being created by CPPN, generates inputs
 NUM_X = 50
@@ -83,7 +85,7 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = P
 
 # register all functions needed for evolution in the toolbox
 TOURN_SIZE = 3
-toolbox.register("evaluate", evaluate_pic)
+toolbox.register("evaluate", evaluate_pic_scoop)
 toolbox.register("select", binarySelect)
 toolbox.register("tournSelect", tools.selTournament, fit_attr = "fitness")
 toolbox.register("mate", xover_avg)
@@ -91,7 +93,7 @@ toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
 toolbox.register("nodeMutate", nodeMutate)
 toolbox.register("activationMutate", actMutate)
-toolbox.register("map", map)
+toolbox.register("map", futures.map)
 
 
 '''
@@ -141,13 +143,30 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		# find all fitness values for individuals in population, update fitness tracking for species
 		for specInd in range(len(species)):
 			avgSpecFit = 0.0
-			for ind in species[specInd]:
+			# only the output pixels are mapped back, all evaluation must be done below
+			outputs = toolbox.map(toolbox.evaluate, species[specInd])
+			org_index = 0
+			for out in outputs:
+				out = out[0] #original list is inside of a tuple
+				proportion_mat_used = float(np.sum(out))/len(PIXELS)
+				penalization = 1.0
+				if(proportion_mat_used <= MATERIAL_PENALIZATION_THRESHOLD):
+					penalization = 2.0 * (MATERIAL_PENALIZATION_THRESHOLD / (proportion_mat_used + .001))
+				# find difference between the two pixel arrays
+				ones_arr = np.ones((1, len(PIXELS)))
+				diff = np.subtract(PIXELS, out)
+				diff[diff>=.5] *= MATERIAL_UNPRESENT_PENALIZATION
+				diff = np.absolute(diff)
+				total_fit = np.sum(np.subtract(ones_arr, diff))/(len(species[specInd])*penalization)
+
 				# actual fitness value must be divided by the number of individuals in a given species
 				# this keeps any given species from taking over a population - speciation fosters diversity
-				fit = toolbox.evaluate(ind, PIXELS, NORM_IN, len(species[specInd]), MATERIAL_PENALIZATION_THRESHOLD)
-				avgSpecFit += fit[0]
-				ind.fit_obj.values = fit
-				ind.fitness = fit[0]
+				avgSpecFit += total_fit
+				species[specInd][org_index].fit_obj.values = (total_fit,)
+				species[specInd][org_index].fitness = total_fit
+				org_index += 1
+
+
 			# must find average fitness of species to compare against previous generation and see if species is stagnant
 			avgSpecFit /= len(species[specInd])
 			

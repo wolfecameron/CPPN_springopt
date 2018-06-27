@@ -187,7 +187,6 @@ method for speciating population after it has already been speciated
 def speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3):
 	species = [[]]
 	sortedPop = sorted(pop, key = lambda x: x.species)
-
 	# store index and current species
 	foundNotSpeciated = False
 	species[0].append(pop[0])

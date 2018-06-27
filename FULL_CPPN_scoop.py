@@ -3,17 +3,9 @@ ea code for CPPN using scoop
 """
 
 from scoop import futures
+import numpy as np
 
 from FULL_CPPN_act import stepAct, sigAct, reluAct, sinAct, gaussAct, logAct, tanhAct, squareAct, absAct
-
-
-def get_all_outputs_scoop(input_tups):
-	# must include genotype in the tuple to avoid providing arguments into scoop map
-	# input_tups contains genotype with input values in a list of tuples
-	result = list(futures.map(activate_CPPN_scoop, input_tups))
-
-	return result
-
 
 
 def activate_CPPN_scoop(input_tup):

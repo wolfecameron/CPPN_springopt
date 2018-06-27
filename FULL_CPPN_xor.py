@@ -8,6 +8,7 @@ import sys
 
 from deap import base, tools, algorithms, creator
 import numpy as np
+from scoop import futures
 
 from FULL_CPPN_struct import Genotype
 from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg, actMutate
@@ -48,7 +49,7 @@ toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
 toolbox.register("nodeMutate", nodeMutate)
 toolbox.register("activationMutate", actMutate)
-toolbox.register("map", map)
+toolbox.register("map", futures.map)
 
 
 '''
@@ -99,19 +100,22 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			# decrease theshold if there are too many species and the number of species is not increasing
 			elif(numSpecies < DESIRED_NUM_SPECIES):
 				if(LAST_NUM_SPECIES == -1 or numSpecies <= LAST_NUM_SPECIES):
-					thresh -= THRESH_MOD
+					thresh -= (THRESH_MOD/2.0)
 
 
 		# find all fitness values for individuals in population, update fitness tracking for species
 		for specInd in range(len(species)):
 			avgSpecFit = 0.0
-			for ind in species[specInd]:
+			fitnesses = toolbox.map(toolbox.evaluate, species[specInd])
+			org_index = 0
+			for fit in fitnesses:
 				# actual fitness value must be divided by the number of individuals in a given species
 				# this keeps any given species from taking over a population - speciation fosters diversity
-				fit = toolbox.evaluate(ind, len(species[specInd]))
-				avgSpecFit += fit[0]
-				ind.fit_obj.values = fit
-				ind.fitness = fit[0]
+				fitness = fit[0]/len(species[specInd])
+				avgSpecFit += fitness
+				species[specInd][org_index].fit_obj.values = (fitness,)
+				species[specInd][org_index].fitness = fitness
+				org_index += 1
 			# must find average fitness of species to compare against previous generation and see if species is stagnant
 			avgSpecFit /= len(species[specInd])
 			
