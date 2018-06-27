@@ -22,7 +22,7 @@ from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
 #from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
 from FULL_CPPN_evaluation import evaluate_classification, evaluate_pic, evaluate_pic_scoop
 #from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
-from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs #, graphImage
+from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs#, graphImage
 
 # set up arguments to be parsed from the terminal
 parser = argparse.ArgumentParser()
@@ -287,8 +287,23 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
+	'''
+	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_pop_result_9.txt', 'rb'))
+	pop = pop_tup[0]
+	for individual in pop:
+		org = Genotype(2,1)
+		org.connections = individual.connections
+		org.nodes = individual.nodes
+		org.gSize = individual.gSize
+		output = []
+		for ins in NORM_IN:
+			output.append(org.getOutput(ins)[0])
+		graphImage(np.array(output, copy=True), 50, 50, 200)
+		org.graph_genotype()
+
+	'''
 	# the following are all parameter settings for main function
-	NGEN = 800
+	NGEN = 1200
 	WEIGHT_MUTPB = .3
 	NODE_MUTPB = .02
 	CON_MUTPB = .1

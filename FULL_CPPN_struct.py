@@ -618,8 +618,6 @@ class Genotype():
 		
 		# add innovation number labels for connections
 		labels = nx.get_edge_attributes(graph, 'i')
-		for l in labels:
-			print(l)
 		nx.draw_networkx_edge_labels(graph, pos, edge_labels=labels, font_size=8, label_pos=.8)
 
 		# create graph with title/legend and display
