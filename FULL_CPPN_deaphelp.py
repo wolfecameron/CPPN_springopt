@@ -173,7 +173,7 @@ def get_file_name(dir_path):
 
 	file_names = os.listdir(dir_path)
 	# build file name and check if present
-	name = "CPPN_pop_result_"
+	name = "CPPN_sensitivity_result_"
 	n = 1
 	found_name = False
 	while(not found_name):

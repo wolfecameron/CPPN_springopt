@@ -30,6 +30,16 @@ parser.add_argument("path", type=str,
 	help="filepath to image that is being tested.")
 parser.add_argument("seed", type=int, 
 	help="Seed number for the current experiment.")
+parser.add_argument("weight", type=int, 
+	help="Weight Mutation probability.")
+parser.add_argument("node", type=int, 
+	help="Node Mutation Probability.")
+parser.add_argument("con", type=int, 
+	help="Connection Mutation Probability.")
+parser.add_argument("act", type=int, 
+	help="Activation Mutation Probability.")
+parser.add_argument("cross", type=int, 
+	help="Crossover probability.")
 args = parser.parse_args()
 
 # set numpy seed number for all random numbers
@@ -303,12 +313,12 @@ if __name__ == '__main__':
 
 	'''
 	# the following are all parameter settings for main function
-	NGEN = 1200
-	WEIGHT_MUTPB = .3
-	NODE_MUTPB = .02
-	CON_MUTPB = .1
-	CXPB = .1
-	ACTPB = .05
+	NGEN = 1000
+	WEIGHT_MUTPB = float(args.weight)/100.0 #.3
+	NODE_MUTPB = float(args.node)/100.0 #.02
+	CON_MUTPB = float(args.con)/100.0 #.1
+	CXPB = float(args.cross)/100.0 #.1
+	ACTPB = float(args.act)/100.0 #.05
 	THRESHOLD = 3.0
 	ALPHA = 1.0
 	THETA1 = 1.0

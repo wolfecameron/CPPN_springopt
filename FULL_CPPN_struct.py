@@ -583,7 +583,7 @@ class Genotype():
 					
 
 
-	def graph_genotype(self, fig_num=100):
+	def graph_genotype(self, fig_num=100, edge_labels=False):
 		"""Creates a graph of the network's genotypes using the
 		python networkx module. Each connection is labeled with 
 		its innovation number and weight. Each node is colored 
@@ -618,7 +618,8 @@ class Genotype():
 		
 		# add innovation number labels for connections
 		labels = nx.get_edge_attributes(graph, 'i')
-		nx.draw_networkx_edge_labels(graph, pos, edge_labels=labels, font_size=8, label_pos=.8)
+		if(edge_labels):
+			nx.draw_networkx_edge_labels(graph, pos, edge_labels=labels, font_size=8, label_pos=.8)
 
 		# create graph with title/legend and display
 		plt.title("CPPN Genotype Visualization")
