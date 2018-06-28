@@ -38,13 +38,16 @@ def conMutate(individual, globalInnovation):
 	innovResult = globalInnovation.getNextInnov()
 	
 	# set probability for adding new connection or deleting one
-	p_add_con = .95
-	if(np.random.uniform() <= p_add_con):
-		globalInnovation.current = individual.connectionMutate(innovResult)
-	else:
+	#p_add_con = .95
+	#if(np.random.uniform() <= p_add_con):
+	globalInnovation.current = individual.connectionMutate(innovResult)
+	#else:
+	#	individual.connection_status_mutate()
+	p_remove_con = .01
+	if(np.random.uniform() <= p_remove_con):
 		individual.connection_status_mutate()
 
-	return  individual,
+	#return  individual,
 
 ''' 
 method for applying an activation mutation in an individual 
