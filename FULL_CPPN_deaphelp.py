@@ -43,9 +43,6 @@ def conMutate(individual, globalInnovation):
 	globalInnovation.current = individual.connectionMutate(innovResult)
 	#else:
 	#	individual.connection_status_mutate()
-	p_remove_con = .01
-	if(np.random.uniform() <= p_remove_con):
-		individual.connection_status_mutate()
 
 	#return  individual,
 
@@ -169,14 +166,14 @@ def save_population(population, seed_num, filepath):
 	pickle.dump(pop_tuple, new_file)
 	new_file.close()
 
-def get_file_name(dir_path):
+def get_file_name(dir_path, name_prefix):
 	"""Returns a valid file name that can be used to save a 
 	population into a given directory (dir_path)
 	"""
 
 	file_names = os.listdir(dir_path)
 	# build file name and check if present
-	name = "CPPN_sensitivity_result_"
+	name = name_prefix
 	n = 1
 	found_name = False
 	while(not found_name):
