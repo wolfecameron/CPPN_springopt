@@ -157,9 +157,10 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			avgSpecFit = 0.0
 			# only the output pixels are mapped back, all evaluation must be done below
 			outputs = toolbox.map(toolbox.evaluate, species[specInd])
-			org_index = 0
+			spec_list = []
 			for out in outputs:
-				out = out[0] #original list is inside of a tuple
+				gen = out[0]
+				out = out[1] # original list is inside of a tuple with the genotype
 				proportion_mat_used = float(np.sum(out))/len(PIXELS)
 				penalization = 1.0
 				if(proportion_mat_used <= MATERIAL_PENALIZATION_THRESHOLD):
@@ -174,9 +175,12 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 				# actual fitness value must be divided by the number of individuals in a given species
 				# this keeps any given species from taking over a population - speciation fosters diversity
 				avgSpecFit += total_fit
-				species[specInd][org_index].fit_obj.values = (total_fit,)
-				species[specInd][org_index].fitness = total_fit
-				org_index += 1
+				gen.fit_obj.values = (total_fit,)
+				gen.fitness = total_fit
+				spec_list.append(gen)
+
+			# add new species list with fitnesses into species list
+			species[specInd] = spec_list
 
 
 			# must find average fitness of species to compare against previous generation and see if species is stagnant
@@ -233,10 +237,6 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 		# select from rest of population to form the full sized population
 		pop = toolbox.select(pop, bestInSpecies)
-		
-		# append the extra fittest individuals into the species
-		#for ind in bestInSpecies:
-		#	pop.append(ind)
 
 		# only apply mutation if there will be another iteration of selection following this
 		if(g < NGEN - 1):
@@ -300,7 +300,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
 	'''
-	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_sensitivity_result_2.txt', 'rb'))
+	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test_4.txt', 'rb'))
 	pop = pop_tup[0]
 	for individual in pop:
 		org = Genotype(2,1)
