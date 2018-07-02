@@ -158,19 +158,19 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			# only the output pixels are mapped back, all evaluation must be done below
 			outputs = toolbox.map(toolbox.evaluate, species[specInd])
 			spec_list = []
+			org_ind = 0
 			for out in outputs:
-				gen = out[0]
-				out = out[1] # original list is inside of a tuple with the genotype
+				gen = species[specInd][org_ind]
+				out = out[0] # original list is inside of a tuple with the genotype
 				proportion_mat_used = float(np.sum(out))/len(PIXELS)
 				penalization = 1.0
 				if(proportion_mat_used <= MATERIAL_PENALIZATION_THRESHOLD):
 					penalization = 2.0 * (MATERIAL_PENALIZATION_THRESHOLD / (proportion_mat_used + .001))
 				# find difference between the two pixel arrays
-				ones_arr = np.ones((1, len(PIXELS)))
 				diff = np.subtract(PIXELS, out)
 				diff[diff>=.5] *= MATERIAL_UNPRESENT_PENALIZATION
 				diff = np.absolute(diff)
-				total_fit = np.sum(np.subtract(ones_arr, diff))/(len(species[specInd])*penalization)
+				total_fit = np.sum(np.subtract(np.ones((1, len(PIXELS)), np.fabs(diff)))/(len(species[specInd])*penalization)
 
 				# actual fitness value must be divided by the number of individuals in a given species
 				# this keeps any given species from taking over a population - speciation fosters diversity
@@ -178,9 +178,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 				gen.fit_obj.values = (total_fit,)
 				gen.fitness = total_fit
 				spec_list.append(gen)
-
-			# add new species list with fitnesses into species list
-			species[specInd] = spec_list
+				org_ind += 1
 
 
 			# must find average fitness of species to compare against previous generation and see if species is stagnant

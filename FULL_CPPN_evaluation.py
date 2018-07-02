@@ -140,5 +140,5 @@ def evaluate_pic_scoop(genotype):
 		ins = (genotype, ins)
 		output.append(activate_CPPN_scoop(ins))
 	
-	return (genotype ,np.array(output, copy=True))
+	return (np.array(output, copy=True),)
 
