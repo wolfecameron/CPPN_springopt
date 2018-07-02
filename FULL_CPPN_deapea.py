@@ -146,11 +146,11 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			# increase threshold if there are too many species and the number is still increasing
 			if(numSpecies > DESIRED_NUM_SPECIES):
 				if(LAST_NUM_SPECIES == -1 or numSpecies > LAST_NUM_SPECIES):
-					thresh += THRESH_MOD*2
+					thresh += THRESH_MOD*2.0
 			# decrease theshold if there are too many species and the number of species is not increasing
 			elif(numSpecies < DESIRED_NUM_SPECIES):
 				if(LAST_NUM_SPECIES == -1 or numSpecies <= LAST_NUM_SPECIES):
-					thresh -= (THRESH_MOD/2)
+					thresh -= (THRESH_MOD/2.0)
 
 
 		# find all fitness values for individuals in population, update fitness tracking for species
@@ -159,11 +159,9 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			# only the output pixels are mapped back, all evaluation must be done below
 			outputs = toolbox.map(toolbox.evaluate, species[specInd])
 			output_tups = []
-			org_ind = 0
 			for o in outputs:
-				output_tups.append((o, species[specInd][org_ind], PIXELS, len(species[specInd]), 
+				output_tups.append((o[0], PIXELS, len(species[specInd]), 
 						MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION))
-				org_ind += 1
 
 			# map all outputs to the genotypes with their actual fitness assigned
 			fitnesses = toolbox.map(toolbox.assign_fit, output_tups)		
@@ -175,7 +173,9 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 				gen.fitness = f[0]
 				org_ind += 1
 
-
+			# must find average fitness of species to compare against previous generation and see if species is stagnant
+			avgSpecFit /= len(species[specInd])
+			
 			'''
 			org_ind = 0
 			for out in outputs:
@@ -200,9 +200,6 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 				spec_list.append(gen)
 				org_ind += 1
 			'''
-
-			# must find average fitness of species to compare against previous generation and see if species is stagnant
-			avgSpecFit /= len(species[specInd])
 			
 			# check if fitness is stagnant for current generations and update stagnant counter appropriately
 			if(specInd < len(LAST_FITNESS)):

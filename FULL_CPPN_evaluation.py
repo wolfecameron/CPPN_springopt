@@ -136,11 +136,11 @@ def evaluate_pic_scoop(genotype):
 	NUM_Y = 50
 	NORM_IN = getNormalizedInputs(NUM_X, NUM_Y)
 	output = []
+	# get all outputs and append them to output list
 	for ins in NORM_IN:
-		ins = (genotype, ins)
-		output.append(activate_CPPN_scoop(ins))
+		output.append(activate_CPPN_scoop([ins[0], ins[1]])[0])
 	
-	return (np.array(output),)
+	return (np.array(output, copy=True),)
 
 def assign_fit_scoop(info_tup):
 	"""Takes tuple containing an output array of pix
@@ -154,18 +154,18 @@ def assign_fit_scoop(info_tup):
 	"""
 
 	# get all needed info out of the tuple
-	gen = info_tup[1]
-	out = info_tup[0][0] # original list is inside of a tuple 
-	pix = info_tup[2]
-	spec_len = info_tup[3]
-	mat_pen = info_tup[4]
-	mat_unp = info_tup[5]
+	out = info_tup[0] 
+	pix = info_tup[1]
+	spec_len = info_tup[2]
+	mat_pen = info_tup[3]
+	mat_unp = info_tup[4]
 
 	# compute fitness, penalizing for material used
 	proportion_mat_used = float(np.sum(out))/len(pix)
 	penalization = 1.0
 	if(proportion_mat_used <= mat_pen):
 		penalization = 2.0 * (mat_pen / (proportion_mat_used + .001))
+	
 	# find difference between the two pixel arrays
 	ones_arr = np.ones((1, len(pix)))
 	diff = np.subtract(pix, out)
