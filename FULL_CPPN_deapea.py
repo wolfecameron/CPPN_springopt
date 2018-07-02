@@ -20,7 +20,7 @@ from FULL_CPPN_innovation import GlobalInnovation
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
 from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
 #from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
-from FULL_CPPN_evaluation import evaluate_classification, evaluate_pic, evaluate_pic_scoop
+from FULL_CPPN_evaluation import evaluate_classification, evaluate_pic, evaluate_pic_scoop, assign_fit_scoop
 #from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
 from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs#, graphImage
 
@@ -98,6 +98,7 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = P
 # register all functions needed for evolution in the toolbox
 TOURN_SIZE = 3
 toolbox.register("evaluate", evaluate_pic_scoop)
+toolbox.register("assign_fit", assign_fit_scoop)
 toolbox.register("select", binarySelect)
 toolbox.register("tournSelect", tools.selTournament, fit_attr = "fitness")
 toolbox.register("mate", xover_avg)
@@ -157,7 +158,28 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			avgSpecFit = 0.0
 			# only the output pixels are mapped back, all evaluation must be done below
 			outputs = toolbox.map(toolbox.evaluate, species[specInd])
-			spec_list = []
+			output_tups = []
+			org_ind = 0
+			for o in outputs:
+				output_tups.append((o, species[specInd][org_ind], PIXELS, len(species[specInd]), 
+						MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION))
+				org_ind += 1
+
+			# map all outputs to the genotypes with their actual fitness assigned
+			fitnesses = toolbox.map(toolbox.assign_fit, output_tups)		
+			org_ind = 0
+			for f in fitnesses:
+				gen = species[specInd][org_ind]
+				avgSpecFit += f[0]
+				gen.fit_obj.values = f
+				gen.fitness = f[0]
+				org_ind += 1
+
+			print(avgSpecFit)
+			input()
+
+
+			'''
 			org_ind = 0
 			for out in outputs:
 				gen = species[specInd][org_ind]
@@ -180,7 +202,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 				gen.fitness = total_fit
 				spec_list.append(gen)
 				org_ind += 1
-
+			'''
 
 			# must find average fitness of species to compare against previous generation and see if species is stagnant
 			avgSpecFit /= len(species[specInd])
