@@ -167,10 +167,11 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 				if(proportion_mat_used <= MATERIAL_PENALIZATION_THRESHOLD):
 					penalization = 2.0 * (MATERIAL_PENALIZATION_THRESHOLD / (proportion_mat_used + .001))
 				# find difference between the two pixel arrays
+				ones_arr = np.ones((1, len(PIXELS)))
 				diff = np.subtract(PIXELS, out)
 				diff[diff>=.5] *= MATERIAL_UNPRESENT_PENALIZATION
-				diff = np.absolute(diff)
-				total_fit = np.sum(np.subtract(np.ones((1, len(PIXELS)), np.fabs(diff)))/(len(species[specInd])*penalization)
+				diff = np.fabs(diff)
+				total_fit = (np.sum(np.subtract(ones_arr, diff)))/(len(species[specInd])*penalization)
 
 				# actual fitness value must be divided by the number of individuals in a given species
 				# this keeps any given species from taking over a population - speciation fosters diversity
