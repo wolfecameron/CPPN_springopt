@@ -175,9 +175,6 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 				gen.fitness = f[0]
 				org_ind += 1
 
-			print(avgSpecFit)
-			input()
-
 
 			'''
 			org_ind = 0
