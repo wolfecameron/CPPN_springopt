@@ -138,7 +138,9 @@ def evaluate_pic_scoop(genotype):
 	output = []
 	# get all outputs and append them to output list
 	for ins in NORM_IN:
-		output.append(activate_CPPN_scoop([ins[0], ins[1]])[0])
+		ins = (genotype, ins)
+		result = activate_CPPN_scoop(ins)[0]
+		output.append(result)
 	
 	return (np.array(output, copy=True),)
 

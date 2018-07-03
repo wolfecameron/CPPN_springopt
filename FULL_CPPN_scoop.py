@@ -4,8 +4,10 @@ ea code for CPPN using scoop
 
 from scoop import futures
 import numpy as np
+import sys
 
 from FULL_CPPN_act import stepAct, sigAct, reluAct, sinAct, gaussAct, logAct, tanhAct, squareAct, absAct
+from FULL_CPPN_struct import Genotype
 
 
 def activate_CPPN_scoop(input_tup):
@@ -22,9 +24,9 @@ def activate_CPPN_scoop(input_tup):
 	if(not(len(inputs) == (genotype.numIn - 1))):
 			print("The length of the list of inputs does not match the number of desired inputs.")
 	else:
-		if(not genotype.cons_sorted):
-			genotype.connections = sorted(genotype.connections, key=lambda x: x.nIn.layer)
-			genotype.cons_sorted = True
+		#if(not genotype.cons_sorted):
+		genotype.connections = sorted(genotype.connections, key=lambda x: x.nIn.layer)
+		#	genotype.cons_sorted = True
 		# must clear all node values before running the network
 		for node in genotype.nodes:
 			node.value = 0
@@ -47,8 +49,18 @@ def activate_CPPN_scoop(input_tup):
 					genotype.connections[c].nOut.value = (genotype.connections[c].nOut.value + (genotype.connections[c].nIn.value*genotype.connections[c].weight))
 			
 		# put all output values in a single list and return
-		outputs = [activate_scoop(x) for x in genotype.nodes[-genotype.numOut:]]
-		
+		# put all output values in a single list and return
+		outputs = [] 
+		outInd = genotype.numIn 
+		foundAllOutputs = False
+		while(outInd < len(genotype.nodes) and not foundAllOutputs):
+			if(genotype.nodes[outInd].layer == sys.maxsize):
+				out = genotype.nodes[outInd]
+				outputs.append(activate_scoop(out))
+			else:
+				foundAllOutputs = True
+			outInd += 1
+			
 		return outputs
 
 def activate_scoop(node):
@@ -80,3 +92,8 @@ def activate_scoop(node):
 	elif(node.actKey == 8):
 		val = absAct(val)
 	return val
+
+if __name__ == "__main__":
+	x = Genotype(2,1)
+	print(x)
+	print(activate_CPPN_scoop((x, [1,1])))
