@@ -330,7 +330,7 @@ if __name__ == '__main__':
 
 	'''
 	# the following are all parameter settings for main function
-	NGEN = 600
+	NGEN = 800
 	WEIGHT_MUTPB = .3 # float(args.weight)/100.0 
 	NODE_MUTPB = .02 #float(args.node)/100.0 #.02
 	CON_MUTPB = .1 #float(args.con)/100.0 #.1
