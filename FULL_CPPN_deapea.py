@@ -22,7 +22,7 @@ from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
 #from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
 from FULL_CPPN_evaluation import evaluate_classification, evaluate_pic, evaluate_pic_scoop, assign_fit_scoop
 #from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
-from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs#, graphImage
+from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, graphImage
 
 # set up arguments to be parsed from the terminal
 parser = argparse.ArgumentParser()
@@ -106,7 +106,7 @@ toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
 toolbox.register("nodeMutate", nodeMutate)
 toolbox.register("activationMutate", actMutate)
-toolbox.register("map", map)
+toolbox.register("map", futures.map)
 
 
 '''
@@ -314,7 +314,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-	'''
+	
 	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test_1.txt', 'rb'))
 	pop = pop_tup[0]
 	for individual in pop:
@@ -351,6 +351,6 @@ if __name__ == '__main__':
 	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_quick_test_")
 
 	save_population(finalPop, SEED, file_name)
-	
+	'''
 
 
