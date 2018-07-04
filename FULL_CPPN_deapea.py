@@ -30,7 +30,6 @@ parser.add_argument("path", type=str,
 	help="filepath to image that is being tested.")
 parser.add_argument("seed", type=int, 
 	help="Seed number for the current experiment.")
-'''
 parser.add_argument("weight", type=int, 
 	help="Weight Mutation probability.")
 parser.add_argument("node", type=int, 
@@ -41,7 +40,6 @@ parser.add_argument("act", type=int,
 	help="Activation Mutation Probability.")
 parser.add_argument("cross", type=int, 
 	help="Crossover probability.")
-'''
 args = parser.parse_args()
 
 # set numpy seed number for all random numbers
@@ -315,7 +313,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
 	'''
-	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test_1.txt', 'rb'))
+	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test_4.txt', 'rb'))
 	pop = pop_tup[0]
 	for individual in pop:
 		org = Genotype(2,1)
@@ -331,11 +329,11 @@ if __name__ == '__main__':
 	'''
 	# the following are all parameter settings for main function
 	NGEN = 800
-	WEIGHT_MUTPB = .3 # float(args.weight)/100.0 
-	NODE_MUTPB = .02 #float(args.node)/100.0 #.02
-	CON_MUTPB = .1 #float(args.con)/100.0 #.1
-	CXPB = .1 #float(args.cross)/100.0 #.1
-	ACTPB = .05 #float(args.act)/100.0 #.05
+	WEIGHT_MUTPB = float(args.weight)/100.0 #.3 
+	NODE_MUTPB = float(args.node)/100.0 #.02
+	CON_MUTPB = float(args.con)/100.0 #.1
+	CXPB = float(args.cross)/100.0 #.1
+	ACTPB = float(args.act)/100.0 #.05
 	THRESHOLD = 3.0
 	ALPHA = 1.0
 	THETA1 = 1.0
@@ -348,9 +346,8 @@ if __name__ == '__main__':
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
 	
-	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_quick_test_")
+	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_sensitivity_test_")
 
 	save_population(finalPop, SEED, file_name)
-	
 
 
