@@ -62,7 +62,7 @@ LAST_NUM_SPECIES = -1
 # the following is the minimum proportion of material a solution must use 
 # to not be penalized
 MATERIAL_PENALIZATION_THRESHOLD = .1
-MATERIAL_UNPRESENT_PENALIZATION = 4
+MATERIAL_UNPRESENT_PENALIZATION = 2.5
 
 # sets global parameters for 2D structure being created by CPPN, generates inputs
 NUM_X = 50
@@ -313,7 +313,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
 	'''
-	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test_4.txt', 'rb'))
+	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_sensitivity_test_15.txt', 'rb'))
 	pop = pop_tup[0]
 	for individual in pop:
 		org = Genotype(2,1)
@@ -346,8 +346,8 @@ if __name__ == '__main__':
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
 	
-	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_sensitivity_test_")
+	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_delete_con_test_")
 
 	save_population(finalPop, SEED, file_name)
-
+	
 
