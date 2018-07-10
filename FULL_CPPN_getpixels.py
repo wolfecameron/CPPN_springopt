@@ -10,6 +10,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import colors
+import sys
 
 
 '''
@@ -129,6 +130,33 @@ def getNormalizedInputs(numX, numY):
 			normIn.append(tup)
 
 	return normIn
+
+
+def get_d_mat(pixels, numX, numY):
+	"""Generates data mat for associated pixels."""
+	result = np.zeroes((numX, numY))
+	2D_pix = np.reshape(pixels, (numX, numY))
+	for r in range(2D_pix.shape[0]):
+		for c in range(2D_pix.shape[1]):
+			dist = get_opp_dist(2D_pix, r, c)
+			if dist[r][c] == 0:
+				dist += -1
+			result[r][c] = dist
+
+	return result
+
+def get_opp_dist(px, r, c):
+	return helper(px, r, c, 0, px[r][c])
+
+def helper(px, r, c, count, og):
+	if(px[r][c] != og):
+		return count
+	else if(r < 0 or c < 0 or r >= px.shape[0] or c >= px.shape[1]):
+		return sys.maxsize
+	best_count = sys.maxsize
+	for x in range(-1, 2):
+		for y in range(-1, 2):
+			if(~(x==0 and y==0)):
 
 # used for quick simple testing of functions
 if __name__ == '__main__':
