@@ -133,33 +133,69 @@ def getNormalizedInputs(numX, numY):
 
 
 def get_d_mat(pixels, numX, numY):
-	"""Generates data mat for associated pixels."""
-	result = np.zeroes((numX, numY))
-	2D_pix = np.reshape(pixels, (numX, numY))
-	for r in range(2D_pix.shape[0]):
-		for c in range(2D_pix.shape[1]):
-			dist = get_opp_dist(2D_pix, r, c)
-			if dist[r][c] == 0:
-				dist += -1
-			result[r][c] = dist
+	"""Generates the matrix that contains all values for 
+	the distance parameter that will be used in CPPN
+	activation.
+	"""
 
+	result = np.zeros((numX, numY))
+	px = np.reshape(pixels, (numX, numY))
+	for r in range(px.shape[0]):
+		for c in range(px.shape[1]):
+			dist = _get_opp_dist(px, r, c, numX, numY)
+			if px[r][c] == 0:
+				dist *= -1.0
+			result[r][c] = dist
+	
 	return result
 
-def get_opp_dist(px, r, c):
-	return helper(px, r, c, 0, px[r][c])
+def _get_opp_dist(px, r, c, numX, numY):
+	"""Function that calls the recursive method to find
+	the number of pixels between the current and a different
+	color of pixel.
+	"""
 
-def helper(px, r, c, count, og):
+	return helper(px, r, c, px[r][c], numX, numY)
+
+def helper(px, r, c, og, numX, numY):
+	"""Recursive method for finding the distance from the current pixel
+	to a pixel of a different color. 
+	"""
+
 	if(px[r][c] != og):
-		return count
-	else if(r < 0 or c < 0 or r >= px.shape[0] or c >= px.shape[1]):
-		return sys.maxsize
+		return 0
+	elif(~check_bounds(px, r, c)):
+		return numX*numY + 1
+
+	# track which spaces you have been to
+	old_value = px[r][c]
+	px[r][c] = -1
+
+	# recurse through each point adjacent to current
 	best_count = sys.maxsize
 	for x in range(-1, 2):
 		for y in range(-1, 2):
-			if(~(x==0 and y==0)):
+			if(px[r + x][c + y] != -1 and check_bounds(px, r + x, c + y)):
+				tmp_count = 1 + helper(px, r + x, c + y, og, numX, numY)
+				# find point with smallest number of pixels to a different color pixel
+				if(tmp_count < best_count):
+					best_count = tmp_count
+	
+	# undo the change
+	px[r][c] = old_value
+
+	return best_count
+
+def check_bounds(px, r, c):
+	"""Checks that a certain row and column position
+	is within the bounds of the given matrix.
+	"""
+
+	return r >= 0 and c >= 0 and r < px.shape[0] and c < px.shape[1]
 
 # used for quick simple testing of functions
 if __name__ == '__main__':
+	"""
 	X = 50
 	Y = 50
 	file = '/home/wolfecameron/Desktop/CPPN_springopt/fitting_images/heart_ex.png'
@@ -167,3 +203,8 @@ if __name__ == '__main__':
 	graphImage(bin_pix, X, Y, 100)
 	plt.show()
 	input()
+	"""
+
+	curr_mat = np.array([0, 1])
+	x = get_d_mat(curr_mat, 1, 2)
+	print(x)
