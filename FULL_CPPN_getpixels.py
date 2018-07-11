@@ -132,6 +132,7 @@ def getNormalizedInputs(numX, numY):
 	return normIn
 
 
+
 def get_d_mat(pixels, numX, numY):
 	"""Generates the matrix that contains all values for 
 	the distance parameter that will be used in CPPN
@@ -140,32 +141,71 @@ def get_d_mat(pixels, numX, numY):
 
 	result = np.zeros((numX, numY))
 	px = np.reshape(pixels, (numX, numY))
+
+	zeros = []
+	ones = []
+
+	# populate all positions of ones and zeros into the above list
+	# for distance calculations
 	for r in range(px.shape[0]):
 		for c in range(px.shape[1]):
-			dist = _get_opp_dist(px, r, c, numX, numY)
-			if px[r][c] == 0:
-				dist *= -1.0
-			result[r][c] = dist
-	
-	return result
+			if px[r][c] == 1:
+				ones.append((r, c))
+			else:
+				zeros.append((r, c))
 
+	# perform distance calculations on all positions and find minimum
+	# distance for each position in the matrix
+	for r in range(px.shape[0]):
+		for c in range(px.shape[1]):
+			shortest_dist = sys.maxsize
+			if px[r][c] == 1:
+				for pos in zeros:
+					tmp_dist = get_distance((r, c), pos)
+					if tmp_dist < shortest_dist:
+						shortest_dist = tmp_dist
+			else:
+				for pos in ones:
+					tmp_dist = get_distance((r, c), pos)
+					if tmp_dist < shortest_dist:
+						shortest_dist = tmp_dist
+			# d should be negative if the pixel has a value of 0
+			result[r][c] = shortest_dist if px[r][c] == 1 else -shortest_dist
+
+
+
+			
+	
+	# flatten result before return to make it same form as 
+	# the other normalized location inputs
+	return result#.flatten()
+
+
+def get_distance(tup_1, tup_2):
+	"""Method for finding the euclidian distance between two positions
+	in a matrix"""
+
+	diff = np.square((tup_1[0] - tup_2[0])) + np.square((tup_1[1] - tup_2[1]))
+	return np.sqrt(diff)
+
+'''
 def _get_opp_dist(px, r, c, numX, numY):
 	"""Function that calls the recursive method to find
 	the number of pixels between the current and a different
 	color of pixel.
 	"""
 
-	return helper(px, r, c, px[r][c], numX, numY)
+	return _helper(px, r, c, px[r][c], numX, numY)
 
-def helper(px, r, c, og, numX, numY):
+def _helper(px, r, c, og, numX, numY):
 	"""Recursive method for finding the distance from the current pixel
 	to a pixel of a different color. 
 	"""
 
-	if(px[r][c] != og):
-		return 0
-	elif(~check_bounds(px, r, c)):
+	if(not check_bounds(px, r, c) or px[r][c] == -1):
 		return numX*numY + 1
+	elif(px[r][c] != og):
+		return 0
 
 	# track which spaces you have been to
 	old_value = px[r][c]
@@ -175,11 +215,10 @@ def helper(px, r, c, og, numX, numY):
 	best_count = sys.maxsize
 	for x in range(-1, 2):
 		for y in range(-1, 2):
-			if(px[r + x][c + y] != -1 and check_bounds(px, r + x, c + y)):
-				tmp_count = 1 + helper(px, r + x, c + y, og, numX, numY)
-				# find point with smallest number of pixels to a different color pixel
-				if(tmp_count < best_count):
-					best_count = tmp_count
+			tmp_count = 1 + _helper(px, r + x, c + y, og, numX, numY)
+			# find point with smallest number of pixels to a different color pixel
+			if(tmp_count < best_count):
+				best_count = tmp_count
 	
 	# undo the change
 	px[r][c] = old_value
@@ -192,7 +231,7 @@ def check_bounds(px, r, c):
 	"""
 
 	return r >= 0 and c >= 0 and r < px.shape[0] and c < px.shape[1]
-
+'''
 # used for quick simple testing of functions
 if __name__ == '__main__':
 	"""
@@ -205,6 +244,7 @@ if __name__ == '__main__':
 	input()
 	"""
 
-	curr_mat = np.array([0, 1])
-	x = get_d_mat(curr_mat, 1, 2)
+	curr_mat = np.array([0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0])
+	print(np.reshape(curr_mat, (3,4)))
+	x = get_d_mat(curr_mat, 3, 4)
 	print(x)

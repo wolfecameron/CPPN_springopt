@@ -177,3 +177,22 @@ def assign_fit_scoop(info_tup):
 
 	return (total_fit,)
 
+def evaluate_pic_dparam(genotype):
+	"""simplified version of picture evaluation function that is compatible
+	with scoop, this version also activates the CPPN with the use of the d
+	parameter derived from the pixels in the target image.
+	"""
+
+	NUM_X = 50
+	NUM_Y = 50
+	NORM_IN = pickle.load("norm_in.txt")
+	D_MAT = pickle.load("d_mat.txt")
+	output = []
+	# get all outputs and append them to output list
+	for (ins_1, ins_2) in zip(NORM_IN, D_MAT):
+		ins_tup = (ins_1[0], ins_1[1], ins_2)
+		ins = (genotype, ins_tup)
+		result = activate_CPPN_scoop(ins)[0]
+		output.append(result)
+	
+	return (np.array(output, copy=True),)
