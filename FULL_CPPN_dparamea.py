@@ -16,7 +16,7 @@ from scoop import futures
 
 from FULL_CPPN_struct import Genotype
 from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg, actMutate, save_population
-from FULL_CPPN_deaphelp import examine_population, get_file_name
+from FULL_CPPN_deaphelp import examine_population_dmat, get_file_name
 from FULL_CPPN_innovation import GlobalInnovation
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
 from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
@@ -69,10 +69,13 @@ LAST_NUM_SPECIES = -1
 MATERIAL_PENALIZATION_THRESHOLD = .1
 MATERIAL_UNPRESENT_PENALIZATION = 2
 
+# this value is what the d parameter weight should be initialized as
+D_PARAM_WEIGHT = 1.16
+
 # sets global parameters for 2D structure being created by CPPN, generates inputs
 NORM_IN_FILE = open("norm_in.txt", "wb")
-NUM_X = 10
-NUM_Y = 10
+NUM_X = 75
+NUM_Y = 75
 NORM_IN = getNormalizedInputs(NUM_X, NUM_Y)
 pickle.dump(NORM_IN, NORM_IN_FILE)
 
@@ -131,6 +134,14 @@ NOTE: pop size is set where the population function is registered
 '''
 def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, theta1, theta2, theta3, numIn, numOut):
 	pop = toolbox.population()
+
+	# change the weights for all individuals to intially find the perfect shape
+	for ind in pop:
+		ind.connections[0].setWeight(0)
+		ind.connections[1].setWeight(0)
+		ind.connections[2].setWeight(D_PARAM_WEIGHT)
+		ind.connections[3].setWeight(0)
+
 	# use global innovation object to track the creation of new innovation numbers during evolution
 	gb = GlobalInnovation(numIn, numOut)
 
@@ -345,7 +356,7 @@ if __name__ == '__main__':
 
 	'''
 	# the following are all parameter settings for main function
-	NGEN = 1
+	NGEN = 800
 	WEIGHT_MUTPB = .3#float(args.weight)/100.0 #.3 
 	NODE_MUTPB = .03#float(args.node)/100.0 #.02
 	CON_MUTPB = .25#float(args.con)/100.0 #.1
@@ -362,11 +373,10 @@ if __name__ == '__main__':
 	# main parameters: nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, theta2, theta3, numIn, numOut
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-	examine_population(finalPop, pickle.load(open("norm_in.txt", "rb")))
+	#examine_population_dmat(finalPop, NUM_X, NUM_Y)
 
-	'''
-	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_sens_test_")
+	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_dparam_test_")
 
 	save_population(finalPop, SEED, file_name)
-	'''
+	
 

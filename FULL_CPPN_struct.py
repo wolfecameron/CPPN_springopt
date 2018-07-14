@@ -472,6 +472,20 @@ class Genotype():
 		return ((theta1*numExcess)/N) + ((theta2*numDisjoint)/N) + ((theta3*weightDifference))
 
 
+	def get_con_cost(self):
+		"""This is a method for finding the total cost of connections
+		in the CPPN network. The absolute value of every connection
+		weight is found and added to a running total.
+		"""
+
+		total_weights = 0.0
+		for c in self.connections:
+			total_weights += abs(c.getWeight())
+
+		return total_weights
+
+
+
 	'''
 	helper method for get distance method
 	returns the total sum of weight across all connections in a network

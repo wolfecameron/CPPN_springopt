@@ -208,6 +208,28 @@ def examine_population(population, norm_in):
 		input("SHOWING individual #{0}".format(str(n)))
 		n += 1
 
+def examine_population_dmat(population, NUM_X, NUM_Y):
+	"""Method for graphing each individual in a population
+	for examination (Genotype and Phenotype) with the d parameter.
+	"""
+
+	norm_in = pickle.load(open("norm_in.txt", "rb"))
+	d_mat = pickle.load(open("d_mat.txt", "rb"))
+
+	n = 0
+	for org in population:
+		outputs = []
+		# get all outputs for every pixel in space of picture and put all into a numpy array
+		for ins_1, ins_2 in zip(norm_in, d_mat):
+			ins = (ins_1[0], ins_1[1], ins_2)
+			outputs.append(org.getOutput(ins)[0])
+		outputs_np = np.array(outputs, copy = True)
+		# 100 and 200 represent the figure numbers for each of the separate graphs
+		graphImage(outputs_np, NUM_X, NUM_Y, 100)
+		org.graph_genotype(200)
+		input("SHOWING individual #{0}".format(str(n)))
+		n += 1
+
 
 
 

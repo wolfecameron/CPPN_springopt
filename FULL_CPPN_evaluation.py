@@ -6,6 +6,7 @@ These functions can be plugged in to the main deap ea to
 configure the evolution toward whatever experiment is being run
 '''
 import numpy as np
+import pickle
 
 from FULL_CPPN_scoop import activate_CPPN_scoop
 from FULL_CPPN_getpixels import getNormalizedInputs
@@ -185,8 +186,8 @@ def evaluate_pic_dparam(genotype):
 
 	NUM_X = 50
 	NUM_Y = 50
-	NORM_IN = pickle.load("norm_in.txt")
-	D_MAT = pickle.load("d_mat.txt")
+	NORM_IN = pickle.load(open("norm_in.txt", "rb"))
+	D_MAT = pickle.load(open("d_mat.txt","rb"))
 	output = []
 	# get all outputs and append them to output list
 	for (ins_1, ins_2) in zip(NORM_IN, D_MAT):

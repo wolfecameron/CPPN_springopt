@@ -171,14 +171,11 @@ def get_d_mat(pixels, numX, numY):
 						shortest_dist = tmp_dist
 			# d should be negative if the pixel has a value of 0
 			result[r][c] = shortest_dist if px[r][c] == 1 else -shortest_dist
-
-
-
-			
+		
 	
 	# flatten result before return to make it same form as 
 	# the other normalized location inputs
-	return result#.flatten()
+	return result.flatten()
 
 
 def get_distance(tup_1, tup_2):
