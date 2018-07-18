@@ -8,17 +8,42 @@ import numpy as np
 
 def get_euclid_dist(vec_1, vec_2):
 	"""Method for calculating the euclidian distance of
-	two vectors using numpy
+	vectors using numpy
 	"""
 
-	if(vec_1.shape != vec_2.shape):
+	if(vec_1.shape[1] != vec_2.shape[1]):
 		print("The vectors do not have the same size, \
 				euclidian distance couldn't be found.")
 	else:
-		return np.sqrt(np.sum(np.square(vec_1 - vec_2)))
+		return np.sqrt(np.sum(np.square(vec_1 - vec_2), axis=1)).flatten()
+
+def get_kNN_measure(curr_vec, pop_vecs, archive_vecs, k):
+	"""Method for finding the k nearest distances between the current
+	result vector and all existing result vectors in the population
+	and archive of novel individuals.
+	"""
+
+	# vectorize this computation to do it all at once
+	# each row of pop_vecs should be an output/phenotype
+	pop_vec_dist = get_euclid_dist(curr_vec, pop_vecs)
+	archive_vec_dist = get_euclid_dist(curr_vec, archive_vecs)
+	all_dist = sorted(np.concatenate((pop_vec_dist, archive_vec_dist)))
+
+	# return average of the k smallest distances
+	return np.mean(all_dist[:k])
+
+
 
 
 if __name__ == "__main__":
 	"""Used for quick testing for compile errors"""
 
-	print(get_euclid_dist(np.array([0,0,1]), np.array([0,1,1])))
+	x = [np.array([0,1,1,1]), np.array([0,1,1,1]), np.array([0,1,1,1])]
+	x = np.vstack((x))
+	y = [np.array([1,1,1,1]), np.array([0,0,1,1])]
+	y = np.stack((y))
+	print(x)
+	print(y)
+
+	nn = get_kNN_measure(np.array([[0,0,1,1]]), x, y, 2)
+	print(nn)
