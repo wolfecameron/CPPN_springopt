@@ -11,26 +11,28 @@ def get_euclid_dist(vec_1, vec_2):
 	vectors using numpy
 	"""
 
-	if(vec_1.shape[1] != vec_2.shape[1]):
-		print("The vectors do not have the same size, \
-				euclidian distance couldn't be found.")
-	else:
-		return np.sqrt(np.sum(np.square(vec_1 - vec_2), axis=1)).flatten()
+	return np.sqrt(np.sum(np.square(vec_1 - vec_2), axis=1)).flatten()
 
 def get_kNN_measure(curr_vec, pop_vecs, archive_vecs, k):
 	"""Method for finding the k nearest distances between the current
 	result vector and all existing result vectors in the population
 	and archive of novel individuals.
+
+	pre -- archive_vecs should be null if there are no archive vectors yet
 	"""
 
 	# vectorize this computation to do it all at once
 	# each row of pop_vecs should be an output/phenotype
 	pop_vec_dist = get_euclid_dist(curr_vec, pop_vecs)
-	archive_vec_dist = get_euclid_dist(curr_vec, archive_vecs)
-	all_dist = sorted(np.concatenate((pop_vec_dist, archive_vec_dist)))
+	if(archive_vecs != None):	
+		archive_vec_dist = get_euclid_dist(curr_vec, archive_vecs)
+		# sort the distances and take the top k for average
+		all_dist = sorted(np.concatenate((pop_vec_dist, archive_vec_dist)))
+	else:
+		all_dist = pop_vec_dist
 
 	# return average of the k smallest distances
-	return np.mean(all_dist[:k])
+	return (np.mean(all_dist[:k]),)
 
 
 

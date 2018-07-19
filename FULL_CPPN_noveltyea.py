@@ -81,7 +81,9 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 
 
 # list for tracking novel individuals throughout evolution
+# threshold determines if an individual should be added into the archive
 NOV_ARCHIVE = []
+NOVEL_THRESHOLD = .5
 
 # determines the number of nearest invidiuals that are considered 
 # when measuring novelty
@@ -165,18 +167,28 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		for specInd in range(len(species)):
 			avgSpecFit = 0.0
 			# only the output pixels are mapped back, all evaluation must be done below
-			outputs = toolbox.map(toolbox.evaluate, species[specInd])
+			outputs = list(toolbox.map(toolbox.evaluate, species[specInd]))
 
 			# create full matrices of archived and current vectors
 			full_pop_vecs = np.vstack(outputs)
-			full_archive_vecs = np.vstack(NOV_ARCHIVE)
+			# only create the archive vectors if there are individuals in the archive
+			if(len(NOV_ARCHIVE) > 0):
+				full_archive_vecs = np.vstack(NOV_ARCHIVE)
+			else:
+				full_archive_vecs = None
 
 			# create tuples that can be fed into the novelty fitness assignment function
-			output_tups = [(vec, full_pop_vecs, full_archive_vecs, K_VAL) for vec in outputs]
+			output_tups = [(vec[0], full_pop_vecs, full_archive_vecs, K_VAL) for vec in outputs]
 
 			# map all outputs to the genotypes with their actual fitness assigned
-			fitnesses = toolbox.map(toolbox.assign_fit, output_tups)
-					
+			fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
+
+			# find all output lists that should be added to the archive
+			for index in range(len(fitnesses)):
+				curr_fit = fitnesses[index]
+				if(curr_fit[0] >= NOVEL_THRESHOLD*NUM_X*NUM_Y):
+					NOV_ARCHIVE.append(outputs[index])
+
 			org_ind = 0
 			for f in fitnesses:
 				gen = species[specInd][org_ind]
