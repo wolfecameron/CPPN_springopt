@@ -10,6 +10,7 @@ import pickle
 
 from FULL_CPPN_scoop import activate_CPPN_scoop
 from FULL_CPPN_getpixels import getNormalizedInputs
+from FULL_CPPN_novhelp import get_kNN_measure
 
 
 '''
@@ -197,3 +198,14 @@ def evaluate_pic_dparam(genotype):
 		output.append(result)
 	
 	return (np.array(output, copy=True),)
+
+def evaluate_novelty(eval_tup):
+	"""Evaluation function for the novelty search evolutionary
+	algorithm with CPPN - calls the function in novelty help that
+	determines a solution's distance from another
+	"""
+
+	# must unpack all items from the tuple parameter
+	curr_vec, pop_vec, archive_vec, k = eval_tup
+
+	return get_kNN_measure(curr_vec, pop_vec, archive_vec, k)
