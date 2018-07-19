@@ -134,9 +134,9 @@ def evaluate_pic_scoop(genotype):
 	with scoop, previous version could not be pickled with all parameters
 	"""
 
-	NUM_X = 50
-	NUM_Y = 50
-	NORM_IN = getNormalizedInputs(NUM_X, NUM_Y)
+	NUM_X = 75
+	NUM_Y = 75
+	NORM_IN = pickle.load(open("norm_in.txt", "rb"))
 	output = []
 	# get all outputs and append them to output list
 	for ins in NORM_IN:
@@ -145,6 +145,7 @@ def evaluate_pic_scoop(genotype):
 		output.append(result)
 	
 	return (np.array(output, copy=True),)
+
 
 def assign_fit_scoop(info_tup):
 	"""Takes tuple containing an output array of pix
@@ -158,11 +159,7 @@ def assign_fit_scoop(info_tup):
 	"""
 
 	# get all needed info out of the tuple
-	out = info_tup[0] 
-	pix = info_tup[1]
-	spec_len = info_tup[2]
-	mat_pen = info_tup[3]
-	mat_unp = info_tup[4]
+	out, pix, spec_len, mat_pen, mat_unp = info_tup
 
 	# compute fitness, penalizing for material used
 	proportion_mat_used = float(np.sum(out))/len(pix)

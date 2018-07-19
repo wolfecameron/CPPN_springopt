@@ -18,15 +18,15 @@ from FULL_CPPN_innovation import GlobalInnovation
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
 from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
 #from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
-from FULL_CPPN_evaluation import evaluate_classification, evaluate_pic, evaluate_pic_scoop, assign_fit_scoop
+from FULL_CPPN_evaluation import evaluate_novelty, evaluate_pic_scoop
 from FULL_CPPN_evaluation import evaluate_pic_dparam
 #from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
 from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, get_d_mat#, graphImage
 
 # set up arguments to be parsed from the terminal
 parser = argparse.ArgumentParser()
-parser.add_argument("path", type=str, 
-	help="filepath to image that is being tested.")
+#parser.add_argument("path", type=str, 
+#	help="filepath to image that is being tested.")
 parser.add_argument("seed", type=int, 
 	help="Seed number for the current experiment.")
 '''
@@ -76,8 +76,8 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 
 
 # must get filename from parser to complete file path
-FILE_PATH = './fitting_images/' + args.path
-PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
+#FILE_PATH = './fitting_images/' + args.path
+#PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 
 
 # list for tracking novel individuals throughout evolution
@@ -99,7 +99,7 @@ creator.create("Individual", Genotype, fit_obj = creator.FitnessMax)
 toolbox = base.Toolbox()
 
 # register function to create individual in the toolbox
-NUM_IN = 3
+NUM_IN = 2
 NUM_OUT = 1
 toolbox.register("individual", creator.Individual, NUM_IN, NUM_OUT)
 
@@ -108,9 +108,9 @@ POP_SIZE = 100
 toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = POP_SIZE)
 
 # register all functions needed for evolution in the toolbox
-TOURN_SIZE = 3
-toolbox.register("evaluate", evaluate_pic_dparam)
-toolbox.register("assign_fit", assign_fit_scoop)
+TOURN_SIZE = 2
+toolbox.register("evaluate", evaluate_pic_scoop)
+toolbox.register("assign_fit", evaluate_novelty)
 toolbox.register("select", binarySelect)
 toolbox.register("tournSelect", tools.selTournament, fit_attr = "fitness")
 toolbox.register("mate", xover_avg)
@@ -140,12 +140,6 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 	for g in range(NGEN):
 		print("RUNNING GENERATION " + str(g))
-
-		# use the following conditional to visualize certain properties of population near end of evolution
-		#if(g == NGEN - 1):
-		#	visConnections(pop)
-		#	visHiddenNodes(pop)
-
 		# create a 2D array representing species from the population
 		if(g == 0):
 			species = speciatePopulationFirstTime(pop, thresh, theta1, theta2, theta3)
@@ -173,10 +167,16 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			# only the output pixels are mapped back, all evaluation must be done below
 			outputs = toolbox.map(toolbox.evaluate, species[specInd])
 
+			# create full matrices of archived and current vectors
 			full_pop_vecs = np.vstack(outputs)
 			full_archive_vecs = np.vstack(NOV_ARCHIVE)
+
+			# create tuples that can be fed into the novelty fitness assignment function
+			output_tups = [(vec, full_pop_vecs, full_archive_vecs, K_VAL) for vec in outputs]
+
 			# map all outputs to the genotypes with their actual fitness assigned
-			fitnesses = toolbox.map(toolbox.assign_fit, output_tups)		
+			fitnesses = toolbox.map(toolbox.assign_fit, output_tups)
+					
 			org_ind = 0
 			for f in fitnesses:
 				gen = species[specInd][org_ind]
@@ -184,6 +184,8 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 				gen.fit_obj.values = f
 				gen.fitness = f[0]
 				org_ind += 1
+
+
 
 			# must find average fitness of species to compare against previous generation and see if species is stagnant
 			avgSpecFit /= len(species[specInd])
@@ -222,7 +224,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			# set all species back to 0 first:
 			for org in species[specInd]:
 				org.species = sys.maxsize
-			bestInd = toolbox.tournSelect(species[specInd], tournsize = 2, k = 1)[0]
+			bestInd = toolbox.tournSelect(species[specInd], tournsize = TOURN_SIZE, k = 1)[0]
 			bestInd = bestInd.getCopy()
 			tournamentSelectSpecies.append(bestInd)
 		
