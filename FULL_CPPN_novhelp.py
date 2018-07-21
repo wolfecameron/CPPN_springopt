@@ -8,10 +8,11 @@ import numpy as np
 
 def get_euclid_dist(vec_1, vec_2):
 	"""Method for calculating the euclidian distance of
-	vectors using numpy
+	vectors using numpy - doesn't square difference so that
+	a novelty threshold is easier to define
 	"""
 
-	return np.sqrt(np.sum(np.square(vec_1 - vec_2), axis=1)).flatten()
+	return np.sqrt(np.sum(np.fabs(vec_1 - vec_2), axis=1)).flatten()
 
 def get_kNN_measure(curr_vec, pop_vecs, archive_vecs, k):
 	"""Method for finding the k nearest distances between the current
@@ -24,12 +25,12 @@ def get_kNN_measure(curr_vec, pop_vecs, archive_vecs, k):
 	# vectorize this computation to do it all at once
 	# each row of pop_vecs should be an output/phenotype
 	pop_vec_dist = get_euclid_dist(curr_vec, pop_vecs)
-	if(archive_vecs != None):	
+	if not archive_vecs.size == 0:	
 		archive_vec_dist = get_euclid_dist(curr_vec, archive_vecs)
 		# sort the distances and take the top k for average
 		all_dist = sorted(np.concatenate((pop_vec_dist, archive_vec_dist)))
 	else:
-		all_dist = pop_vec_dist
+		all_dist = sorted(pop_vec_dist)
 
 	# return average of the k smallest distances
 	return (np.mean(all_dist[:k]),)

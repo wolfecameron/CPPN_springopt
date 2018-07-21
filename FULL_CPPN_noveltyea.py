@@ -83,11 +83,11 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 # list for tracking novel individuals throughout evolution
 # threshold determines if an individual should be added into the archive
 NOV_ARCHIVE = []
-NOVEL_THRESHOLD = .5
+NOVEL_THRESHOLD = .4
 
 # determines the number of nearest invidiuals that are considered 
 # when measuring novelty
-K_VAL = 5
+K_VAL = 10
 
 
 ''' ----- REGISTER ALL FUNCTIONS AND CLASSES WITH DEAP ----- '''
@@ -106,7 +106,7 @@ NUM_OUT = 1
 toolbox.register("individual", creator.Individual, NUM_IN, NUM_OUT)
 
 # register function to create population in the toolbox
-POP_SIZE = 100
+POP_SIZE = 50
 toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = POP_SIZE)
 
 # register all functions needed for evolution in the toolbox
@@ -142,15 +142,17 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 	for g in range(NGEN):
 		print("RUNNING GENERATION " + str(g))
+		print("Archive Size: {0}".format(str(len(NOV_ARCHIVE))))
 		# create a 2D array representing species from the population
-		if(g == 0):
-			species = speciatePopulationFirstTime(pop, thresh, theta1, theta2, theta3)
-		else:
-			species = speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3)
+		#if(g == 0):
+		#	species = speciatePopulationFirstTime(pop, thresh, theta1, theta2, theta3)
+		#else:
+		#	species = speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3)
 
 		# determine if speciation threshold needs to be modified and apply modification
 		# decrease threshold slowly to increase species, but increase quickly to keep to many
 		# species from forming - thus the terms being different sizes
+		'''
 		if(g >= GENERATION_TO_MODIFY_THRESH):
 			numSpecies = len(species)
 			# increase threshold if there are too many species and the number is still increasing
@@ -162,58 +164,59 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 				if(LAST_NUM_SPECIES == -1 or numSpecies <= LAST_NUM_SPECIES):
 					thresh -= (THRESH_MOD/2.0)
 
-
+		'''
 		# find all fitness values for individuals in population, update fitness tracking for species
-		for specInd in range(len(species)):
-			avgSpecFit = 0.0
-			# only the output pixels are mapped back, all evaluation must be done below
-			outputs = list(toolbox.map(toolbox.evaluate, species[specInd]))
+		#for specInd in range(len(species)):
+		#avgSpecFit = 0.0
+		
+		# only the output pixels are mapped back, all evaluation must be done below
+		outputs = list(toolbox.map(toolbox.evaluate, pop))
 
-			# create full matrices of archived and current vectors
-			full_pop_vecs = np.vstack(outputs)
-			# only create the archive vectors if there are individuals in the archive
-			if(len(NOV_ARCHIVE) > 0):
-				full_archive_vecs = np.vstack(NOV_ARCHIVE)
-			else:
-				full_archive_vecs = None
+		# create full matrices of archived and current vectors
+		full_pop_vecs = np.vstack(outputs)
+		# only create the archive vectors if there are individuals in the archive
+		if(len(NOV_ARCHIVE) > 0):
+			# must grab the numpy arrays out of each tuple in novelty archive
+			full_archive_vecs = np.vstack([x[1] for x in NOV_ARCHIVE])
+		else:
+			full_archive_vecs = np.array([[]])
 
-			# create tuples that can be fed into the novelty fitness assignment function
-			output_tups = [(vec[0], full_pop_vecs, full_archive_vecs, K_VAL) for vec in outputs]
+		# create tuples that can be fed into the novelty fitness assignment function
+		output_tups = [(vec[0], full_pop_vecs, full_archive_vecs, K_VAL) for vec in outputs]
 
-			# map all outputs to the genotypes with their actual fitness assigned
-			fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
+		# map all outputs to the genotypes with their actual fitness assigned
+		fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
 
-			# find all output lists that should be added to the archive
-			for index in range(len(fitnesses)):
-				curr_fit = fitnesses[index]
-				if(curr_fit[0] >= NOVEL_THRESHOLD*NUM_X*NUM_Y):
-					NOV_ARCHIVE.append(outputs[index])
+		# find all output lists that should be added to the archive
+		for index in range(len(fitnesses)):
+			curr_fit = fitnesses[index]
+			if(curr_fit[0] >= np.sqrt(NOVEL_THRESHOLD*NUM_X*NUM_Y)):
+				NOV_ARCHIVE.append((pop[index], outputs[index]))
 
-			org_ind = 0
-			for f in fitnesses:
-				gen = species[specInd][org_ind]
-				avgSpecFit += f[0]
-				gen.fit_obj.values = f
-				gen.fitness = f[0]
-				org_ind += 1
-
+		org_ind = 0
+		for f in fitnesses:
+			gen = pop[org_ind]
+			gen.fit_obj.values = f
+			gen.fitness = f[0]
+			org_ind += 1
 
 
-			# must find average fitness of species to compare against previous generation and see if species is stagnant
-			avgSpecFit /= len(species[specInd])
+		'''
+		# must find average fitness of species to compare against previous generation and see if species is stagnant
+		avgSpecFit /= len(species[specInd])
 			
-			# check if fitness is stagnant for current generations and update stagnant counter appropriately
-			if(specInd < len(LAST_FITNESS)):
-				if(avgSpecFit/LAST_FITNESS[specInd] <= STAGNATION_THRESHOLD):
-					CURRENT_STAG_GENS[specInd] = CURRENT_STAG_GENS[specInd] + 1
-				else:
-					# reset stagnation counter is a species improves enough to be above the threshold
-					CURRENT_STAG_GENS[specInd] = 0
-			
-			# if this is the first generation for a species, append values for it into both stagnation-tracking lists
+		# check if fitness is stagnant for current generations and update stagnant counter appropriately
+		if(specInd < len(LAST_FITNESS)):
+			if(avgSpecFit/LAST_FITNESS[specInd] <= STAGNATION_THRESHOLD):
+				CURRENT_STAG_GENS[specInd] = CURRENT_STAG_GENS[specInd] + 1
 			else:
-				LAST_FITNESS.append(avgSpecFit)
-				CURRENT_STAG_GENS.append(0)
+				# reset stagnation counter is a species improves enough to be above the threshold
+				CURRENT_STAG_GENS[specInd] = 0
+			
+		# if this is the first generation for a species, append values for it into both stagnation-tracking lists
+		else:
+			LAST_FITNESS.append(avgSpecFit)
+			CURRENT_STAG_GENS.append(0)
 
 		# traverse the list of stagnance counters to see if any species need to be penalized for being stagnant
 		index = 0
@@ -225,12 +228,9 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 					# penalization increases as the number of stagnant generations increases
 					org.fitness /= (float(2*spec)/MIN_NUM_STAGNANT_GENERATIONS)
 					org.fit_obj.values = (org.fitness,)	
-			index += 1
-
+		index += 1
 		tournamentSelectSpecies = []
-
-		# speciate the population after finding corresponding fitnesses
-		print("Num Species: " + str(len(species)))
+		
 		# go through each species and select the best individuals from each species
 		for specInd in range(len(species)):
 			# set all species back to 0 first:
@@ -239,7 +239,8 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			bestInd = toolbox.tournSelect(species[specInd], tournsize = TOURN_SIZE, k = 1)[0]
 			bestInd = bestInd.getCopy()
 			tournamentSelectSpecies.append(bestInd)
-		
+
+
 		# fittest from species function selects all species representatives
 		# and sets the species variable for the rest of the population to sys.maxsize
 		fitTup = getFittestFromSpecies(species)
@@ -249,10 +250,10 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		for org in tournamentSelectSpecies:
 			bestInSpecies.append(org)	
 
-
+		'''
 
 		# select from rest of population to form the full sized population
-		pop = toolbox.select(pop, bestInSpecies)
+		pop = toolbox.select(pop, [])
 
 		# only apply mutation if there will be another iteration of selection following this
 		if(g < NGEN - 1):
@@ -315,7 +316,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-	
+	'''
 	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_nov_test_2.txt', 'rb'))
 	pop = pop_tup[0]
 	for individual in pop:
@@ -331,7 +332,7 @@ if __name__ == '__main__':
 
 	'''
 	# the following are all parameter settings for main function
-	NGEN = 400
+	NGEN = 200
 	WEIGHT_MUTPB = .3#float(args.weight)/100.0 #.3 
 	NODE_MUTPB = .03#float(args.node)/100.0 #.02
 	CON_MUTPB = .25#float(args.con)/100.0 #.1
@@ -350,6 +351,6 @@ if __name__ == '__main__':
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
 	#examine_population_dmat(finalPop, NUM_X, NUM_Y)
 
-	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_nov_test_")
-	save_population(finalPop, SEED, file_name)
-	'''
+	file_name = get_file_name("/home/wolfecameron/Desktop/CPPN_pop_result", "CPPN_nov_test_")
+	save_population([x[0] for x in NOV_ARCHIVE] + finalPop, SEED, file_name)
+
