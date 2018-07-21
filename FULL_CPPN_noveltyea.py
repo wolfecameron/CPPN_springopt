@@ -21,7 +21,7 @@ from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
 from FULL_CPPN_evaluation import evaluate_novelty, evaluate_pic_scoop
 from FULL_CPPN_evaluation import evaluate_pic_dparam
 #from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
-from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, get_d_mat#, graphImage
+from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, get_d_mat, graphImage
 
 # set up arguments to be parsed from the terminal
 parser = argparse.ArgumentParser()
@@ -315,8 +315,8 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-	'''
-	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_delete_con_test_7.txt', 'rb'))
+	
+	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_nov_test_2.txt', 'rb'))
 	pop = pop_tup[0]
 	for individual in pop:
 		org = Genotype(2,1)
@@ -326,7 +326,7 @@ if __name__ == '__main__':
 		output = []
 		for ins in NORM_IN:
 			output.append(org.getOutput(ins)[0])
-		graphImage(np.array(output, copy=True), 50, 50, 200)
+		graphImage(np.array(output, copy=True), NUM_X, NUM_Y, 200)
 		org.graph_genotype()
 
 	'''
@@ -352,5 +352,4 @@ if __name__ == '__main__':
 
 	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_nov_test_")
 	save_population(finalPop, SEED, file_name)
-	
-
+	'''
