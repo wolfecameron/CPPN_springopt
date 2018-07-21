@@ -331,7 +331,7 @@ if __name__ == '__main__':
 
 	'''
 	# the following are all parameter settings for main function
-	NGEN = 800
+	NGEN = 400
 	WEIGHT_MUTPB = .3#float(args.weight)/100.0 #.3 
 	NODE_MUTPB = .03#float(args.node)/100.0 #.02
 	CON_MUTPB = .25#float(args.con)/100.0 #.1
@@ -350,8 +350,7 @@ if __name__ == '__main__':
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
 	#examine_population_dmat(finalPop, NUM_X, NUM_Y)
 
-	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_dparam_test_")
-
+	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_nov_test_")
 	save_population(finalPop, SEED, file_name)
 	
 
