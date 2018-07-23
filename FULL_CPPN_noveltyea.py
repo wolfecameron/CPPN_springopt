@@ -63,7 +63,7 @@ LAST_NUM_SPECIES = -1
 
 # the following is the minimum proportion of material a solution must use 
 # to not be penalized
-MATERIAL_PENALIZATION_THRESHOLD = .1
+MATERIAL_PENALIZATION_THRESHOLD = .2
 MATERIAL_UNPRESENT_PENALIZATION = 2
 
 
@@ -83,11 +83,11 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 # list for tracking novel individuals throughout evolution
 # threshold determines if an individual should be added into the archive
 NOV_ARCHIVE = []
-NOVEL_THRESHOLD = .4
+ARCHIVE_PROB = .02
 
 # determines the number of nearest invidiuals that are considered 
 # when measuring novelty
-K_VAL = 10
+K_VAL = 3
 
 
 ''' ----- REGISTER ALL FUNCTIONS AND CLASSES WITH DEAP ----- '''
@@ -186,15 +186,21 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 		# map all outputs to the genotypes with their actual fitness assigned
 		fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
-
+		
 		# find all output lists that should be added to the archive
 		for index in range(len(fitnesses)):
 			curr_fit = fitnesses[index]
-			if(curr_fit[0] >= np.sqrt(NOVEL_THRESHOLD*NUM_X*NUM_Y)):
+			# randomly add individuals into the archive based on a probability
+			if(np.random.uniform() <= ARCHIVE_PROB):
 				NOV_ARCHIVE.append((pop[index], outputs[index]))
 
 		org_ind = 0
-		for f in fitnesses:
+		for f,o in zip(fitnesses, outputs):
+			if(np.sum(o)/(NUM_X*NUM_Y) < MATERIAL_PENALIZATION_THRESHOLD or 
+					np.sum(o)/(NUM_X*NUM_Y) > (1 - MATERIAL_PENALIZATION_THRESHOLD)):
+				# penalize the solution for not having enough or too much material
+				f = (f[0]/2,)
+			
 			gen = pop[org_ind]
 			gen.fit_obj.values = f
 			gen.fitness = f[0]
@@ -316,8 +322,8 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-	'''
-	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_nov_test_2.txt', 'rb'))
+		
+	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_nov_test_3.txt', 'rb'))
 	pop = pop_tup[0]
 	for individual in pop:
 		org = Genotype(2,1)
@@ -335,9 +341,9 @@ if __name__ == '__main__':
 	NGEN = 200
 	WEIGHT_MUTPB = .3#float(args.weight)/100.0 #.3 
 	NODE_MUTPB = .03#float(args.node)/100.0 #.02
-	CON_MUTPB = .25#float(args.con)/100.0 #.1
+	CON_MUTPB = .15#float(args.con)/100.0 #.1
 	CXPB = .1#float(args.cross)/100.0 #.1
-	ACTPB = .05#float(args.act)/100.0 #.05
+	ACTPB = .1#float(args.act)/100.0 #.05
 	THRESHOLD = 3.0
 	ALPHA = 1.0
 	THETA1 = 1.0
@@ -353,4 +359,5 @@ if __name__ == '__main__':
 
 	file_name = get_file_name("/home/wolfecameron/Desktop/CPPN_pop_result", "CPPN_nov_test_")
 	save_population([x[0] for x in NOV_ARCHIVE] + finalPop, SEED, file_name)
-
+	'''	
+	

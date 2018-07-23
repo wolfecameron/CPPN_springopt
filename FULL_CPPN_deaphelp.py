@@ -38,7 +38,7 @@ def conMutate(individual, globalInnovation):
 	innovResult = globalInnovation.getNextInnov()
 	
 	# set probability for adding new connection or deleting one
-	p_add_con = .9
+	p_add_con = 1.0
 	if(np.random.uniform() <= p_add_con):
 		globalInnovation.current = individual.connectionMutate(innovResult)
 	else:
