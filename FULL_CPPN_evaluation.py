@@ -206,3 +206,19 @@ def evaluate_novelty(eval_tup):
 	curr_vec, pop_vec, archive_vec, k = eval_tup
 
 	return get_kNN_measure(curr_vec, pop_vec, archive_vec, k)
+
+def evaluate_nov_pic(eval_tup)
+	"""Method for evaluating novelty and closeness to a target
+	picture simulatanously - individuals then selected with the
+	use of NSGA-II"""
+	
+	# unpack the input tuple
+	output, pix, spec_len, mat_pen, mat_unp, pop_vec, archive_vec, k = eval_tup
+	
+	# get fitness for both objectives	
+	target_fit = assign_fit_scoop(output, pix, spec_len, mat_pen, mat_unp)
+	nov_fit = evaluate_novelty(output, pop_vec, archive_vec, k)
+
+	# return fitness for both objectives inside of a tuple
+	return (target_fit, nov_fit)
+	

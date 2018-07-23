@@ -19,7 +19,7 @@ from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speci
 from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
 #from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
 from FULL_CPPN_evaluation import evaluate_novelty, evaluate_pic_scoop
-from FULL_CPPN_evaluation import evaluate_pic_dparam
+from FULL_CPPN_evaluation import evaluate_pic_dparam, evaluate_nov_pic
 #from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
 from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, get_d_mat, graphImage
 
@@ -76,8 +76,8 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 
 
 # must get filename from parser to complete file path
-#FILE_PATH = './fitting_images/' + args.path
-#PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
+FILE_PATH = './fitting_images/' + args.path
+PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 
 
 # list for tracking novel individuals throughout evolution
@@ -87,15 +87,15 @@ ARCHIVE_PROB = .02
 
 # determines the number of nearest invidiuals that are considered 
 # when measuring novelty
-K_VAL = 3
+K_VAL = 5
 
 
 ''' ----- REGISTER ALL FUNCTIONS AND CLASSES WITH DEAP ----- '''
 
 # create class for maximizing fitness and creating individual
 # must name fitness atribute fit_obj because fitness is a instance variable of Genotype class
-creator.create("FitnessMax", base.Fitness, weights = (1.0,))
-creator.create("Individual", Genotype, fit_obj = creator.FitnessMax) 
+creator.create("FitnessMulti", base.Fitness, weights = (1.0, 1.0))
+creator.create("Individual", Genotype, fit_obj = creator.FitnessMulti) 
 
 # initialize the toolbox
 toolbox = base.Toolbox()
@@ -112,8 +112,8 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = P
 # register all functions needed for evolution in the toolbox
 TOURN_SIZE = 2
 toolbox.register("evaluate", evaluate_pic_scoop)
-toolbox.register("assign_fit", evaluate_novelty)
-toolbox.register("select", binarySelect)
+toolbox.register("assign_fit", evaluate_nov_pic)
+toolbox.register("select", tools.selNSGA2)
 toolbox.register("tournSelect", tools.selTournament, fit_attr = "fitness")
 toolbox.register("mate", xover_avg)
 toolbox.register("weightMutate", weightMutate)
@@ -164,7 +164,6 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 				if(LAST_NUM_SPECIES == -1 or numSpecies <= LAST_NUM_SPECIES):
 					thresh -= (THRESH_MOD/2.0)
 
-		'''
 		# find all fitness values for individuals in population, update fitness tracking for species
 		#for specInd in range(len(species)):
 		#avgSpecFit = 0.0
@@ -182,32 +181,32 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			full_archive_vecs = np.array([[]])
 
 		# create tuples that can be fed into the novelty fitness assignment function
-		output_tups = [(vec[0], full_pop_vecs, full_archive_vecs, K_VAL) for vec in outputs]
+		output_tups = [(vec[0], PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
+				 full_pop_vecs, full_archive_vecs, K_VAL) for vec in outputs]
 
 		# map all outputs to the genotypes with their actual fitness assigned
 		fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
 		
 		# find all output lists that should be added to the archive
 		for index in range(len(fitnesses)):
-			curr_fit = fitnesses[index]
 			# randomly add individuals into the archive based on a probability
 			if(np.random.uniform() <= ARCHIVE_PROB):
 				NOV_ARCHIVE.append((pop[index], outputs[index]))
 
 		org_ind = 0
 		for f,o in zip(fitnesses, outputs):
-			if(np.sum(o)/(NUM_X*NUM_Y) < MATERIAL_PENALIZATION_THRESHOLD or 
-					np.sum(o)/(NUM_X*NUM_Y) > (1 - MATERIAL_PENALIZATION_THRESHOLD)):
+			#if(np.sum(o)/(NUM_X*NUM_Y) < MATERIAL_PENALIZATION_THRESHOLD or 
+				#	np.sum(o)/(NUM_X*NUM_Y) > (1 - MATERIAL_PENALIZATION_THRESHOLD)):
 				# penalize the solution for not having enough or too much material
-				f = (f[0]/2,)
+				#f = (f[0]/2,)
 			
 			gen = pop[org_ind]
 			gen.fit_obj.values = f
-			gen.fitness = f[0]
+			gen.fitness = f
 			org_ind += 1
 
 
-		'''
+		
 		# must find average fitness of species to compare against previous generation and see if species is stagnant
 		avgSpecFit /= len(species[specInd])
 			
@@ -258,11 +257,69 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 		'''
 
-		# select from rest of population to form the full sized population
-		pop = toolbox.select(pop, [])
-
 		# only apply mutation if there will be another iteration of selection following this
-		if(g < NGEN - 1):
+		mutants = []
+		
+		for ind in pop:
+			new_ind = copy.deepcopy(ind)
+			# apply weight mutation
+			if(np.random.uniform() <= weightMutpb):
+				toolbox.weightMutate(new_ind)
+				
+			# apply node mutation
+			if(np.random.uniform() <= nodeMutpb):
+				toolbox.nodeMutate(new_ind, gb)
+			
+			# apply onnection mutation
+			if(np.random.uniform() <= conMutpb):
+				toolbox.connectionMutate(new_ind, gb)
+	
+			# apply activation mutation
+			if(np.random.uniform() <= actMutpb):
+				toolbox.activationMutate(new_ind)
+				
+			# append the newly mutated individuals to a separate list
+			mutants.append(new_ind)
+		
+		# assign fitnesses to all mutants in the mutants list
+		# only the output pixels are mapped back, all evaluation must be done below
+		outputs = list(toolbox.map(toolbox.evaluate, pop))
+
+                # create full matrices of archived and current vectors
+                full_pop_vecs = np.vstack(outputs)
+                # only create the archive vectors if there are individuals in the archive
+                if(len(NOV_ARCHIVE) > 0):
+                        # must grab the numpy arrays out of each tuple in novelty archive
+                        full_archive_vecs = np.vstack([x[1] for x in NOV_ARCHIVE])
+                else:
+                        full_archive_vecs = np.array([[]])
+
+                # create tuples that can be fed into the novelty fitness assignment function
+                output_tups = [(vec[0], PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
+                                 full_pop_vecs, full_archive_vecs, K_VAL) for vec in outputs]
+
+                # map all outputs to the genotypes with their actual fitness assigned
+                fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
+
+                # find all output lists that should be added to the archive
+                for index in range(len(fitnesses)):
+                        # randomly add individuals into the archive based on a probability
+                        if(np.random.uniform() <= ARCHIVE_PROB):
+                                NOV_ARCHIVE.append((pop[index], outputs[index]))
+
+                org_ind = 0
+                for f,o in zip(fitnesses, outputs):
+                        #if(np.sum(o)/(NUM_X*NUM_Y) < MATERIAL_PENALIZATION_THRESHOLD or 
+                                #       np.sum(o)/(NUM_X*NUM_Y) > (1 - MATERIAL_PENALIZATION_THRESHOLD)):
+                                # penalize the solution for not having enough or too much material
+                                #f = (f[0]/2,)
+
+                        gen = pop[org_ind]
+                        gen.fit_obj.values = f
+                        gen.fitness = f
+                        org_ind += 1
+
+			'''
 			# apply weight mutations
 			for ind in pop:
 				if(ind.species == sys.maxsize and np.random.uniform() <= weightMutpb):
@@ -310,7 +367,8 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 				if(ind.species == sys.maxsize and np.random.uniform() <= actMutpb):
 					toolbox.activationMutate(ind)
 					del ind.fit_obj.values
-
+			
+			'''
 		# must clear the dictionary of innovation numbers for the coming generation
 		# only check to see if same innovation occurs twice in a single generation
 		gb.clearDict()
