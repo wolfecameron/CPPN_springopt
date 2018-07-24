@@ -38,7 +38,7 @@ class Genotype():
 		self.gSize = self.numIn + self.numOut
 		self.nodes = []
 		self.connections = []
-		self.fitness = 0
+		self.fit_obj = 0
 
 		# use to track if connections list is sorted
 		self.cons_sorted = False

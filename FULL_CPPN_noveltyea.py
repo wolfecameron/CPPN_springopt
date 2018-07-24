@@ -4,6 +4,7 @@ is implemented for novelty search using the CPPN
 
 import sys
 import os
+import copy
 
 from deap import base, tools, algorithms, creator
 import argparse
@@ -25,8 +26,8 @@ from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, get_d_mat,
 
 # set up arguments to be parsed from the terminal
 parser = argparse.ArgumentParser()
-#parser.add_argument("path", type=str, 
-#	help="filepath to image that is being tested.")
+parser.add_argument("path", type=str, 
+	help="filepath to image that is being tested.")
 parser.add_argument("seed", type=int, 
 	help="Seed number for the current experiment.")
 '''
@@ -83,7 +84,7 @@ PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 # list for tracking novel individuals throughout evolution
 # threshold determines if an individual should be added into the archive
 NOV_ARCHIVE = []
-ARCHIVE_PROB = .02
+ARCHIVE_PROB = .001
 
 # determines the number of nearest invidiuals that are considered 
 # when measuring novelty
@@ -94,8 +95,8 @@ K_VAL = 5
 
 # create class for maximizing fitness and creating individual
 # must name fitness atribute fit_obj because fitness is a instance variable of Genotype class
-creator.create("FitnessMulti", base.Fitness, weights = (1.0, 1.0))
-creator.create("Individual", Genotype, fit_obj = creator.FitnessMulti) 
+creator.create("FitnessMulti", base.Fitness, weights=(1.0, 1.0))
+creator.create("Individual", Genotype, fitness=creator.FitnessMulti) 
 
 # initialize the toolbox
 toolbox = base.Toolbox()
@@ -129,16 +130,49 @@ the main EA loop is contained inside of this function
 NOTE: pop size is set where the population function is registered
 '''
 def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, theta1, theta2, theta3, numIn, numOut):
+	
 	# instantiate the population
 	pop = toolbox.population()
+	
+	# assign fitness to the initial population
+	outputs = list(toolbox.map(toolbox.evaluate, pop))
 
+	# create full matrices of archived and current vectors
+	full_pop_vecs = np.vstack(outputs)
+	# only create the archive vectors if there are individuals in the archive
+	if(len(NOV_ARCHIVE) > 0):
+		# must grab the numpy arrays out of each tuple in novelty archive
+		full_archive_vecs = np.vstack([x[1] for x in NOV_ARCHIVE])
+	else:
+		full_archive_vecs = np.array([[]])
+
+	# create tuples that can be fed into the novelty fitness assignment function
+	output_tups = [(vec[0], PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
+		full_pop_vecs, full_archive_vecs, K_VAL) for vec in outputs]
+
+	# map all outputs to the genotypes with their actual fitness assigned
+	fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
+
+	# find all output lists that should be added to the archive
+	for index in range(len(fitnesses)):
+		# randomly add individuals into the archive based on a probability
+		if(np.random.uniform() <= ARCHIVE_PROB):
+			NOV_ARCHIVE.append((pop[index], outputs[index]))
+	
+	org_ind = 0
+	for f,o in zip(fitnesses, outputs):
+		gen = pop[org_ind]
+		gen.fitness.values = f
+		org_ind += 1
+	
+	
 	# use global innovation object to track the creation of new innovation numbers during evolution
 	gb = GlobalInnovation(numIn, numOut)
 
 
 	# used to check whether a species fitness becomes stagnant
-	LAST_FITNESS = []	
-	CURRENT_STAG_GENS = []
+	#LAST_FITNESS = []	
+	#CURRENT_STAG_GENS = []
 
 	for g in range(NGEN):
 		print("RUNNING GENERATION " + str(g))
@@ -283,41 +317,35 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		
 		# assign fitnesses to all mutants in the mutants list
 		# only the output pixels are mapped back, all evaluation must be done below
-		outputs = list(toolbox.map(toolbox.evaluate, pop))
+		outputs = list(toolbox.map(toolbox.evaluate, mutants))
 
                 # create full matrices of archived and current vectors
-                full_pop_vecs = np.vstack(outputs)
-                # only create the archive vectors if there are individuals in the archive
-                if(len(NOV_ARCHIVE) > 0):
-                        # must grab the numpy arrays out of each tuple in novelty archive
-                        full_archive_vecs = np.vstack([x[1] for x in NOV_ARCHIVE])
-                else:
-                        full_archive_vecs = np.array([[]])
+		full_pop_vecs = np.vstack(outputs)
+		# only create the archive vectors if there are individuals in the archive
+		if(len(NOV_ARCHIVE) > 0):
+			# must grab the numpy arrays out of each tuple in novelty archive
+			full_archive_vecs = np.vstack([x[1] for x in NOV_ARCHIVE])
+		else:
+			full_archive_vecs = np.array([[]])
 
-                # create tuples that can be fed into the novelty fitness assignment function
-                output_tups = [(vec[0], PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
-                                 full_pop_vecs, full_archive_vecs, K_VAL) for vec in outputs]
+		# create tuples that can be fed into the novelty fitness assignment function
+		output_tups = [(vec[0], PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
+			full_pop_vecs, full_archive_vecs, K_VAL) for vec in outputs]
 
-                # map all outputs to the genotypes with their actual fitness assigned
-                fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
+		# map all outputs to the genotypes with their actual fitness assigned
+		fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
 
-                # find all output lists that should be added to the archive
-                for index in range(len(fitnesses)):
-                        # randomly add individuals into the archive based on a probability
-                        if(np.random.uniform() <= ARCHIVE_PROB):
-                                NOV_ARCHIVE.append((pop[index], outputs[index]))
+		# find all output lists that should be added to the archive
+		for index in range(len(fitnesses)):
+			# randomly add individuals into the archive based on a probability
+			if(np.random.uniform() <= ARCHIVE_PROB):
+				NOV_ARCHIVE.append((mutants[index], outputs[index]))
 
-                org_ind = 0
-                for f,o in zip(fitnesses, outputs):
-                        #if(np.sum(o)/(NUM_X*NUM_Y) < MATERIAL_PENALIZATION_THRESHOLD or 
-                                #       np.sum(o)/(NUM_X*NUM_Y) > (1 - MATERIAL_PENALIZATION_THRESHOLD)):
-                                # penalize the solution for not having enough or too much material
-                                #f = (f[0]/2,)
-
-                        gen = pop[org_ind]
-                        gen.fit_obj.values = f
-                        gen.fitness = f
-                        org_ind += 1
+		org_ind = 0
+		for f,o in zip(fitnesses, outputs):
+			gen = mutants[org_ind]
+			gen.fitness.values = f
+			org_ind += 1
 
 			'''
 			# apply weight mutations
@@ -369,6 +397,10 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 					del ind.fit_obj.values
 			
 			'''
+		
+		# select individuals to be present in the next generation's population
+		toolbox.select(pop + mutants, k=POP_SIZE)
+		
 		# must clear the dictionary of innovation numbers for the coming generation
 		# only check to see if same innovation occurs twice in a single generation
 		gb.clearDict()
@@ -380,7 +412,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-		
+	'''		
 	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_nov_test_3.txt', 'rb'))
 	pop = pop_tup[0]
 	for individual in pop:
@@ -396,7 +428,7 @@ if __name__ == '__main__':
 
 	'''
 	# the following are all parameter settings for main function
-	NGEN = 200
+	NGEN = 800
 	WEIGHT_MUTPB = .3#float(args.weight)/100.0 #.3 
 	NODE_MUTPB = .03#float(args.node)/100.0 #.02
 	CON_MUTPB = .15#float(args.con)/100.0 #.1
@@ -415,7 +447,6 @@ if __name__ == '__main__':
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
 	#examine_population_dmat(finalPop, NUM_X, NUM_Y)
 
-	file_name = get_file_name("/home/wolfecameron/Desktop/CPPN_pop_result", "CPPN_nov_test_")
+	file_name = get_file_name("/home/wolfecameron/Desktop/CPPN_pop_result", "CPPN_novnsga_test_")
 	save_population([x[0] for x in NOV_ARCHIVE] + finalPop, SEED, file_name)
-	'''	
 	
