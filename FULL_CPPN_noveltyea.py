@@ -447,6 +447,6 @@ if __name__ == '__main__':
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
 	#examine_population_dmat(finalPop, NUM_X, NUM_Y)
 
-	file_name = get_file_name("/home/wolfecameron/Desktop/CPPN_pop_result", "CPPN_novnsga_test_")
+	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_novnsga_test_")
 	save_population([x[0] for x in NOV_ARCHIVE] + finalPop, SEED, file_name)
 	

@@ -1,9 +1,8 @@
 #!/bin/sh
 
-TOTAL_IT=5
 
-# run the script total it number of times and exit
-for i in 1 2 3 4 5
+# run the script with each image and exit
+for i in "heart_ex.png" "pacman_ex.png" "spring10.png" "star_ex.png"
 do
-	python -m scoop -n 8 FULL_CPPN_noveltyea.py 1
+	python -m scoop -n 8 FULL_CPPN_noveltyea.py $i 1
 done
