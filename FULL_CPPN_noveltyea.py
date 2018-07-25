@@ -298,19 +298,19 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			new_ind = copy.deepcopy(ind)
 			# apply weight mutation
 			if(np.random.uniform() <= weightMutpb):
-				toolbox.weightMutate(new_ind)
+				new_ind = toolbox.weightMutate(new_ind)[0]
 				
 			# apply node mutation
 			if(np.random.uniform() <= nodeMutpb):
-				toolbox.nodeMutate(new_ind, gb)
+				new_ind = toolbox.nodeMutate(new_ind, gb)[0]
 			
 			# apply onnection mutation
 			if(np.random.uniform() <= conMutpb):
-				toolbox.connectionMutate(new_ind, gb)
+				new_ind = toolbox.connectionMutate(new_ind, gb)[0]
 	
 			# apply activation mutation
 			if(np.random.uniform() <= actMutpb):
-				toolbox.activationMutate(new_ind)
+				new_ind = toolbox.activationMutate(new_ind)[0]
 				
 			# append the newly mutated individuals to a separate list
 			mutants.append(new_ind)
@@ -399,7 +399,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			'''
 		
 		# select individuals to be present in the next generation's population
-		toolbox.select(pop + mutants, k=POP_SIZE)
+		pop = toolbox.select(pop + mutants, k=POP_SIZE)
 		
 		# must clear the dictionary of innovation numbers for the coming generation
 		# only check to see if same innovation occurs twice in a single generation
@@ -413,7 +413,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
 	'''		
-	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_nov_test_3.txt', 'rb'))
+	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_novnsga_test_1.txt', 'rb'))
 	pop = pop_tup[0]
 	for individual in pop:
 		org = Genotype(2,1)
@@ -449,4 +449,3 @@ if __name__ == '__main__':
 
 	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_novnsga_test_")
 	save_population([x[0] for x in NOV_ARCHIVE] + finalPop, SEED, file_name)
-	
