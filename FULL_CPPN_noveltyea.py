@@ -147,8 +147,8 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		full_archive_vecs = np.array([[]])
 
 	# create tuples that can be fed into the novelty fitness assignment function
-	output_tups = [(vec[0], PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
-		full_pop_vecs, full_archive_vecs, K_VAL) for vec in outputs]
+	output_tups = [(gen, vec[0], PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
+		full_pop_vecs, full_archive_vecs, K_VAL) for gen, vec in zip(pop, outputs)]
 
 	# map all outputs to the genotypes with their actual fitness assigned
 	fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
@@ -329,8 +329,8 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			full_archive_vecs = np.array([[]])
 
 		# create tuples that can be fed into the novelty fitness assignment function
-		output_tups = [(vec[0], PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
-			full_pop_vecs, full_archive_vecs, K_VAL) for vec in outputs]
+		output_tups = [(gen, vec[0], PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
+			full_pop_vecs, full_archive_vecs, K_VAL) for gen, vec in zip(mutants, outputs)]
 
 		# map all outputs to the genotypes with their actual fitness assigned
 		fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
@@ -413,7 +413,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
 	'''		
-	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_novnsga_test_1.txt', 'rb'))
+	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_novnsga_test_2.txt', 'rb'))
 	pop = pop_tup[0]
 	for individual in pop:
 		org = Genotype(2,1)
@@ -449,3 +449,4 @@ if __name__ == '__main__':
 
 	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_novnsga_test_")
 	save_population([x[0] for x in NOV_ARCHIVE] + finalPop, SEED, file_name)
+	

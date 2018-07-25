@@ -496,7 +496,20 @@ class Genotype():
 		for c in self.connections:
 			weightTotal += c.getWeight()
 		return weightTotal
-
+	
+	def get_con_cost(self):
+		"""Method that finds the total connection cost for the CPPN in question
+		taking the absolute values of the weight of every connection in the network
+		
+		differs from the above method because only magnitude of the weights is considered
+		"""
+		
+		weight_total = 0.0
+		for c in self.connections:
+			weight_total += abs(c.getWeight())
+		
+		return weight_total
+		
 	'''
 	method for getting the average distance between calling genome and a list of others
 	@param others list of other genotypes
