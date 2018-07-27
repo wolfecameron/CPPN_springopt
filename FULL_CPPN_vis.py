@@ -115,3 +115,19 @@ def showHeatMap(outputs):
 	# create heat map using imshow and display to user
 	plt.imshow(outputs, cmap='hot', interpolation='nearest')
 	plt.show()
+
+	
+def plot_pareto_front(par_frnts, colors):
+	"""This method finds the fitness values of the
+	pareto front (2D) and plots the pareto front
+	on a matplotlib scatter plot to be visualized
+	"""
+	for par_frnt, c in zip(par_frnts, colors):
+		x1_vals = [ind.fitness.values[0] for ind in par_frnt]
+		x2_vals = [ind.fitness.values[1] for ind in par_frnt]
+		plt.scatter(x1_vals, x2_vals, c=c)
+	plt.xlabel("Closeness to Target")
+	plt.ylabel("Connection Cost")
+	plt.title("Visualization of Pareto Optimal Front")
+	plt.show()
+

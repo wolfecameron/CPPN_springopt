@@ -230,9 +230,30 @@ def examine_population_dmat(population, NUM_X, NUM_Y):
 		input("SHOWING individual #{0}".format(str(n)))
 		n += 1
 
+def get_pareto_front(pop):
+	"""This function goes through a population and finds the pareto
+	optimal front within the population and returns it within a list.
+	The pareto optimal front is all individuals that are not dominated
+	by any other individuals within the population
+	"""
+	
+	pareto_front = []
+	# go through every individual and see if that individual is dominated
+	for ind in pop:
+		fit_tup = ind.fitness
+		other_ind = 0
+		found_dom = False
+		# compare to every other individual in population
+		while(not found_dom and other_ind < len(pop)):
+			other_fit = pop[other_ind].fitness
+			if(other_fit.dominates(fit_tup)):
+				found_dom = True
+			other_ind += 1
+		# add to pareto front if not dominated
+		if(not found_dom):
+			pareto_front.append(ind)
 
-
-
-
-
+	
+	# return all non-dominated individuals
+	return pareto_front
 

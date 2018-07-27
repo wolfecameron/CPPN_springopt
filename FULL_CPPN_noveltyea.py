@@ -14,11 +14,11 @@ from scoop import futures
 
 from FULL_CPPN_struct import Genotype
 from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover_avg, actMutate, save_population
-from FULL_CPPN_deaphelp import examine_population_dmat, get_file_name
+from FULL_CPPN_deaphelp import examine_population_dmat, get_file_name, get_pareto_front
 from FULL_CPPN_innovation import GlobalInnovation
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
 from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
-#from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions
+from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions, plot_pareto_front
 from FULL_CPPN_evaluation import evaluate_novelty, evaluate_pic_scoop
 from FULL_CPPN_evaluation import evaluate_pic_dparam, evaluate_nov_pic
 #from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
@@ -30,6 +30,9 @@ parser.add_argument("path", type=str,
 	help="filepath to image that is being tested.")
 parser.add_argument("seed", type=int, 
 	help="Seed number for the current experiment.")
+parser.add_argument("ngen", type=int,
+	help="Number of generations to run the evolution.")
+
 '''
 parser.add_argument("weight", type=int, 
 	help="Weight Mutation probability.")
@@ -83,13 +86,15 @@ PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 
 # list for tracking novel individuals throughout evolution
 # threshold determines if an individual should be added into the archive
+#NOV_ARCHIVE = []
+#ARCHIVE_PROB = .001
+
+# determines when to save the current population
+NGEN_TO_SAVE = 1 # save every n generations
+
 NOV_ARCHIVE = []
-ARCHIVE_PROB = .001
-
-# determines the number of nearest invidiuals that are considered 
-# when measuring novelty
 K_VAL = 5
-
+ARCHIVE_PROB = 0.0
 
 ''' ----- REGISTER ALL FUNCTIONS AND CLASSES WITH DEAP ----- '''
 
@@ -152,13 +157,15 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 	# map all outputs to the genotypes with their actual fitness assigned
 	fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
-
+	
+	'''
 	# find all output lists that should be added to the archive
 	for index in range(len(fitnesses)):
 		# randomly add individuals into the archive based on a probability
 		if(np.random.uniform() <= ARCHIVE_PROB):
 			NOV_ARCHIVE.append((pop[index], outputs[index]))
-	
+	'''
+
 	org_ind = 0
 	for f,o in zip(fitnesses, outputs):
 		gen = pop[org_ind]
@@ -176,7 +183,6 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 	for g in range(NGEN):
 		print("RUNNING GENERATION " + str(g))
-		print("Archive Size: {0}".format(str(len(NOV_ARCHIVE))))
 		# create a 2D array representing species from the population
 		#if(g == 0):
 		#	species = speciatePopulationFirstTime(pop, thresh, theta1, theta2, theta3)
@@ -404,6 +410,13 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		# must clear the dictionary of innovation numbers for the coming generation
 		# only check to see if same innovation occurs twice in a single generation
 		gb.clearDict()
+		
+		# save the population if it has reached a saving point in the evolution
+		if(g % NGEN_TO_SAVE == 0):
+			file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_big_test_gen{0}".format(str(g)))
+			save_population(pop, SEED, file_name)				
+
+
 
 	# return the population after it has been evolved
 	return pop
@@ -412,9 +425,20 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-	'''		
-	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_novnsga_test_2.txt', 'rb'))
+	'''
+	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_concost_test_5.txt', 'rb'))
+	pop_tup1 = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_concost_test_6.txt', 'rb'))
+	pop_tup2 = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_concost_test_7.txt', 'rb'))
+	pop_tup3 = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_concost_test_8.txt', 'rb'))
+
 	pop = pop_tup[0]
+	par_frnt1 = get_pareto_front(pop)
+	par_frnt2 = get_pareto_front(pop_tup1[0])
+	par_frnt3 = get_pareto_front(pop_tup2[0])
+	par_frnt4 = get_pareto_front(pop_tup3[0])
+	plot_pareto_front([par_frnt1, par_frnt2, par_frnt3, par_frnt4], ['r', 'c', 'b', 'm'])
+	'''
+	'''
 	for individual in pop:
 		org = Genotype(2,1)
 		org.connections = individual.connections
@@ -428,7 +452,7 @@ if __name__ == '__main__':
 
 	'''
 	# the following are all parameter settings for main function
-	NGEN = 800
+	NGEN = args.ngen
 	WEIGHT_MUTPB = .3#float(args.weight)/100.0 #.3 
 	NODE_MUTPB = .03#float(args.node)/100.0 #.02
 	CON_MUTPB = .15#float(args.con)/100.0 #.1
@@ -445,8 +469,4 @@ if __name__ == '__main__':
 	# main parameters: nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, theta2, theta3, numIn, numOut
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-	#examine_population_dmat(finalPop, NUM_X, NUM_Y)
-
-	file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_concost_test_")
-	save_population([x[0] for x in NOV_ARCHIVE] + finalPop, SEED, file_name)
 	
