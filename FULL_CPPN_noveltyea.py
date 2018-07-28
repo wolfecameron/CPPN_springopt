@@ -90,7 +90,7 @@ PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 #ARCHIVE_PROB = .001
 
 # determines when to save the current population
-NGEN_TO_SAVE = 1 # save every n generations
+NGEN_TO_SAVE = 500 # save every n generations
 
 NOV_ARCHIVE = []
 K_VAL = 5
