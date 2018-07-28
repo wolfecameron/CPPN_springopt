@@ -84,13 +84,8 @@ FILE_PATH = './fitting_images/' + args.path
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 
 
-# list for tracking novel individuals throughout evolution
-# threshold determines if an individual should be added into the archive
-#NOV_ARCHIVE = []
-#ARCHIVE_PROB = .001
-
 # determines when to save the current population
-NGEN_TO_SAVE = 500 # save every n generations
+NGEN_TO_SAVE = args.ngen - 1 # save every n generations
 
 NOV_ARCHIVE = []
 K_VAL = 5
@@ -177,21 +172,10 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 	gb = GlobalInnovation(numIn, numOut)
 
 
-	# used to check whether a species fitness becomes stagnant
-	#LAST_FITNESS = []	
-	#CURRENT_STAG_GENS = []
-
+	# run the evolution loop
 	for g in range(NGEN):
 		print("RUNNING GENERATION " + str(g))
-		# create a 2D array representing species from the population
-		#if(g == 0):
-		#	species = speciatePopulationFirstTime(pop, thresh, theta1, theta2, theta3)
-		#else:
-		#	species = speciatePopulationNotFirstTime(pop, thresh, theta1, theta2, theta3)
 
-		# determine if speciation threshold needs to be modified and apply modification
-		# decrease threshold slowly to increase species, but increase quickly to keep to many
-		# species from forming - thus the terms being different sizes
 		'''
 		if(g >= GENERATION_TO_MODIFY_THRESH):
 			numSpecies = len(species)
@@ -412,8 +396,8 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		gb.clearDict()
 		
 		# save the population if it has reached a saving point in the evolution
-		if(g % NGEN_TO_SAVE == 0):
-			file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_big_test_gen{0}".format(str(g)))
+		if(g > 0 and g % NGEN_TO_SAVE == 0):
+			file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_parameter_test".format(str(g)))
 			save_population(pop, SEED, file_name)				
 
 
@@ -425,6 +409,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
+	'''
 	# open all of the tuples
 	gen_list = ['500', '1000', '1500', '2000', '2500', '3000', '3500', '4000',
 			'4500', '5000', '5500', '6000', '6500', '7000', '7500',
@@ -475,7 +460,6 @@ if __name__ == '__main__':
 	NUM_IN = 2
 	NUM_OUT = 1
 
-	# main parameters: nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, theta2, theta3, numIn, numOut
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-	'''	
+		
