@@ -18,7 +18,7 @@ from FULL_CPPN_deaphelp import examine_population_dmat, get_file_name, get_paret
 from FULL_CPPN_innovation import GlobalInnovation
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
 from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
-from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions, plot_pareto_front
+from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions, plot_pareto_front, get_n_colors
 from FULL_CPPN_evaluation import evaluate_novelty, evaluate_pic_scoop
 from FULL_CPPN_evaluation import evaluate_pic_dparam, evaluate_nov_pic
 #from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
@@ -425,20 +425,29 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-	'''
-	pop_tup = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_concost_test_5.txt', 'rb'))
-	pop_tup1 = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_concost_test_6.txt', 'rb'))
-	pop_tup2 = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_concost_test_7.txt', 'rb'))
-	pop_tup3 = pickle.load(open('/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_concost_test_8.txt', 'rb'))
+	# open all of the tuples
+	gen_list = ['500', '1000', '1500', '2000', '2500', '3000', '3500', '4000',
+			'4500', '5000', '5500', '6000', '6500', '7000', '7500',
+			'8000', '8500', '9000', '9500']	
+	
 
-	pop = pop_tup[0]
-	par_frnt1 = get_pareto_front(pop)
-	par_frnt2 = get_pareto_front(pop_tup1[0])
-	par_frnt3 = get_pareto_front(pop_tup2[0])
-	par_frnt4 = get_pareto_front(pop_tup3[0])
-	plot_pareto_front([par_frnt1, par_frnt2, par_frnt3, par_frnt4], ['r', 'c', 'b', 'm'])
-	'''
-	'''
+	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_big_test_gen{0}1.txt".format(gen), "rb"))[0] for gen in gen_list]
+	all_pars = [get_pareto_front(pop) for pop in all_pops]
+	for x in all_pars:
+		print(len(x))
+	colors = get_n_colors(N=len(gen_list))
+	plot_pareto_front(all_pars, colors, gen_list)
+	
+	pop = []
+	for par in all_pars:
+		for ind in par:
+			tup = ind.fitness.values
+			if(4700 <= tup[0] <= 5200 and 10 <= tup[1] <= 25):
+				pop.append(ind)
+	
+	print(len(pop))
+	input()
+	pop = pop[200:]
 	for individual in pop:
 		org = Genotype(2,1)
 		org.connections = individual.connections
@@ -469,4 +478,4 @@ if __name__ == '__main__':
 	# main parameters: nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, thresh, alpha, theta1, theta2, theta3, numIn, numOut
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-	
+	'''	
