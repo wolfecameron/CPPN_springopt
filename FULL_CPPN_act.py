@@ -14,7 +14,7 @@ def stepAct(x):
 
 #sigmoid activation function
 def sigAct(x):
-	steepnessCoefficient = 1.0
+	steepnessCoefficient = 4.9
 	return float(1)/(1+np.exp(-steepnessCoefficient*x))
 		
 #ReLU activation function (linear if greater than 0, else 0)
