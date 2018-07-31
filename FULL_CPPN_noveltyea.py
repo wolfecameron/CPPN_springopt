@@ -293,9 +293,9 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		for ind in pop:
 			new_ind = copy.deepcopy(ind)
 			# apply weight mutation
-			if(1.5 <= weightMutpb):
+			if(np.random.uniform() <= weightMutpb):
 				new_ind = toolbox.weightMutate(new_ind)[0]
-				'''
+				
 				output = toolbox.evaluate(new_ind)
 				output_tup = (new_ind, output, PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
 					np.array([[]]), np.array([[]]), 1)
@@ -307,7 +307,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 					dom_bad += 1
 				else:
 					non_dom += 1
-				'''
+				
 			# apply node mutation
 			if(1.5 <= nodeMutpb):
 				new_ind = toolbox.nodeMutate(new_ind, gb)[0]
@@ -338,14 +338,30 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		
 		# apply crossover
 		for child1Ind, child2Ind in zip(range(0,len(pop),2), range(1,len(pop),2)):
-			if(np.random.uniform() < cxPb):
+			if(1.5 < cxPb):
+				# set species so you know which result corresponds to each parent
+				pop[child1Ind].species = 1
+				pop[child2Ind].species = 2
+				
+				# create a deep copy for the newly mutated individuals
 				ch_1 = copy.deepcopy(pop[child1Ind])
 				ch_2 = copy.deepcopy(pop[child2Ind])
-				new_inds = toolbox.mate(ch_1, ch_2)	
+				new_inds = toolbox.mate(ch_1, ch_2)
+				
+				# add new mutants to the mutants list
 				mutants.append(new_inds[0])
 				mutants.append(new_inds[1])
-					
-		
+				'''	
+				# find if the mutants are more fit than parents
+				for child in new_inds:
+					other_ind = pop[child1Ind] if pop[child1Ind].species == child.species else pop[child2Ind]
+					if(child.fitness.dominates(other_ind.fitness)):
+						dom_good += 1
+					elif(other_ind.fitness.dominates(child.fitness)):
+						dom_bad += 1
+					else:
+						non_dom += 1
+				'''
 		# assign fitnesses to all mutants in the mutants list
 		# only the output pixels are mapped back, all evaluation must be done below
 		outputs = list(toolbox.map(toolbox.evaluate, mutants))

@@ -225,14 +225,19 @@ class Genotype():
 	'''
 	def weightMutate(self):
 		variance = 1.0
-		typeOfChange_pb = .9
+		normal_change = .25
+		mult_change = .9
 		for c in self.connections:
+			rand = np.random.uniform()
 			# 90% chance to perturb weight, 10% chance to pick completely new one
-			if(np.random.uniform() <= typeOfChange_pb):
+			if(rand <= normal_change):
 				# mutate weights based on a normal distribution around old weight
 				c.setWeight(np.random.normal(c.weight, variance))
+			elif(rand <= mult_change):
+				# set weight equal to its value multiplied by a random factor [.5, 1.5]
+				c.setWeight(c.weight*np.random.uniform(.5, 1.5))
 			else:
-				# set weight equal to something new
+				# set weight equal to something completely new
 				c.setWeight(np.random.uniform(-1,1))
 
 	'''
