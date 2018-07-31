@@ -134,6 +134,12 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 	# instantiate the population
 	pop = toolbox.population()
 	
+	# use to track effectiveness of mutations
+	dom_good = 0
+	dom_bad = 0
+	non_dom = 0
+	
+	
 	# assign fitness to the initial population
 	outputs = list(toolbox.map(toolbox.evaluate, pop))
 
@@ -287,23 +293,58 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		for ind in pop:
 			new_ind = copy.deepcopy(ind)
 			# apply weight mutation
-			if(np.random.uniform() <= weightMutpb):
+			if(1.5 <= weightMutpb):
 				new_ind = toolbox.weightMutate(new_ind)[0]
-				
+				'''
+				output = toolbox.evaluate(new_ind)
+				output_tup = (new_ind, output, PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
+					np.array([[]]), np.array([[]]), 1)
+				fit = toolbox.assign_fit(output_tup)
+				new_ind.fitness.values = fit
+				if(new_ind.fitness.dominates(ind.fitness)):
+					dom_good += 1
+				elif(ind.fitness.dominates(new_ind.fitness)):
+					dom_bad += 1
+				else:
+					non_dom += 1
+				'''
 			# apply node mutation
-			if(np.random.uniform() <= nodeMutpb):
+			if(1.5 <= nodeMutpb):
 				new_ind = toolbox.nodeMutate(new_ind, gb)[0]
-			
+
 			# apply onnection mutation
-			if(np.random.uniform() <= conMutpb):
+			if(1.5 <= conMutpb):
 				new_ind = toolbox.connectionMutate(new_ind, gb)[0]
 	
 			# apply activation mutation
-			if(np.random.uniform() <= actMutpb):
+			if(1.5 <= actMutpb):
 				new_ind = toolbox.activationMutate(new_ind)[0]
-				
+				'''
+				output = toolbox.evaluate(new_ind)
+				output_tup = (new_ind, output, PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
+					np.array([[]]), np.array([[]]), 1)
+				fit = toolbox.assign_fit(output_tup)
+				new_ind.fitness.values = fit
+				if(new_ind.fitness.dominates(ind.fitness)):
+					dom_good += 1
+				elif(ind.fitness.dominates(new_ind.fitness)):
+					dom_bad += 1
+				else:
+					non_dom += 1
+				'''
 			# append the newly mutated individuals to a separate list
 			mutants.append(new_ind)
+		
+		
+		# apply crossover
+		for child1Ind, child2Ind in zip(range(0,len(pop),2), range(1,len(pop),2)):
+			if(np.random.uniform() < cxPb):
+				ch_1 = copy.deepcopy(pop[child1Ind])
+				ch_2 = copy.deepcopy(pop[child2Ind])
+				new_inds = toolbox.mate(ch_1, ch_2)	
+				mutants.append(new_inds[0])
+				mutants.append(new_inds[1])
+					
 		
 		# assign fitnesses to all mutants in the mutants list
 		# only the output pixels are mapped back, all evaluation must be done below
@@ -387,7 +428,12 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 					del ind.fit_obj.values
 			
 			'''
-		
+		# print domination info after mutation
+		total = dom_good + dom_bad + non_dom + 0.0
+		print("Mutants dominate parents: " + str(dom_good/total))
+		print("Parents dominate mutants: " + str(dom_bad/total))
+		print("Parents/mutants don't dominate:" + str(non_dom/total))
+
 		# select individuals to be present in the next generation's population
 		pop = toolbox.select(pop + mutants, k=POP_SIZE)
 		
@@ -409,6 +455,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
+	'''
 	# open all of the tuples
 	gen_list = [str(i) for i in range(5,9)]	
 	
@@ -462,4 +509,3 @@ if __name__ == '__main__':
 
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-	'''		
