@@ -295,7 +295,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			# apply weight mutation
 			if(np.random.uniform() <= weightMutpb):
 				new_ind = toolbox.weightMutate(new_ind)[0]
-				
+				'''
 				output = toolbox.evaluate(new_ind)
 				output_tup = (new_ind, output, PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
 					np.array([[]]), np.array([[]]), 1)
@@ -307,17 +307,18 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 					dom_bad += 1
 				else:
 					non_dom += 1
-				
+				'''
+
 			# apply node mutation
-			if(1.5 <= nodeMutpb):
+			if(np.random.uniform() <= nodeMutpb):
 				new_ind = toolbox.nodeMutate(new_ind, gb)[0]
 
 			# apply onnection mutation
-			if(1.5 <= conMutpb):
+			if(np.random.uniform() <= conMutpb):
 				new_ind = toolbox.connectionMutate(new_ind, gb)[0]
 	
 			# apply activation mutation
-			if(1.5 <= actMutpb):
+			if(np.random.uniform() <= actMutpb):
 				new_ind = toolbox.activationMutate(new_ind)[0]
 				'''
 				output = toolbox.evaluate(new_ind)
@@ -338,7 +339,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		
 		# apply crossover
 		for child1Ind, child2Ind in zip(range(0,len(pop),2), range(1,len(pop),2)):
-			if(1.5 < cxPb):
+			if(np.random.uniform() < cxPb):
 				# set species so you know which result corresponds to each parent
 				pop[child1Ind].species = 1
 				pop[child2Ind].species = 2
@@ -351,7 +352,15 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 				# add new mutants to the mutants list
 				mutants.append(new_inds[0])
 				mutants.append(new_inds[1])
-				'''	
+				'''
+				# assign fitness to new individuals
+				for new_ind in new_inds:
+					output = toolbox.evaluate(new_ind)
+					output_tup = (new_ind, output, PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
+						np.array([[]]), np.array([[]]), 1)
+					fit = toolbox.assign_fit(output_tup)
+					new_ind.fitness.values = fit
+	
 				# find if the mutants are more fit than parents
 				for child in new_inds:
 					other_ind = pop[child1Ind] if pop[child1Ind].species == child.species else pop[child2Ind]
@@ -445,10 +454,10 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 			
 			'''
 		# print domination info after mutation
-		total = dom_good + dom_bad + non_dom + 0.0
-		print("Mutants dominate parents: " + str(dom_good/total))
-		print("Parents dominate mutants: " + str(dom_bad/total))
-		print("Parents/mutants don't dominate:" + str(non_dom/total))
+		#total = dom_good + dom_bad + non_dom + 0.0
+		#print("Mutants dominate parents: " + str(dom_good/total))
+		#print("Parents dominate mutants: " + str(dom_bad/total))
+		#print("Parents/mutants don't dominate:" + str(non_dom/total))
 
 		# select individuals to be present in the next generation's population
 		pop = toolbox.select(pop + mutants, k=POP_SIZE)
@@ -459,7 +468,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		
 		# save the population if it has reached a saving point in the evolution
 		if(g > 0 and g % NGEN_TO_SAVE == 0):
-			file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_parameter_test".format(str(g)))
+			file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_quick_test".format(str(g)))
 			save_population(pop, SEED, file_name)				
 
 
