@@ -481,23 +481,27 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-	'''
+	
 	# open all of the tuples
 	gen_list = [str(i) for i in range(5,9)]	
 	
 
-	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_parameter_test{0}.txt".format(gen), "rb"))[0] for gen in gen_list]
+	#all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_parameter_test{0}.txt".format(gen), "rb"))[0] for gen in gen_list]
+	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test1.txt", "rb"))[0], 
+			pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test2.txt", "rb"))[0]]
+	
+	
 	all_pars = [get_pareto_front(pop) for pop in all_pops]
 	for x in all_pars:
 		print(len(x))
 	colors = get_n_colors(N=len(gen_list))
-	plot_pareto_front(all_pars, ['r', 'y', 'b', 'm'], gen_list)
+	plot_pareto_front(all_pars, ['r', 'y'], gen_list)
 
 	pop = []
-	par = all_pars[2]
+	par = all_pars[1]
 	for ind in par:
 		tup = ind.fitness.values
-		if(3500 <= tup[0] <= 6000 and 10 <= tup[1] <= 200):
+		if(3750 <= tup[0] <= 4250 and 2 <= tup[1] <= 10):
 			pop.append(ind)
 	
 	print(len(pop))
@@ -516,7 +520,7 @@ if __name__ == '__main__':
 		graphImage(np.array(output, copy=True), NUM_X, NUM_Y, 200)
 		org.graph_genotype()
 		index += 1
-	
+		
 	'''
 	# the following are all parameter settings for main function
 	NGEN = args.ngen
@@ -535,3 +539,4 @@ if __name__ == '__main__':
 
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
+	'''
