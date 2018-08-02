@@ -33,13 +33,14 @@ parser.add_argument("seed", type=int,
 parser.add_argument("ngen", type=int,
 	help="Number of generations to run the evolution.")
 
-'''
+
 parser.add_argument("weight", type=int, 
 	help="Weight Mutation probability.")
 parser.add_argument("node", type=int, 
 	help="Node Mutation Probability.")
 parser.add_argument("con", type=int, 
 	help="Connection Mutation Probability.")
+'''
 parser.add_argument("act", type=int, 
 	help="Activation Mutation Probability.")
 parser.add_argument("cross", type=int, 
@@ -519,9 +520,9 @@ if __name__ == '__main__':
 	'''
 	# the following are all parameter settings for main function
 	NGEN = args.ngen
-	WEIGHT_MUTPB = .3#float(args.weight)/100.0 #.3 
-	NODE_MUTPB = .03#float(args.node)/100.0 #.02
-	CON_MUTPB = .15#float(args.con)/100.0 #.1
+	WEIGHT_MUTPB = float(args.weight)/100.0 #.3 
+	NODE_MUTPB = float(args.node)/100.0 #.03
+	CON_MUTPB = float(args.con)/100.0 #.15
 	CXPB = .1#float(args.cross)/100.0 #.1
 	ACTPB = .1#float(args.act)/100.0 #.05
 	THRESHOLD = 3.0
