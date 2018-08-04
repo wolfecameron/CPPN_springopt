@@ -227,22 +227,22 @@ class Genotype():
 		variance = 1.0
 		normal_change = .25
 		mult_change = .9
-		mutated = False
-		for c in self.connections:
-			# only allow weights to mutate a single time
-			if(not mutated):
-				mutated = True
-				rand = np.random.uniform()
-				# 90% chance to perturb weight, 10% chance to pick completely new one
-				if(rand <= normal_change):
-					# mutate weights based on a normal distribution around old weight
-					c.setWeight(np.random.normal(c.weight, variance))
-				elif(rand <= mult_change):
-					# set weight equal to its value multiplied by a random factor [.5, 1.5]
-					c.setWeight(c.weight*np.random.uniform(.5, 1.5))
-				else:
-					# set weight equal to something completely new
-					c.setWeight(np.random.uniform(-1,1))
+
+		# find a random connection weight to mutate
+		index = np.random.randint(len(self.connections))
+		c = self.connections[index]
+		rand = np.random.uniform()
+		if(rand <= normal_change):
+			# mutate weights based on a normal distribution around old weight
+			c.setWeight(np.random.normal(c.weight, variance))
+		elif(rand <= mult_change):
+			# set weight equal to its value multiplied by a random factor [.5, 1.5]
+			c.setWeight(c.weight*np.random.uniform(.5, 1.5))
+		else:
+			# set weight equal to something completely new
+			c.setWeight(np.random.uniform(-1,1))
+	
+		
 
 	'''
 	activation mutatation function for CPPN structure
@@ -347,7 +347,7 @@ class Genotype():
 				if(child.connections[childInd].getInnovationNumber() == parent.connections[parInd].getInnovationNumber()):
 					# swap genes if random number below pointcxpb
 					swap = np.random.uniform()
-					if(swap <= .25):
+					if(swap <= .5):
 						# TAKE WEIGHT HERE NOT THE CONNECTION
 						child.connections[childInd] = parent.connections[parInd].getCopy()
 		
@@ -370,7 +370,7 @@ class Genotype():
 	'''
 	def crossoverReturnBoth(self, other):
 		# keep disjoint genes from more fit parent
-		SWAP_PB = .25
+		SWAP_PB = .5
 		child = None
 		parent = None
 		if(self.getFitness() > other.getFitness()):

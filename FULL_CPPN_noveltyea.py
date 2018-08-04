@@ -33,14 +33,13 @@ parser.add_argument("seed", type=int,
 parser.add_argument("ngen", type=int,
 	help="Number of generations to run the evolution.")
 
-
+'''
 parser.add_argument("weight", type=int, 
 	help="Weight Mutation probability.")
 parser.add_argument("node", type=int, 
 	help="Node Mutation Probability.")
 parser.add_argument("con", type=int, 
 	help="Connection Mutation Probability.")
-'''
 parser.add_argument("act", type=int, 
 	help="Activation Mutation Probability.")
 parser.add_argument("cross", type=int, 
@@ -117,7 +116,7 @@ toolbox.register("evaluate", evaluate_pic_scoop)
 toolbox.register("assign_fit", evaluate_nov_pic)
 toolbox.register("select", tools.selNSGA2)
 toolbox.register("tournSelect", tools.selTournament, fit_attr = "fitness")
-toolbox.register("mate", xover_avg)
+toolbox.register("mate", xover)
 toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
 toolbox.register("nodeMutate", nodeMutate)
@@ -481,7 +480,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-	
+	'''
 	# open all of the tuples
 	gen_list = [str(i) for i in range(5,9)]	
 	
@@ -524,11 +523,11 @@ if __name__ == '__main__':
 	'''
 	# the following are all parameter settings for main function
 	NGEN = args.ngen
-	WEIGHT_MUTPB = float(args.weight)/100.0 #.3 
-	NODE_MUTPB = float(args.node)/100.0 #.03
-	CON_MUTPB = float(args.con)/100.0 #.15
-	CXPB = .1#float(args.cross)/100.0 #.1
-	ACTPB = .1#float(args.act)/100.0 #.05
+	WEIGHT_MUTPB = .3#float(args.weight)/100.0 #.3 
+	NODE_MUTPB = .03 #float(args.node)/100.0 #.03
+	CON_MUTPB = .15 #float(args.con)/100.0 #.15
+	CXPB = .1 #float(args.cross)/100.0 #.1
+	ACTPB = .1 #float(args.act)/100.0 #.05
 	THRESHOLD = 3.0
 	ALPHA = 1.0
 	THETA1 = 1.0
@@ -539,4 +538,4 @@ if __name__ == '__main__':
 
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-	'''
+
