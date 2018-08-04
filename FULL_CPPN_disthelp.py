@@ -7,6 +7,25 @@ import sys
 import numpy as np
 
 
+def get_hausdorff_dist(px, distances):
+	"""Finds the hausdorff distance between the candidate pixels
+	and the target pixels. This is the maximum shortest distance
+	between a pixel in px and a pixel in targ_px
+	"""
+
+	# initialize minimum distance to a large value
+	min_dist = sys.maxsize
+		
+	# get distance value for all black pixels in the output
+	all_dist = []
+	for index in range(len(px)):
+		if(px[index] == 1):
+			all_dist.append(distances[index])	
+	
+	# return maximum of the distance values
+	return max(all_dist)
+
+
 
 def get_dist_mat(targ_pix):
 	"""Creates a matrix that finds, for every pixel in the target
@@ -14,6 +33,7 @@ def get_dist_mat(targ_pix):
 	in the target pixel matrix
 	"""
 	
+
 	# find location of all black pixels
 	one_pixels = get_black_pixels(targ_pix)
 	
@@ -29,7 +49,7 @@ def get_dist_mat(targ_pix):
 				closest = get_closest_point((r, c), one_pixels)
 				result_mat[r][c] = closest
 
-	return result_mat
+	return result_mat.flatten()
 
 
 def get_black_pixels(targ_pix):
@@ -72,8 +92,7 @@ def get_closest_point(pos_tup, all_pos):
 
 if __name__ == '__main__':
 	"""Used to run simple tests on methods"""
-	x = np.array([[1,0,0,0],[0,1,1,0],[0,0,0,0]])
-	print(get_dist_mat(x))
-	
-
-
+	x = np.array([[1,0,0,0],[0,0,0,0],[0,0,0,0]])
+	y = get_dist_mat(x)
+	z = np.array([1,0,0,1,1,1,1,0,0,1,1,1])	
+	print(get_hausdorff_dist(z, y))

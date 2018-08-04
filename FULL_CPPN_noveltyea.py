@@ -23,6 +23,8 @@ from FULL_CPPN_evaluation import evaluate_novelty, evaluate_pic_scoop
 from FULL_CPPN_evaluation import evaluate_pic_dparam, evaluate_nov_pic
 #from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
 from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, get_d_mat, graphImage
+from FULL_CPPN_disthelp import get_dist_mat 
+
 
 # set up arguments to be parsed from the terminal
 parser = argparse.ArgumentParser()
@@ -82,6 +84,9 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 # must get filename from parser to complete file path
 FILE_PATH = './fitting_images/' + args.path
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
+print("Creating distance matrix...")
+DIST_MAT = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)))
+print("Distance matrix created...")
 
 
 # determines when to save the current population
@@ -143,18 +148,8 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 	# assign fitness to the initial population
 	outputs = list(toolbox.map(toolbox.evaluate, pop))
 
-	# create full matrices of archived and current vectors
-	full_pop_vecs = np.vstack(outputs)
-	# only create the archive vectors if there are individuals in the archive
-	if(len(NOV_ARCHIVE) > 0):
-		# must grab the numpy arrays out of each tuple in novelty archive
-		full_archive_vecs = np.vstack([x[1] for x in NOV_ARCHIVE])
-	else:
-		full_archive_vecs = np.array([[]])
-
 	# create tuples that can be fed into the novelty fitness assignment function
-	output_tups = [(gen, vec[0], PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
-		full_pop_vecs, full_archive_vecs, K_VAL) for gen, vec in zip(pop, outputs)]
+	output_tups = [(gen, vec[0], DIST_MAT) for gen, vec in zip(pop, outputs)]
 
 	# map all outputs to the genotypes with their actual fitness assigned
 	fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
@@ -375,27 +370,11 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		# only the output pixels are mapped back, all evaluation must be done below
 		outputs = list(toolbox.map(toolbox.evaluate, mutants))
 
-                # create full matrices of archived and current vectors
-		full_pop_vecs = np.vstack(outputs)
-		# only create the archive vectors if there are individuals in the archive
-		if(len(NOV_ARCHIVE) > 0):
-			# must grab the numpy arrays out of each tuple in novelty archive
-			full_archive_vecs = np.vstack([x[1] for x in NOV_ARCHIVE])
-		else:
-			full_archive_vecs = np.array([[]])
-
 		# create tuples that can be fed into the novelty fitness assignment function
-		output_tups = [(gen, vec[0], PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION,
-			full_pop_vecs, full_archive_vecs, K_VAL) for gen, vec in zip(mutants, outputs)]
+		output_tups = [(gen, vec[0], DIST_MAT) for gen, vec in zip(mutants, outputs)]
 
 		# map all outputs to the genotypes with their actual fitness assigned
 		fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
-
-		# find all output lists that should be added to the archive
-		for index in range(len(fitnesses)):
-			# randomly add individuals into the archive based on a probability
-			if(np.random.uniform() <= ARCHIVE_PROB):
-				NOV_ARCHIVE.append((mutants[index], outputs[index]))
 
 		org_ind = 0
 		for f,o in zip(fitnesses, outputs):

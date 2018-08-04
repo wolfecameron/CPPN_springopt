@@ -11,7 +11,7 @@ import pickle
 from FULL_CPPN_scoop import activate_CPPN_scoop
 from FULL_CPPN_getpixels import getNormalizedInputs
 from FULL_CPPN_novhelp import get_kNN_measure
-
+from FULL_CPPN_disthelp import get_hausdorff_dist
 
 '''
 fitness evaluation used for DEAP CPPN XOR implementation
@@ -213,10 +213,10 @@ def evaluate_nov_pic(eval_tup):
 	use of NSGA-II"""
 	
 	# unpack the input tuple
-	genotype, output, pix, spec_len, mat_pen, mat_unp, pop_vec, archive_vec, k = eval_tup
+	genotype, output, distances = eval_tup
 	
 	# get fitness for both objectives	
-	target_fit = assign_fit_scoop((output, pix, spec_len, mat_pen, mat_unp))
+	target_fit = get_hausdorff_dist(output, distances)
 	nov_fit = evaluate_con_cost(genotype)#evaluate_novelty((output, pop_vec, archive_vec, k))
 
 	# return fitness for both objectives inside of a tuple
