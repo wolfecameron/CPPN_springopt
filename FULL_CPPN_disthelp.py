@@ -12,18 +12,18 @@ def get_hausdorff_dist(px, distances):
 	and the target pixels. This is the maximum shortest distance
 	between a pixel in px and a pixel in targ_px
 	"""
-
-	# initialize minimum distance to a large value
-	min_dist = sys.maxsize
-		
+	
 	# get distance value for all black pixels in the output
 	all_dist = []
 	for index in range(len(px)):
 		if(px[index] == 1):
 			all_dist.append(distances[index])	
 	
-	# return maximum of the distance values
-	return max(all_dist)
+	# return a large number if there are no black pixels
+	if len(all_dist) == 0:
+		return sys.maxsize,
+	# return maximum of shortest distances
+	return max(all_dist),
 
 
 

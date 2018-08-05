@@ -100,7 +100,7 @@ ARCHIVE_PROB = 0.0
 
 # create class for maximizing fitness and creating individual
 # must name fitness atribute fit_obj because fitness is a instance variable of Genotype class
-creator.create("FitnessMulti", base.Fitness, weights=(1.0, -1.0))
+creator.create("FitnessMulti", base.Fitness, weights=(-1.0, -1.0))
 creator.create("Individual", Genotype, fitness=creator.FitnessMulti) 
 
 # initialize the toolbox
@@ -112,7 +112,7 @@ NUM_OUT = 1
 toolbox.register("individual", creator.Individual, NUM_IN, NUM_OUT)
 
 # register function to create population in the toolbox
-POP_SIZE = 50
+POP_SIZE = 100
 toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = POP_SIZE)
 
 # register all functions needed for evolution in the toolbox
