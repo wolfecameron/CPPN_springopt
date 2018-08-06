@@ -54,18 +54,6 @@ args = parser.parse_args()
 SEED = args.seed
 np.random.seed(SEED)
 
-# the following variables are used to track the improvement of species over generations
-# if a species' fitness becomes stagnant - it is penalized
-MIN_NUM_STAGNANT_GENERATIONS = 35
-STAGNATION_THRESHOLD = 1.05
-LAST_FITNESS = []
-CURRENT_STAG_GENS = []
-
-# the following is used for modifying the speciation threshold
-GENERATION_TO_MODIFY_THRESH = 30 # this is the first generation that the threshold can begin being adjusted
-DESIRED_NUM_SPECIES = 5
-THRESH_MOD = .1
-LAST_NUM_SPECIES = -1
 
 # the following is the minimum proportion of material a solution must use 
 # to not be penalized
@@ -85,16 +73,13 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 FILE_PATH = './fitting_images/' + args.path
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 print("Creating distance matrix...")
-DIST_MAT = [] #get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)))
+DIST_MAT = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)))
 print("Distance matrix created...")
 
 
 # determines when to save the current population
 NGEN_TO_SAVE = args.ngen - 1 # save every n generations
 
-NOV_ARCHIVE = []
-K_VAL = 5
-ARCHIVE_PROB = 0.0
 
 ''' ----- REGISTER ALL FUNCTIONS AND CLASSES WITH DEAP ----- '''
 
@@ -116,11 +101,9 @@ POP_SIZE = 100
 toolbox.register("population", tools.initRepeat, list, toolbox.individual, n = POP_SIZE)
 
 # register all functions needed for evolution in the toolbox
-TOURN_SIZE = 2
 toolbox.register("evaluate", evaluate_pic_scoop)
 toolbox.register("assign_fit", evaluate_nov_pic)
 toolbox.register("select", tools.selNSGA2)
-toolbox.register("tournSelect", tools.selTournament, fit_attr = "fitness")
 toolbox.register("mate", xover)
 toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
@@ -459,6 +442,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
+	'''
 	# open all of the tuples
 	gen_list = [str(i) for i in range(5,6)]	
 	
@@ -516,4 +500,4 @@ if __name__ == '__main__':
 
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-	'''
+
