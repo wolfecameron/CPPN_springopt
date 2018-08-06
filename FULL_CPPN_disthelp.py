@@ -10,7 +10,9 @@ import numpy as np
 def get_hausdorff_dist(px, distances):
 	"""Finds the hausdorff distance between the candidate pixels
 	and the target pixels. This is the maximum shortest distance
-	between a pixel in px and a pixel in targ_px
+	between a pixel in px and a pixel in targ_px. In this case,
+	tha average of a certain percentage of pixels values is taken.
+	Such as the 10 worst pixels in the shape.
 	"""
 	
 	# get distance value for all black pixels in the output
@@ -19,11 +21,19 @@ def get_hausdorff_dist(px, distances):
 		if(px[index] == 1):
 			all_dist.append(distances[index])	
 	
+	# find the number of pixels to be included in the average distance
+	num_px = len(all_dist)*.25
+	
 	# return a large number if there are no black pixels
 	if len(all_dist) == 0:
 		return sys.maxsize,
-	# return maximum of shortest distances
-	return max(all_dist),
+	
+	# sort list in descending order and take average of first
+	# num_px values in the array - return this value
+	all_dist = sorted(np.array(all_dist), ascending=False)
+	avg_dist = np.mean(all_dist[:num_px])
+	
+	return avg_dist 
 
 
 

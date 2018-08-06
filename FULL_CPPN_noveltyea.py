@@ -85,7 +85,7 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 FILE_PATH = './fitting_images/' + args.path
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 print("Creating distance matrix...")
-DIST_MAT = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)))
+DIST_MAT = [] #get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)))
 print("Distance matrix created...")
 
 
@@ -459,27 +459,26 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-	'''
 	# open all of the tuples
-	gen_list = [str(i) for i in range(5,9)]	
+	gen_list = [str(i) for i in range(5,6)]	
 	
 
 	#all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_parameter_test{0}.txt".format(gen), "rb"))[0] for gen in gen_list]
-	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test1.txt", "rb"))[0], 
-			pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test2.txt", "rb"))[0]]
+	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist2.txt", "rb"))[0]] 
+			#pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test2.txt", "rb"))[0]]
 	
 	
 	all_pars = [get_pareto_front(pop) for pop in all_pops]
 	for x in all_pars:
 		print(len(x))
 	colors = get_n_colors(N=len(gen_list))
-	plot_pareto_front(all_pars, ['r', 'y'], gen_list)
+	plot_pareto_front(all_pars, ['r'], gen_list)
 
 	pop = []
-	par = all_pars[1]
+	par = all_pars[0]
 	for ind in par:
 		tup = ind.fitness.values
-		if(3750 <= tup[0] <= 4250 and 2 <= tup[1] <= 10):
+		if(.2 <= tup[1] <= .8):
 			pop.append(ind)
 	
 	print(len(pop))
@@ -517,4 +516,4 @@ if __name__ == '__main__':
 
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-
+	'''
