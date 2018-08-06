@@ -15,25 +15,27 @@ def get_hausdorff_dist(px, distances):
 	Such as the 10 worst pixels in the shape.
 	"""
 	
+	# NOTE: considered a black pixel if value above .3!	
+
 	# get distance value for all black pixels in the output
 	all_dist = []
 	for index in range(len(px)):
-		if(px[index] == 1):
+		if(px[index] >= .3):
 			all_dist.append(distances[index])	
 	
 	# find the number of pixels to be included in the average distance
-	num_px = len(all_dist)*.25
-	
+	num_px = int(len(all_dist)*.25)
+
 	# return a large number if there are no black pixels
 	if len(all_dist) == 0:
 		return sys.maxsize,
 	
 	# sort list in descending order and take average of first
 	# num_px values in the array - return this value
-	all_dist = sorted(np.array(all_dist), ascending=False)
-	avg_dist = np.mean(all_dist[:num_px])
+	all_dist = sorted(np.array(all_dist))
+	avg_dist = np.mean(all_dist[-num_px:])
 	
-	return avg_dist 
+	return avg_dist, 
 
 
 
@@ -43,7 +45,6 @@ def get_dist_mat(targ_pix):
 	in the target pixel matrix
 	"""
 	
-
 	# find location of all black pixels
 	one_pixels = get_black_pixels(targ_pix)
 	
@@ -66,13 +67,13 @@ def get_black_pixels(targ_pix):
 	"""Method that finds the x,y locations of all black pixels
 	in a target image matrix"""
 	
-	one_pixels = []
+	black_pixels = []
 	for r in range(len(targ_pix)):
 		for c in range(len(targ_pix[0])):
 			if(targ_pix[r][c] == 1):
-				one_pixels.append((r, c))
+				black_pixels.append((r, c))
 
-	return one_pixels
+	return black_pixels
 
 
 def get_euclidian_dist(pos, other_pos):
