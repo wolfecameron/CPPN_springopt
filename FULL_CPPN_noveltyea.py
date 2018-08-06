@@ -447,7 +447,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		
 		# save the population if it has reached a saving point in the evolution
 		if(g > 0 and g % NGEN_TO_SAVE == 0):
-			file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_quick_test".format(str(g)))
+			file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_newdist".format(str(g)))
 			save_population(pop, SEED, file_name)				
 
 
