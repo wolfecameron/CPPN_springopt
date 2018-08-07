@@ -7,7 +7,7 @@ import sys
 import numpy as np
 
 
-def get_hausdorff_dist(px, distances):
+def get_hausdorff_dist(px, distances_black, distances_white):
 	"""Finds the hausdorff distance between the candidate pixels
 	and the target pixels. This is the maximum shortest distance
 	between a pixel in px and a pixel in targ_px. In this case,
@@ -21,32 +21,29 @@ def get_hausdorff_dist(px, distances):
 	all_dist = []
 	for index in range(len(px)):
 		if(px[index] >= .3):
-			all_dist.append(distances[index])	
+			all_dist.append(distances_black[index])	
+		else:
+			all_dist.append(distances_white[index])
 	
-	# find the number of pixels to be included in the average distance
-	num_px = int(len(all_dist)*.5)
-
 	# return a large number if there are no black pixels
 	if len(all_dist) == 0:
 		return sys.maxsize,
 	
-	# sort list in descending order and take average of first
-	# num_px values in the array - return this value
-	all_dist = sorted(np.array(all_dist))
-	avg_dist = np.mean(all_dist[-num_px:])
+	# return average of values in the array
+	avg_dist = np.mean(np.array(all_dist))
 	
 	return avg_dist, 
 
 
 
-def get_dist_mat(targ_pix):
+def get_dist_mat(targ_pix, px_val):
 	"""Creates a matrix that finds, for every pixel in the target
 	pixel matrix, the euclidian distance to the nearest black pixel
 	in the target pixel matrix
 	"""
 	
 	# find location of all black pixels
-	one_pixels = get_black_pixels(targ_pix)
+	px_locs = get_pixel_locs(targ_pix, px_val)
 	
 	# instantiate result matrix with all 0s
 	result_mat = np.zeros(targ_pix.shape)
@@ -56,24 +53,24 @@ def get_dist_mat(targ_pix):
 		for c in range(len(targ_pix[0])):
 			# if px is black then closest distance to black px is 0
 			# otherwise find closest distance
-			if(targ_pix[r][c] != 1):
-				closest = get_closest_point((r, c), one_pixels)
+			if(targ_pix[r][c] != px_val):
+				closest = get_closest_point((r, c), pixel_locs)
 				result_mat[r][c] = closest
 
 	return result_mat.flatten()
 
 
-def get_black_pixels(targ_pix):
+def get_pixel_locs(targ_pix, px_val):
 	"""Method that finds the x,y locations of all black pixels
 	in a target image matrix"""
 	
-	black_pixels = []
+	px_locs = []
 	for r in range(len(targ_pix)):
 		for c in range(len(targ_pix[0])):
-			if(targ_pix[r][c] == 1):
-				black_pixels.append((r, c))
+			if(targ_pix[r][c] == px_val):
+				px_locs.append((r, c))
 
-	return black_pixels
+	return px_locs
 
 
 def get_euclidian_dist(pos, other_pos):

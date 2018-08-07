@@ -73,7 +73,8 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 FILE_PATH = './fitting_images/' + args.path
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 print("Creating distance matrix...")
-DIST_MAT = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)))
+DIST_MAT_BLACK = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 1)
+DIST_MAT_WHITE = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 0)
 print("Distance matrix created...")
 
 
