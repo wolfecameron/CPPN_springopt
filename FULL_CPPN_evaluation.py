@@ -212,10 +212,10 @@ def evaluate_nov_pic(eval_tup):
 	use of NSGA-II"""
 	
 	# unpack the input tuple
-	genotype, output, pixels, spec_len, mat_pen, mat_unp = eval_tup
+	genotype, output, black_dist, white_dist = eval_tup
 	
 	# get fitness for both objectives	
-	target_fit = assign_fit_scoop((output, pixels, spec_len, mat_pen, mat_unp))
+	target_fit = get_hausdorff_dist(output, black_dist, white_dist)#assign_fit_scoop((output, pixels, spec_len, mat_pen, mat_unp))
 	con_fit = (len(genotype.connections), )#evaluate_con_cost(genotype)#evaluate_novelty((output, pop_vec, archive_vec, k))
 
 	# return fitness for both objectives inside of a tuple

@@ -73,8 +73,8 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 FILE_PATH = './fitting_images/' + args.path
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 print("Creating distance matrix...")
-DIST_MAT_BLACK = [] #get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 1)
-DIST_MAT_WHITE = [] #get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 0)
+DIST_MAT_BLACK = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 1)
+DIST_MAT_WHITE = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 0)
 print("Distance matrix created...")
 
 
@@ -86,7 +86,7 @@ NGEN_TO_SAVE = args.ngen - 1 # save every n generations
 
 # create class for maximizing fitness and creating individual
 # must name fitness atribute fit_obj because fitness is a instance variable of Genotype class
-creator.create("FitnessMulti", base.Fitness, weights=(1.0, -1.0))
+creator.create("FitnessMulti", base.Fitness, weights=(-1.0, -1.0))
 creator.create("Individual", Genotype, fitness=creator.FitnessMulti) 
 
 # initialize the toolbox
@@ -133,7 +133,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 	outputs = list(toolbox.map(toolbox.evaluate, pop))
 
 	# create tuples that can be fed into the novelty fitness assignment function
-	output_tups = [(gen, vec[0], PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION) for gen, vec in zip(pop, outputs)]
+	output_tups = [(gen, vec[0], DIST_MAT_BLACK, DIST_MAT_WHITE) for gen, vec in zip(pop, outputs)]
 
 	# map all outputs to the genotypes with their actual fitness assigned
 	fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
@@ -355,7 +355,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		outputs = list(toolbox.map(toolbox.evaluate, mutants))
 
 		# create tuples that can be fed into the novelty fitness assignment function
-		output_tups = [(gen, vec[0], PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION) for gen, vec in zip(mutants, outputs)]
+		output_tups = [(gen, vec[0], DIST_MAT_BLACK, DIST_MAT_WHITE) for gen, vec in zip(mutants, outputs)]
 
 		# map all outputs to the genotypes with their actual fitness assigned
 		fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
@@ -443,13 +443,13 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-	'''		
+	'''			
 	# open all of the tuples
 	gen_list = [str(i) for i in range(5,6)]	
 	
 
 	#all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_parameter_test{0}.txt".format(gen), "rb"))[0] for gen in gen_list]
-	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist10.txt", "rb"))[0]] 
+	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist11.txt", "rb"))[0]] 
 			#pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test2.txt", "rb"))[0]]
 	
 	
@@ -463,7 +463,7 @@ if __name__ == '__main__':
 	par = all_pars[0]
 	for ind in par:
 		tup = ind.fitness.values
-		if(.8 <= tup[1] <= 5.0):
+		if(4.0 <= tup[1] <= 20.0):
 			pop.append(ind)
 	
 	print(len(pop))

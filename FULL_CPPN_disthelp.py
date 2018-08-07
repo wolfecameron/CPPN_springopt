@@ -54,7 +54,7 @@ def get_dist_mat(targ_pix, px_val):
 			# if px is black then closest distance to black px is 0
 			# otherwise find closest distance
 			if(targ_pix[r][c] != px_val):
-				closest = get_closest_point((r, c), pixel_locs)
+				closest = get_closest_point((r, c), px_locs)
 				result_mat[r][c] = closest
 
 	return result_mat.flatten()
