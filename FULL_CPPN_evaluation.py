@@ -213,14 +213,14 @@ def evaluate_nov_pic(eval_tup):
 	use of NSGA-II"""
 	
 	# unpack the input tuple
-	genotype, output, distances = eval_tup
+	genotype, output, pixels, spec_len, mat_pen, mat_unp = eval_tup
 	
 	# get fitness for both objectives	
-	target_fit = get_hausdorff_dist(output, distances)
-	nov_fit = evaluate_con_cost(genotype)#evaluate_novelty((output, pop_vec, archive_vec, k))
+	target_fit = assign_fit_scoop((output, pixels, spec_len, mat_pen, mat_unp))
+	con_fit = evaluate_con_cost(genotype)#evaluate_novelty((output, pop_vec, archive_vec, k))
 
 	# return fitness for both objectives inside of a tuple
-	return (target_fit[0], nov_fit[0])
+	return (target_fit[0], con_fit[0])
 
 def evaluate_con_cost(genotype):
 	"""Evaluates the connection cost fitness of a given network

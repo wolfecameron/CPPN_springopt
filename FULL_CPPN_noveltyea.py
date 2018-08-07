@@ -132,7 +132,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 	outputs = list(toolbox.map(toolbox.evaluate, pop))
 
 	# create tuples that can be fed into the novelty fitness assignment function
-	output_tups = [(gen, vec[0], DIST_MAT) for gen, vec in zip(pop, outputs)]
+	output_tups = [(gen, vec[0], PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION) for gen, vec in zip(pop, outputs)]
 
 	# map all outputs to the genotypes with their actual fitness assigned
 	fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
@@ -354,7 +354,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		outputs = list(toolbox.map(toolbox.evaluate, mutants))
 
 		# create tuples that can be fed into the novelty fitness assignment function
-		output_tups = [(gen, vec[0], DIST_MAT) for gen, vec in zip(mutants, outputs)]
+		output_tups = [(gen, vec[0], PIXELS, 1.0, MATERIAL_PENALIZATION_THRESHOLD, MATERIAL_UNPRESENT_PENALIZATION) for gen, vec in zip(mutants, outputs)]
 
 		# map all outputs to the genotypes with their actual fitness assigned
 		fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
@@ -448,7 +448,7 @@ if __name__ == '__main__':
 	
 
 	#all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_parameter_test{0}.txt".format(gen), "rb"))[0] for gen in gen_list]
-	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist5.txt", "rb"))[0]] 
+	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist6.txt", "rb"))[0]] 
 			#pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test2.txt", "rb"))[0]]
 	
 	
