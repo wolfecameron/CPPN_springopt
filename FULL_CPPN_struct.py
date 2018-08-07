@@ -228,6 +228,7 @@ class Genotype():
 		normal_change = .25
 		mult_change = .9
 		mut_prob = .25
+		rand = np.random.uniform()
 		'''
 		# find a random connection weight to mutate
 		index = np.random.randint(len(self.connections))
