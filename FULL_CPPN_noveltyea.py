@@ -73,7 +73,8 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 FILE_PATH = './fitting_images/' + args.path
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 print("Creating distance matrix...")
-DIST_MAT = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)))
+DIST_MAT_BLACK = [] #get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 1)
+DIST_MAT_WHITE = [] #get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 0)
 print("Distance matrix created...")
 
 
@@ -85,7 +86,7 @@ NGEN_TO_SAVE = args.ngen - 1 # save every n generations
 
 # create class for maximizing fitness and creating individual
 # must name fitness atribute fit_obj because fitness is a instance variable of Genotype class
-creator.create("FitnessMulti", base.Fitness, weights=(-1.0, -1.0))
+creator.create("FitnessMulti", base.Fitness, weights=(1.0, -1.0))
 creator.create("Individual", Genotype, fitness=creator.FitnessMulti) 
 
 # initialize the toolbox
@@ -448,7 +449,7 @@ if __name__ == '__main__':
 	
 
 	#all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_parameter_test{0}.txt".format(gen), "rb"))[0] for gen in gen_list]
-	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist6.txt", "rb"))[0]] 
+	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist7.txt", "rb"))[0]] 
 			#pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test2.txt", "rb"))[0]]
 	
 	
