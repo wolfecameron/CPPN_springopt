@@ -24,7 +24,7 @@ def get_hausdorff_dist(px, distances):
 			all_dist.append(distances[index])	
 	
 	# find the number of pixels to be included in the average distance
-	num_px = int(len(all_dist)*.25)
+	num_px = int(len(all_dist)*.5)
 
 	# return a large number if there are no black pixels
 	if len(all_dist) == 0:

@@ -227,8 +227,7 @@ class Genotype():
 		variance = 1.0
 		normal_change = .25
 		mult_change = .9
-		mut_prob = .25
-		'''
+
 		# find a random connection weight to mutate
 		index = np.random.randint(len(self.connections))
 		c = self.connections[index]
@@ -242,18 +241,7 @@ class Genotype():
 		else:
 			# set weight equal to something completely new
 			c.setWeight(np.random.uniform(-1,1))
-		'''
-		for c in self.connections:
-			if(np.random.uniform() <= mut_prob):
-				if(rand <= normal_change):
-					# mutate weights based on a normal distribution around old weight
-					c.setWeight(np.random.normal(c.weight, variance))
-				elif(rand <= mult_change):
-					# set weight equal to its value multiplied by a random factor [.5, 1.5]
-					c.setWeight(c.weight*np.random.uniform(.5, 1.5))
-				else:
-					# set weight equal to something completely new
-					c.setWeight(np.random.uniform(-1,1))
+	
 		
 
 	'''
