@@ -216,7 +216,7 @@ def evaluate_nov_pic(eval_tup):
 	
 	# get fitness for both objectives	
 	target_fit = assign_fit_scoop((output, pixels, spec_len, mat_pen, mat_unp))
-	con_fit = len(genotype.connections)#evaluate_con_cost(genotype)#evaluate_novelty((output, pop_vec, archive_vec, k))
+	con_fit = (len(genotype.connections), )#evaluate_con_cost(genotype)#evaluate_novelty((output, pop_vec, archive_vec, k))
 
 	# return fitness for both objectives inside of a tuple
 	return (target_fit[0], con_fit[0])
