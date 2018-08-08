@@ -73,8 +73,8 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 FILE_PATH = './fitting_images/' + args.path
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 print("Creating distance matrix...")
-DIST_MAT_BLACK = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 1)
-DIST_MAT_WHITE = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 0)
+DIST_MAT_BLACK = [] #get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 1)
+DIST_MAT_WHITE = [] #get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 0)
 print("Distance matrix created...")
 
 
@@ -443,13 +443,13 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-	'''			
+	'''				
 	# open all of the tuples
 	gen_list = [str(i) for i in range(5,6)]	
 	
 
 	#all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_parameter_test{0}.txt".format(gen), "rb"))[0] for gen in gen_list]
-	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist11.txt", "rb"))[0]] 
+	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist12.txt", "rb"))[0]] 
 			#pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test2.txt", "rb"))[0]]
 	
 	
@@ -463,7 +463,7 @@ if __name__ == '__main__':
 	par = all_pars[0]
 	for ind in par:
 		tup = ind.fitness.values
-		if(4.0 <= tup[1] <= 20.0):
+		if(5.0 <= tup[1] <= 30.0):
 			pop.append(ind)
 	
 	print(len(pop))
@@ -489,7 +489,7 @@ if __name__ == '__main__':
 	WEIGHT_MUTPB = .3#float(args.weight)/100.0 #.3 
 	NODE_MUTPB = .05 #float(args.node)/100.0 #.03
 	CON_MUTPB = .25 #float(args.con)/100.0 #.15
-	CXPB = 0.0 #float(args.cross)/100.0 #.1
+	CXPB = .15 #float(args.cross)/100.0 #.1
 	ACTPB = .1 #float(args.act)/100.0 #.05
 	THRESHOLD = 3.0
 	ALPHA = 1.0
@@ -500,5 +500,4 @@ if __name__ == '__main__':
 	NUM_OUT = 1
 
 	# run main EA loop
-	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-			
+	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)	
