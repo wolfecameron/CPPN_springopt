@@ -449,7 +449,7 @@ if __name__ == '__main__':
 	
 
 	#all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_parameter_test{0}.txt".format(gen), "rb"))[0] for gen in gen_list]
-	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist12.txt", "rb"))[0]] 
+	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist13.txt", "rb"))[0]] 
 			#pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test2.txt", "rb"))[0]]
 	
 	
@@ -500,4 +500,5 @@ if __name__ == '__main__':
 	NUM_OUT = 1
 
 	# run main EA loop
-	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)	
+	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
+	
