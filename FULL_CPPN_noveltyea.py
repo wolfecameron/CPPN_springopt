@@ -73,8 +73,8 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 FILE_PATH = './fitting_images/' + args.path
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 print("Creating distance matrix...")
-DIST_MAT_BLACK = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 1)
-DIST_MAT_WHITE = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 0)
+DIST_MAT_BLACK = [] #get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 1)
+DIST_MAT_WHITE = [] #get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 0)
 print("Distance matrix created...")
 
 
@@ -443,13 +443,13 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-	'''				
+					
 	# open all of the tuples
 	gen_list = [str(i) for i in range(5,6)]	
 	
 
 	#all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_parameter_test{0}.txt".format(gen), "rb"))[0] for gen in gen_list]
-	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist13.txt", "rb"))[0]] 
+	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist8.txt", "rb"))[0]] 
 			#pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test2.txt", "rb"))[0]]
 	
 	
@@ -463,7 +463,7 @@ if __name__ == '__main__':
 	par = all_pars[0]
 	for ind in par:
 		tup = ind.fitness.values
-		if(5.0 <= tup[1] <= 30.0):
+		if(10.0 <= tup[1] <= 40.0):
 			pop.append(ind)
 	
 	print(len(pop))
@@ -501,4 +501,4 @@ if __name__ == '__main__':
 
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-	
+	'''

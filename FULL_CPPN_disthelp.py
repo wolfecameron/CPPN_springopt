@@ -30,7 +30,7 @@ def get_hausdorff_dist(px, distances_black, distances_white):
 		return sys.maxsize,
 	
 	# return average of values in the array
-	avg_dist = np.mean(np.array(all_dist))
+	avg_dist = np.sum(np.array(all_dist))
 	
 	return avg_dist, 
 
