@@ -17,11 +17,10 @@ from FULL_CPPN_deaphelp import weightMutate, conMutate, nodeMutate, xover, xover
 from FULL_CPPN_deaphelp import examine_population_dmat, get_file_name, get_pareto_front
 from FULL_CPPN_innovation import GlobalInnovation
 from FULL_CPPN_evalg import getSharingMatrix, speciatePopulationFirstTime, speciatePopulationNotFirstTime
-from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect
+from FULL_CPPN_evalg import getFittestFromSpecies, getNicheCounts, binarySelect, select_n_binary
 from FULL_CPPN_vis import visConnections, visHiddenNodes, findNumGoodSolutions, plot_pareto_front, get_n_colors
 from FULL_CPPN_evaluation import evaluate_novelty, evaluate_pic_scoop
 from FULL_CPPN_evaluation import evaluate_pic_dparam, evaluate_nov_pic
-#from FULL_CPPN_gendata import genGaussianData, genCircularData, genXORData
 from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, get_d_mat, graphImage
 from FULL_CPPN_disthelp import get_dist_mat 
 
@@ -81,6 +80,8 @@ print("Distance matrix created...")
 # determines when to save the current population
 NGEN_TO_SAVE = args.ngen - 1 # save every n generations
 
+# probability of using NSGA-II to select individuals
+SELECT_PROB = .5
 
 ''' ----- REGISTER ALL FUNCTIONS AND CLASSES WITH DEAP ----- '''
 
@@ -104,7 +105,8 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual, n=POP
 # register all functions needed for evolution in the toolbox
 toolbox.register("evaluate", evaluate_pic_scoop)
 toolbox.register("assign_fit", evaluate_nov_pic)
-toolbox.register("select", tools.selNSGA2)
+toolbox.register("select", tools.selNSGA2, k=POP_SIZE)
+toolbox.register("binary_select", select_n_binary, k=POP_SIZE)
 toolbox.register("mate", xover)
 toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
@@ -150,6 +152,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 	for f,o in zip(fitnesses, outputs):
 		gen = pop[org_ind]
 		gen.fitness.values = f
+		gen.fit_obj = f[0]
 		org_ind += 1
 	
 	
@@ -364,6 +367,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		for f,o in zip(fitnesses, outputs):
 			gen = mutants[org_ind]
 			gen.fitness.values = f
+			gen.fit_obj = f[0]
 			org_ind += 1
 
 			'''
@@ -423,8 +427,10 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		#print("Parents/mutants don't dominate:" + str(non_dom/total))
 
 		# select individuals to be present in the next generation's population
-		pop = toolbox.select(pop + mutants, k=POP_SIZE)
-		
+		if(np.random.uniform() <= SELECT_PROB):
+			pop = toolbox.select(pop + mutants)
+		else:
+			pop = toolbox.binary_select(pop + mutants)
 		# must clear the dictionary of innovation numbers for the coming generation
 		# only check to see if same innovation occurs twice in a single generation
 		gb.clearDict()
@@ -449,7 +455,7 @@ if __name__ == '__main__':
 	
 
 	#all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_parameter_test{0}.txt".format(gen), "rb"))[0] for gen in gen_list]
-	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist8.txt", "rb"))[0]] 
+	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist5.txt", "rb"))[0]] 
 			#pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test2.txt", "rb"))[0]]
 	
 	
@@ -501,4 +507,4 @@ if __name__ == '__main__':
 
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-	
+		

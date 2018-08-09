@@ -438,6 +438,46 @@ def calculateSharingFunction(distance, threshold, alpha):
 		return 1 - (distance/threshold)**alpha
 	else:
 		return 0
+def select_n_binary(pop, k):
+	"""Performs binary selection on a given population and
+	returns a new population of k individuals that were
+	selected from the initial population
+
+	pre -- len(pop) >= k
+	"""
+
+	# add all selected individuals into the new pop
+	new_pop = []
+
+	# all individuals get a chance to compete twice
+	pop_1 = copy.deepcopy(pop)
+	pop_2 = copy.deepcopy(pop)
+
+	# must shuffle to make the selections random
+	np.random.shuffle(pop_1)
+	np.random.shuffle(pop_2)
+
+	#performs binary selection on first copy of population
+	while(len(pop_1) > 1 and len(new_pop) < k):
+		# pop two individuals but only put one into new population
+		ind_1 = pop_1.pop()
+		ind_2 = pop_1.pop()
+		if(ind_1.fit_obj < ind_2.fit_obj):
+			new_pop.append(ind_1.getCopy())
+		else:
+			new_pop.append(ind_2.getCopy())
+
+	#performs binary selection on second copy of population
+	while(len(pop_2) > 1 and len(new_pop) < k):
+		ind_1 = pop_2.pop()
+		ind_2 = pop_2.pop()
+		if(ind_1.fit_obj < ind_2.fit_obj):
+			new_pop.append(ind_1.getCopy())
+		else:
+			new_pop.append(ind_2.getCopy())
+	
+	# new pop should be of length k at this point
+	return new_pop
 
 	
 
