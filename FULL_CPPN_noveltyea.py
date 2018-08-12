@@ -106,7 +106,7 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual, n=POP
 toolbox.register("evaluate", evaluate_pic_scoop)
 toolbox.register("assign_fit", evaluate_nov_pic)
 toolbox.register("select", tools.selNSGA2, k=POP_SIZE)
-toolbox.register("binary_select", select_n_binary, k=POP_SIZE)
+toolbox.register("binary_select", tools.selTournament, tournsize=3, k=POP_SIZE, fit_attr='fit_obj')
 toolbox.register("mate", xover)
 toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
@@ -163,7 +163,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 	# run the evolution loop
 	for g in range(NGEN):
 		print("RUNNING GENERATION " + str(g))
-
+		print("POP SIZE: " + str(len(pop)))
 		'''
 		if(g >= GENERATION_TO_MODIFY_THRESH):
 			numSpecies = len(species)
