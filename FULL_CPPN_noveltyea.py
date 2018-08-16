@@ -81,7 +81,7 @@ PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
 NGEN_TO_SAVE = args.ngen - 1 # save every n generations
 
 # probability of using NSGA-II to select individuals
-SELECT_PROB = .5
+SELECT_PROB = 1.0
 
 ''' ----- REGISTER ALL FUNCTIONS AND CLASSES WITH DEAP ----- '''
 
@@ -163,7 +163,6 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 	# run the evolution loop
 	for g in range(NGEN):
 		print("RUNNING GENERATION " + str(g))
-		print("POP SIZE: " + str(len(pop)))
 		'''
 		if(g >= GENERATION_TO_MODIFY_THRESH):
 			numSpecies = len(species)
