@@ -36,6 +36,22 @@ def get_kNN_measure(curr_vec, pop_vecs, archive_vecs, k):
 	return (np.mean(all_dist[:k]),)
 
 
+def get_cross_entropy(actual, expected):
+	"""Takes the resulting pixel list and the expected
+	pixel list and finds the cross entropy value associated
+	with the predicted pixel values
+	
+	Parameters:
+	actual-- pixels predicted by CPPN
+	expected-- the target pixel list
+	
+	pre-- both actual and expected are flattened numpy arrays
+	"""
+	
+	cross_entropy_vec = np.multiply(expected, np.log(actual))
+	cross_entropy = np.sum(cross_entropy_vec)
+	
+	return -1.0*cross_entropy
 
 
 if __name__ == "__main__":

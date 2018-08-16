@@ -10,7 +10,7 @@ import pickle
 
 from FULL_CPPN_scoop import activate_CPPN_scoop
 from FULL_CPPN_getpixels import getNormalizedInputs
-from FULL_CPPN_novhelp import get_kNN_measure
+from FULL_CPPN_novhelp import get_kNN_measure, get_cross_entropy
 from FULL_CPPN_disthelp import get_hausdorff_dist
 
 '''
@@ -212,10 +212,10 @@ def evaluate_nov_pic(eval_tup):
 	use of NSGA-II"""
 	
 	# unpack the input tuple
-	genotype, output, black_dist, white_dist = eval_tup
+	genotype, output, px = eval_tup
 	
 	# get fitness for both objectives	
-	target_fit = get_hausdorff_dist(output, black_dist, white_dist)#assign_fit_scoop((output, pixels, spec_len, mat_pen, mat_unp))
+	target_fit = get_cross_entropy(output, px),#get_hausdorff_dist(output, black_dist, white_dist)#assign_fit_scoop((output, pixels, spec_len, mat_pen, mat_unp))
 	con_fit = (len(genotype.connections), )#evaluate_con_cost(genotype)#evaluate_novelty((output, pop_vec, archive_vec, k))
 
 	# return fitness for both objectives inside of a tuple
