@@ -3,6 +3,8 @@ the novelty search algorithm with the evolution of a CPPN, the majority
 of the functions are utilized in the FULL_CPPN_novelty ea file
 """
 
+import sys
+
 import numpy as np
 
 
@@ -47,10 +49,16 @@ def get_cross_entropy(actual, expected):
 	
 	pre-- both actual and expected are flattened numpy arrays
 	"""
-	
-	cross_entropy_vec = np.multiply(expected, np.log(actual)) + np.multiply(1-expected, np.log(1-actual))
-	cross_entropy = np.sum(cross_entropy_vec)
-	
+
+	# use try except to handle overflow in the log
+	try:	
+		# formula -(y*log(a) + (1-y)log(1-a))
+		ones = np.ones(actual.shape) # used to subtract array from one
+		cross_entropy_vec = np.multiply(expected, np.log(actual)) + np.multiply(ones - expected, np.log(ones - actual))
+		cross_entropy = np.sum(cross_entropy_vec)
+	except:
+		return sys.maxsize
+
 	return -1.0*cross_entropy
 
 
