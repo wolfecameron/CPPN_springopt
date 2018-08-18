@@ -71,10 +71,10 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 # must get filename from parser to complete file path
 FILE_PATH = './fitting_images/' + args.path
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
-#print("Creating distance matrix...")
+print("Creating distance matrix...")
 DIST_MAT_BLACK = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 1)
 DIST_MAT_WHITE = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 0)
-#print("Distance matrix created...")
+print("Distance matrix created...")
 
 
 # determines when to save the current population
@@ -106,7 +106,7 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual, n=POP
 toolbox.register("evaluate", evaluate_pic_scoop)
 toolbox.register("assign_fit", evaluate_nov_pic)
 toolbox.register("select", tools.selNSGA2, k=POP_SIZE)
-toolbox.register("binary_select", tools.selTournament, tournsize=3, k=POP_SIZE, fit_attr='fit_obj')
+#toolbox.register("binary_select", tools.selTournament, tournsize=3, k=POP_SIZE)
 toolbox.register("mate", xover)
 toolbox.register("weightMutate", weightMutate)
 toolbox.register("connectionMutate", conMutate)
@@ -426,10 +426,10 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		#print("Parents/mutants don't dominate:" + str(non_dom/total))
 
 		# select individuals to be present in the next generation's population
-		if(np.random.uniform() <= SELECT_PROB):
-			pop = toolbox.select(pop + mutants)
-		else:
-			pop = toolbox.binary_select(pop + mutants)
+		#if(np.random.uniform() <= SELECT_PROB):
+		pop = toolbox.select(pop + mutants)
+		#else:
+		#	pop = toolbox.binary_select(pop + mutants)
 		# must clear the dictionary of innovation numbers for the coming generation
 		# only check to see if same innovation occurs twice in a single generation
 		gb.clearDict()
@@ -448,13 +448,13 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-					
+	'''				
 	# open all of the tuples
 	gen_list = [str(i) for i in range(5,6)]	
 	
 
 	#all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_parameter_test{0}.txt".format(gen), "rb"))[0] for gen in gen_list]
-	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdist6.txt", "rb"))[0]] 
+	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_camdist1.txt", "rb"))[0]] 
 			#pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test2.txt", "rb"))[0]]
 	
 	
@@ -504,4 +504,4 @@ if __name__ == '__main__':
 
 	# run main EA loop
 	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-	'''			
+				
