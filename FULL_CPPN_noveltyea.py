@@ -54,12 +54,6 @@ SEED = args.seed
 np.random.seed(SEED)
 
 
-# the following is the minimum proportion of material a solution must use 
-# to not be penalized
-MATERIAL_PENALIZATION_THRESHOLD = .2
-MATERIAL_UNPRESENT_PENALIZATION = 2
-
-
 # sets global parameters for 2D structure being created by CPPN, generates inputs
 NORM_IN_FILE = open("norm_in.txt", "wb")
 NUM_X = 75
@@ -448,13 +442,13 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 
 # runs the main evolutionary loop if this file is ran from terminal
 if __name__ == '__main__':
-	'''				
+	'''
 	# open all of the tuples
 	gen_list = [str(i) for i in range(5,6)]	
 	
 
 	#all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_parameter_test{0}.txt".format(gen), "rb"))[0] for gen in gen_list]
-	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_camdist1.txt", "rb"))[0]] 
+	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_camdist2.txt", "rb"))[0]] 
 			#pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test2.txt", "rb"))[0]]
 	
 	
@@ -503,5 +497,4 @@ if __name__ == '__main__':
 	NUM_OUT = 1
 
 	# run main EA loop
-	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
-				
+	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)				
