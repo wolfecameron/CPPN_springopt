@@ -65,10 +65,10 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 # must get filename from parser to complete file path
 FILE_PATH = './fitting_images/' + args.path
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
-print("Creating distance matrix...")
-DIST_MAT_BLACK = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 1)
-DIST_MAT_WHITE = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 0)
-print("Distance matrix created...")
+#print("Creating distance matrix...")
+#DIST_MAT_BLACK = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 1)
+#DIST_MAT_WHITE = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 0)
+#print("Distance matrix created...")
 
 
 # determines when to save the current population
@@ -129,7 +129,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 	outputs = list(toolbox.map(toolbox.evaluate, pop))
 
 	# create tuples that can be fed into the novelty fitness assignment function
-	output_tups = [(gen, vec[0], DIST_MAT_BLACK, DIST_MAT_WHITE) for gen, vec in zip(pop, outputs)]
+	output_tups = [(gen, vec[0], PIXELS) for gen, vec in zip(pop, outputs)]
 
 	# map all outputs to the genotypes with their actual fitness assigned
 	fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
@@ -351,7 +351,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		outputs = list(toolbox.map(toolbox.evaluate, mutants))
 
 		# create tuples that can be fed into the novelty fitness assignment function
-		output_tups = [(gen, vec[0], DIST_MAT_BLACK, DIST_MAT_WHITE) for gen, vec in zip(mutants, outputs)]
+		output_tups = [(gen, vec[0], PIXELS) for gen, vec in zip(mutants, outputs)]
 
 		# map all outputs to the genotypes with their actual fitness assigned
 		fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
@@ -448,7 +448,7 @@ if __name__ == '__main__':
 	
 
 	#all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_parameter_test{0}.txt".format(gen), "rb"))[0] for gen in gen_list]
-	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_camdist2.txt", "rb"))[0]] 
+	all_pops = [pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_crossent1.txt", "rb"))[0]] 
 			#pickle.load(open("/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_quick_test2.txt", "rb"))[0]]
 	
 	
@@ -497,4 +497,6 @@ if __name__ == '__main__':
 	NUM_OUT = 1
 
 	# run main EA loop
-	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)				
+	finalPop = main(NGEN, WEIGHT_MUTPB, NODE_MUTPB, CON_MUTPB, CXPB, ACTPB, THRESHOLD, ALPHA, THETA1, THETA2, THETA3, NUM_IN, NUM_OUT)
+	
+				
