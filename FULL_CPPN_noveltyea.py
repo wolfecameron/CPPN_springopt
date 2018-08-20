@@ -23,7 +23,7 @@ from FULL_CPPN_evaluation import evaluate_novelty, evaluate_pic_scoop
 from FULL_CPPN_evaluation import evaluate_pic_dparam, evaluate_nov_pic
 from FULL_CPPN_getpixels import getBinaryPixels, getNormalizedInputs, get_d_mat, graphImage
 from FULL_CPPN_disthelp import get_dist_mat 
-
+from FULL_CPPN_deapconfig import get_tb 
 
 # set up arguments to be parsed from the terminal
 parser = argparse.ArgumentParser()
@@ -79,6 +79,10 @@ SELECT_PROB = 2.0
 
 ''' ----- REGISTER ALL FUNCTIONS AND CLASSES WITH DEAP ----- '''
 
+# retrieve the toolbox from the deap config file
+toolbox = get_tb()
+
+'''
 # create class for maximizing fitness and creating individual
 # must name fitness atribute fit_obj because fitness is a instance variable of Genotype class
 creator.create("FitnessMulti", base.Fitness, weights=(-1.0, -1.0))
@@ -107,7 +111,7 @@ toolbox.register("connectionMutate", conMutate)
 toolbox.register("nodeMutate", nodeMutate)
 toolbox.register("activationMutate", actMutate)
 toolbox.register("map", futures.map)
-
+'''
 
 '''
 the main function for the DEAP evolutionary algorithm
