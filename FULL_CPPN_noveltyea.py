@@ -65,10 +65,10 @@ pickle.dump(NORM_IN, NORM_IN_FILE)
 # must get filename from parser to complete file path
 FILE_PATH = './fitting_images/' + args.path
 PIXELS = getBinaryPixels(FILE_PATH, NUM_X, NUM_Y)
-#print("Creating distance matrix...")
-#DIST_MAT_BLACK = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 1)
-#DIST_MAT_WHITE = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 0)
-#print("Distance matrix created...")
+print("Creating distance matrix...")
+DIST_MAT_BLACK = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 1)
+DIST_MAT_WHITE = get_dist_mat(np.reshape(PIXELS, (NUM_X, NUM_Y)), 0)
+print("Distance matrix created...")
 
 
 # determines when to save the current population
@@ -133,7 +133,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 	outputs = list(toolbox.map(toolbox.evaluate, pop))
 
 	# create tuples that can be fed into the novelty fitness assignment function
-	output_tups = [(gen, vec[0], PIXELS) for gen, vec in zip(pop, outputs)]
+	output_tups = [(gen, vec[0], DIST_MAT_BLACK, DIST_MAT_WHITE) for gen, vec in zip(pop, outputs)]
 
 	# map all outputs to the genotypes with their actual fitness assigned
 	fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
@@ -355,7 +355,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		outputs = list(toolbox.map(toolbox.evaluate, mutants))
 
 		# create tuples that can be fed into the novelty fitness assignment function
-		output_tups = [(gen, vec[0], PIXELS) for gen, vec in zip(mutants, outputs)]
+		output_tups = [(gen, vec[0], DIST_MAT_BLACK, DIST_MAT_WHITE) for gen, vec in zip(mutants, outputs)]
 
 		# map all outputs to the genotypes with their actual fitness assigned
 		fitnesses = list(toolbox.map(toolbox.assign_fit, output_tups))
@@ -434,7 +434,7 @@ def main(nGen, weightMutpb, nodeMutpb, conMutpb, cxPb, actMutpb, thresh, alpha, 
 		
 		# save the population if it has reached a saving point in the evolution
 		if(g > 0 and g % NGEN_TO_SAVE == 0):
-			file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_crossent".format(str(g)))
+			file_name = get_file_name("/home/crwolfe/Documents/CPPN_test_env/CPPN_pop_result", "CPPN_newdistcrossent".format(str(g)))
 			save_population(pop, SEED, file_name)				
 
 

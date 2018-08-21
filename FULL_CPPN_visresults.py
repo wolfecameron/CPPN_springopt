@@ -2,6 +2,7 @@
 CPPN results that were evolved using DEAP - configures all DEAP information and
 then contians functions to visualize results in certain ways'''
 
+import numpy as np
 import pickle
 
 # all deap configuration is created when you import the file
@@ -9,6 +10,7 @@ from FULL_CPPN_deapconfig import get_tb
 from FULL_CPPN_struct import Genotype
 from FULL_CPPN_vis import plot_pareto_front
 from FULL_CPPN_getpixels import graphImage
+from FULL_CPPN_deaphelp import get_pareto_front
 
 # get toolbox from deap config in case it is needed
 toolbox = get_tb()
@@ -44,7 +46,7 @@ def view_results(pop, num_x, num_y):
 	"""        
 	
 	# must load input to get ouput from the CPPN
-	NORM_IN = pickle.load("norm_in.txt", "rb") 
+	NORM_IN = pickle.load(open("norm_in.txt", "rb")) 
 
 	counter = 0 # use to print index to terminal
 	for ind in pop:
@@ -52,7 +54,7 @@ def view_results(pop, num_x, num_y):
 		
 		# instantiate a new genotype that can be used to replicate result individual
 		# because results were in pickle file they lost all class methods
-		org = Genotype(NUM_IN, NUM_OUT)
+		org = Genotype(ind.numIn - 1, ind.numOut)
 		org.connections = ind.connections
 		org.nodes = ind.nodes
 		org.gSize = ind.gSize
@@ -60,7 +62,7 @@ def view_results(pop, num_x, num_y):
 		# get CPPN output
 		output = []
 		for ins in NORM_IN:
-			output.append(org.getOutputs(ins)[0])
+			output.append(org.getOutput(ins)[0])
 		graphImage(np.array(output), num_x, num_y, 200)
 		
 		# graph genotype of individual after graphing phenotype
@@ -69,4 +71,12 @@ def view_results(pop, num_x, num_y):
 
 if __name__ == '__main__':
 	"""Main method - used to actual view results"""
-
+	pop = load_pops(["/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_crossent2.txt"])[0]
+	par_frnt = get_pareto_front(pop)
+	all_pars = []
+	all_pars.append(par_frnt)
+	plot_pareto_front(all_pars, ['r'], ['par_front'])
+	print(len(all_pars[0]))
+	par = trim_par_front(all_pars[0], lambda x: x.fitness.values[1] > 4)
+	print(len(par))
+	view_results(par, 75, 75)
