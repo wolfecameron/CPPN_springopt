@@ -53,7 +53,7 @@ class Genotype():
 
 		# create output nodes, output nodes always have step function
 		for i in range(self.numOut):
-			self.nodes.append(Node(i + self.numIn,0,sys.maxsize,0))#0))
+			self.nodes.append(Node(i + self.numIn,0,sys.maxsize,1))#0))
 
 		# used to track innovation number as connections are created
 		innovationCounter = 0
