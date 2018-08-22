@@ -71,12 +71,12 @@ def view_results(pop, num_x, num_y):
 
 if __name__ == '__main__':
 	"""Main method - used to actual view results"""
-	pop = load_pops(["/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_crossent2.txt"])[0]
+	pop = load_pops(["/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdistcrossent1.txt"])[0]
 	par_frnt = get_pareto_front(pop)
 	all_pars = []
 	all_pars.append(par_frnt)
 	plot_pareto_front(all_pars, ['r'], ['par_front'])
 	print(len(all_pars[0]))
-	par = trim_par_front(all_pars[0], lambda x: x.fitness.values[1] > 4)
+	par = trim_par_front(all_pars[0], lambda x: x.fitness.values[1] > 10)
 	print(len(par))
 	view_results(par, 75, 75)
