@@ -77,6 +77,6 @@ if __name__ == '__main__':
 	all_pars.append(par_frnt)
 	plot_pareto_front(all_pars, ['r'], ['par_front'])
 	print(len(all_pars[0]))
-	par = trim_par_front(all_pars[0], lambda x: x.fitness.values[1] > 10)
+	par = trim_par_front(all_pars[0], lambda x: x.fitness.values[1] > 5)
 	print(len(par))
 	view_results(par, 75, 75)

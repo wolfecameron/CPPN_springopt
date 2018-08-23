@@ -22,13 +22,9 @@ def get_hausdorff_dist(px, distances_black, distances_white):
 	for index in range(len(px)):
 		# apply the exponential function to each distance to penalize pixels exponentially
 		if(px[index] >= .3):
-			all_dist.append(np.exp(distances_black[index]) - 1)	
+			all_dist.append(distances_black[index])	
 		else:
-			all_dist.append(np.exp(distances_white[index]) - 1)
-	
-	# return a large number if there are no black pixels
-	if len(all_dist) == 0:
-		return sys.maxsize,
+			all_dist.append(distances_white[index])
 	
 	# return average of values in the array
 	avg_dist = np.sum(np.array(all_dist))
