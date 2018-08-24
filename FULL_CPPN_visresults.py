@@ -71,7 +71,7 @@ def view_results(pop, num_x, num_y):
 
 if __name__ == '__main__':
 	"""Main method - used to actual view results"""
-	pop = load_pops(["/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdistcrossent1.txt"])[0]
+	pop = load_pops(["/home/wolfecameron/Desktop/CPPN_pop_result/CPPN_newdistcrossent3.txt"])[0]
 	par_frnt = get_pareto_front(pop)
 	all_pars = []
 	all_pars.append(par_frnt)
