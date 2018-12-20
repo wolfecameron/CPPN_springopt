@@ -21,10 +21,10 @@ class Node:
 	def __init__(self, nodeNumber, value, layer, actKey):
 		if(actKey < 0 or actKey > 8):
 			print("Error: actKey is not within range.")
-		else:
+		else:	
+			# layer is not a true layer - only used for sorting nodes based on network topology
 			self.nodeNum = nodeNumber
 			self.value = value
-			# layer is not a true layer - only used for sorting nodes based on network topology
 			self.layer = layer
 			self.actKey = actKey
 
